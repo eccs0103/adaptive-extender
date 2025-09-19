@@ -1,6 +1,6 @@
 {
 	"name": "adaptive-extender",
-	"version": "0.2.14",
+	"version": "0.5.0",
 	"description": "Adaptive library for JS/TS development environments",
 	"type": "module",
 	"main": "./dist/core/index.js",

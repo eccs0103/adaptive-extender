@@ -1,7 +1,5 @@
 "use strict";
 
-import { ImplementationError } from "./error.js";
-
 //#region Vector
 /**
  * @abstract
@@ -25,7 +23,7 @@ class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
 			if (predicate(metric, index++)) yield metric;
 		}
 	}
-	*flatMap<U>(callback: (value: number, index: number) => IterableIterator<U>): IteratorObject<U, BuiltinIteratorReturn> {
+	*flatMap<U>(callback: (value: number, index: number) => Iterable<U>): IteratorObject<U, BuiltinIteratorReturn> {
 		let index = 0;
 		for (const metric of this) yield* callback(metric, index++);
 	}
@@ -92,7 +90,7 @@ class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
 		return this;
 	}
 	insteadInfinity<T>(value: T): this | T {
-		if (!Number.isFinite(this)) return value;
+		if (!Vector.isFinite(this)) return value;
 		return this;
 	}
 	insteadZero<T>(value: T): this | T {
@@ -102,7 +100,6 @@ class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
 	//#endregion
 	//#region Converters
 	*[Symbol.iterator](): IteratorObject<number, BuiltinIteratorReturn> {
-		throw new ImplementationError();
 	}
 	toFixed(): string;
 	toFixed(digits: number): string;

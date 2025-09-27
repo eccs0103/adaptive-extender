@@ -1,67 +1,63 @@
 import "adaptive-extender/core";
-import { strict as assert } from "assert";
+import { describe, it, expect } from "vitest";
 
 describe("Number extensions", () => {
 	describe("Number.import", () => {
 		it("should import a valid number", () => {
-			assert.strictEqual(Number.import(42), 42);
-			assert.strictEqual(Number.import(-3.14), -3.14);
+			expect(Number.import(42)).toBe(42);
+			expect(Number.import(-3.14)).toBe(-3.14);
 		});
 
 		it("should throw TypeError for non-number types", () => {
-			assert.throws(() => Number.import("42"), TypeError);
-			assert.throws(() => Number.import(null), TypeError);
-			assert.throws(() => Number.import(undefined), TypeError);
-			assert.throws(() => Number.import({}), TypeError);
-			assert.throws(() => Number.import([]), TypeError);
-			assert.throws(() => Number.import(true), TypeError);
+			expect(() => Number.import("42" as any)).toThrow(TypeError);
+			expect(() => Number.import(null as any)).toThrow(TypeError);
+			expect(() => Number.import(undefined as any)).toThrow(TypeError);
+			expect(() => Number.import({} as any)).toThrow(TypeError);
+			expect(() => Number.import([] as any)).toThrow(TypeError);
+			expect(() => Number.import(true as any)).toThrow(TypeError);
 		});
 
 		it("should use custom name in error message", () => {
-			try {
-				Number.import("not-a-number", "customName");
-			} catch (e: any) {
-				assert.ok(e.message.includes("customName"));
-			}
+			expect(() => Number.import("not-a-number" as any, "customName")).toThrow(/customName/);
 		});
 	});
 
 	describe("Number.prototype.insteadNaN", () => {
 		it("should return fallback for NaN", () => {
-			assert.strictEqual((NaN as number).insteadNaN("fallback"), "fallback");
+			expect((NaN as number).insteadNaN("fallback")).toBe("fallback");
 		});
 
 		it("should return original number if not NaN", () => {
-			assert.strictEqual((5 as number).insteadNaN("fallback"), 5);
-			assert.strictEqual((0 as number).insteadNaN("fallback"), 0);
+			expect((5 as number).insteadNaN("fallback")).toBe(5);
+			expect((0 as number).insteadNaN("fallback")).toBe(0);
 		});
 	});
 
 	describe("Number.prototype.insteadInfinity", () => {
 		it("should return fallback for NaN", () => {
-			assert.strictEqual((NaN as number).insteadInfinity("fallback"), "fallback");
+			expect((NaN as number).insteadInfinity("fallback")).toBe("fallback");
 		});
 
 		it("should return fallback for Infinity", () => {
-			assert.strictEqual((Infinity as number).insteadInfinity("fallback"), "fallback");
-			assert.strictEqual((-Infinity as number).insteadInfinity("fallback"), "fallback");
+			expect((Infinity as number).insteadInfinity("fallback")).toBe("fallback");
+			expect((-Infinity as number).insteadInfinity("fallback")).toBe("fallback");
 		});
 
 		it("should return original number if finite", () => {
-			assert.strictEqual((42 as number).insteadInfinity("fallback"), 42);
-			assert.strictEqual((0 as number).insteadInfinity("fallback"), 0);
+			expect((42 as number).insteadInfinity("fallback")).toBe(42);
+			expect((0 as number).insteadInfinity("fallback")).toBe(0);
 		});
 	});
 
 	describe("Number.prototype.insteadZero", () => {
 		it("should return fallback for zero", () => {
-			assert.strictEqual((0 as number).insteadZero("fallback"), "fallback");
+			expect((0 as number).insteadZero("fallback")).toBe("fallback");
 		});
 
 		it("should return original number if not zero", () => {
-			assert.strictEqual((1 as number).insteadZero("fallback"), 1);
-			assert.strictEqual((-1 as number).insteadZero("fallback"), -1);
-			assert.strictEqual((3.14 as number).insteadZero("fallback"), 3.14);
+			expect((1 as number).insteadZero("fallback")).toBe(1);
+			expect((-1 as number).insteadZero("fallback")).toBe(-1);
+			expect((3.14 as number).insteadZero("fallback")).toBe(3.14);
 		});
 	});
 });

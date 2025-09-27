@@ -1,63 +1,63 @@
 import "adaptive-extender/core";
-import { strict as assert } from "assert";
+import { describe, it, expect } from "vitest";
 
 describe("Global extensions", () => {
 	describe("global prototype function", () => {
 		it("should return the constructor of a string", () => {
-			assert.strictEqual(prototype("hello"), String);
+			expect(prototype("hello")).toBe(String);
 		});
 
 		it("should return the constructor of a number", () => {
-			assert.strictEqual(prototype(42), Number);
+			expect(prototype(42)).toBe(Number);
 		});
 
 		it("should return the constructor of an array", () => {
-			assert.strictEqual(prototype([1, 2, 3]), Array);
+			expect(prototype([1, 2, 3])).toBe(Array);
 		});
 
 		it("should return the constructor of an object", () => {
-			assert.strictEqual(prototype({ a: 1 }), Object);
+			expect(prototype({ a: 1 })).toBe(Object);
 		});
 
 		it("should return the constructor of a custom class instance", () => {
 			class MyClass { }
 			const instance = new MyClass();
-			assert.strictEqual(prototype(instance), MyClass);
+			expect(prototype(instance)).toBe(MyClass);
 		});
 	});
 
 	describe("global typename function", () => {
 		it("should return 'Undefined' for undefined", () => {
-			assert.strictEqual(typename(undefined), "Undefined");
+			expect(typename(undefined)).toBe("Undefined");
 		});
 
 		it("should return 'Null' for null", () => {
-			assert.strictEqual(typename(null), "Null");
+			expect(typename(null)).toBe("Null");
 		});
 
 		it("should return 'String' for string values", () => {
-			assert.strictEqual(typename("test"), "String");
+			expect(typename("test")).toBe("String");
 		});
 
 		it("should return 'Number' for number values", () => {
-			assert.strictEqual(typename(123), "Number");
+			expect(typename(123)).toBe("Number");
 		});
 
 		it("should return 'Boolean' for boolean values", () => {
-			assert.strictEqual(typename(true), "Boolean");
+			expect(typename(true)).toBe("Boolean");
 		});
 
 		it("should return 'Array' for arrays", () => {
-			assert.strictEqual(typename([1, 2, 3]), "Array");
+			expect(typename([1, 2, 3])).toBe("Array");
 		});
 
 		it("should return 'Object' for plain objects", () => {
-			assert.strictEqual(typename({}), "Object");
+			expect(typename({})).toBe("Object");
 		});
 
 		it("should return the class name for custom class instances", () => {
 			class Custom { }
-			assert.strictEqual(typename(new Custom()), "Custom");
+			expect(typename(new Custom())).toBe("Custom");
 		});
 	});
 });

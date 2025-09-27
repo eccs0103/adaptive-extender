@@ -1,4 +1,3 @@
-import "adaptive-extender/web";
 import { FastEngine, PreciseEngine, StaticEngine, WebEngine } from "adaptive-extender/web";
 import { describe, it, expect, vi } from "vitest";
 

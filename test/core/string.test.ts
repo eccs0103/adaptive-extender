@@ -1,106 +1,102 @@
 import "adaptive-extender/core";
-import { strict as assert } from "assert";
+import { describe, it, expect } from "vitest";
 
 describe("String extensions", () => {
 	describe("String.import", () => {
 		it("should return the string if valid", () => {
-			assert.equal(String.import("hello"), "hello");
+			expect(String.import("hello")).toBe("hello");
 		});
 
 		it("should throw TypeError if source is not a string", () => {
-			assert.throws(() => String.import(123), TypeError);
-			assert.throws(() => String.import({}, "obj"), TypeError);
-			assert.throws(() => String.import(null, "null"), TypeError);
-			assert.throws(() => String.import(undefined, "undef"), TypeError);
+			expect(() => String.import(123 as any)).toThrow(TypeError);
+			expect(() => String.import({} as any, "obj")).toThrow(TypeError);
+			expect(() => String.import(null as any, "null")).toThrow(TypeError);
+			expect(() => String.import(undefined as any, "undef")).toThrow(TypeError);
 		});
 
 		it("should use custom name in error message", () => {
-			try {
-				String.import(42, "customName");
-			} catch (e: any) {
-				assert.ok(e.message.includes("customName"));
-			}
+			expect(() => String.import(42 as any, "customName")).toThrow(/customName/);
 		});
 	});
 
 	describe("String.empty", () => {
 		it("should be an empty string", () => {
-			assert.equal(String.empty, "");
+			expect(String.empty).toBe("");
 		});
 
 		it("should be immutable", () => {
-			assert.throws(() => { (String as any).empty = "not empty"; });
+			expect(() => { (String as any).empty = "not empty"; }).toThrow();
 		});
 	});
 
 	describe("String.isEmpty", () => {
 		it("should return true for empty string", () => {
-			assert.equal(String.isEmpty(""), true);
+			expect(String.isEmpty("")).toBe(true);
 		});
 
 		it("should return false for non-empty string", () => {
-			assert.equal(String.isEmpty("abc"), false);
+			expect(String.isEmpty("abc")).toBe(false);
 		});
 	});
 
 	describe("String.isWhitespace", () => {
 		it("should return true for empty string", () => {
-			assert.equal(String.isWhitespace(""), true);
+			expect(String.isWhitespace("")).toBe(true);
 		});
 
 		it("should return true for whitespace-only string", () => {
-			assert.equal(String.isWhitespace("   "), true);
-			assert.equal(String.isWhitespace("\t\n"), true);
+			expect(String.isWhitespace("   ")).toBe(true);
+			expect(String.isWhitespace("\t\n")).toBe(true);
 		});
 
 		it("should return false for non-whitespace string", () => {
-			assert.equal(String.isWhitespace("abc"), false);
-			assert.equal(String.isWhitespace(" abc "), false);
+			expect(String.isWhitespace("abc")).toBe(false);
+			expect(String.isWhitespace(" abc ")).toBe(false);
 		});
 	});
 
 	describe("String.prototype.insteadEmpty", () => {
 		it("should return fallback for empty string", () => {
-			assert.equal("".insteadEmpty("fallback"), "fallback");
+			expect("".insteadEmpty("fallback")).toBe("fallback");
 		});
 
 		it("should return original string for non-empty", () => {
-			assert.equal("hello".insteadEmpty("fallback"), "hello");
+			expect("hello".insteadEmpty("fallback")).toBe("hello");
 		});
 	});
 
 	describe("String.prototype.insteadWhitespace", () => {
 		it("should return fallback for whitespace-only string", () => {
-			assert.equal("   ".insteadWhitespace("fallback"), "fallback");
-			assert.equal("\n\t".insteadWhitespace("fallback"), "fallback");
+			expect("   ".insteadWhitespace("fallback")).toBe("fallback");
+			expect("\n\t".insteadWhitespace("fallback")).toBe("fallback");
 		});
 
 		it("should return original string for non-whitespace", () => {
-			assert.equal("hello".insteadWhitespace("fallback"), "hello");
-			assert.equal(" abc ".insteadWhitespace("fallback"), " abc ");
+			expect("hello".insteadWhitespace("fallback")).toBe("hello");
+			expect(" abc ".insteadWhitespace("fallback")).toBe(" abc ");
 		});
 	});
 
 	describe("String.prototype.toTitleCase", () => {
 		it("should capitalize first letter of each word", () => {
-			assert.equal("hello world".toTitleCase(), "Hello World");
-			assert.equal("foo bar baz".toTitleCase(), "Foo Bar Baz");
+			expect("hello world".toTitleCase()).toBe("Hello World");
+			expect("foo bar baz".toTitleCase()).toBe("Foo Bar Baz");
 		});
 
 		it("should handle mixed case and punctuation", () => {
-			assert.equal("hElLo, wOrLd!".toTitleCase(), "Hello, World!");
-			assert.equal("a.b c".toTitleCase(), "A.B C");
+			expect("hElLo, wOrLd!".toTitleCase()).toBe("Hello, World!");
+			expect("a.b c".toTitleCase()).toBe("A.B C");
 		});
 	});
 
 	describe("String.prototype.toLocalTitleCase", () => {
 		it("should capitalize first letter of each word with locale", () => {
-			assert.equal("straße".toLocalTitleCase("de"), "StraßE");
-			assert.equal("istanbul".toLocalTitleCase("tr"), "İstanbul");
+			expect("straße".toLocalTitleCase("de")).toBe("StraßE");
+			expect("istanbul".toLocalTitleCase("tr")).toBe("İstanbul");
 		});
 
 		it("should handle array of locales", () => {
-			assert.equal("istanbul".toLocalTitleCase(["tr", "en"]), "İstanbul");
+			expect("istanbul".toLocalTitleCase(["tr", "en"])).toBe("İstanbul");
 		});
 	});
 });

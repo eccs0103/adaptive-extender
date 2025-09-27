@@ -4,8 +4,6 @@
 		"target": "ES2016",
 		"module": "CommonJS",
 		"lib": [ "ES2016", "DOM", "DOM.Iterable"],
-		"types": [ ],
-		"outDir": "./dist",
 
 		/* Interop & Compatibility */
 		"esModuleInterop": true,

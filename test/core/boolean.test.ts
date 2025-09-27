@@ -1,59 +1,44 @@
 import "adaptive-extender/core";
-import { strict as assert } from "assert";
+import { describe, it, expect } from "vitest";
 
 describe("Boolean extensions", () => {
 	describe("Boolean.import", () => {
 		it("should import true as true", () => {
-			assert.equal(Boolean.import(true), true);
+			expect(Boolean.import(true)).toBe(true);
 		});
 
 		it("should import false as false", () => {
-			assert.equal(Boolean.import(false), false);
+			expect(Boolean.import(false)).toBe(false);
 		});
 
 		it("should throw TypeError for non-boolean values (number)", () => {
-			assert.throws(
-				() => Boolean.import(1),
-				(err: any) =>
-					err instanceof TypeError &&
-					err.message === `Unable to import boolean from [source] due its ${typename(1)} type`
-			);
+			const value = 1;
+			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should throw TypeError for non-boolean values (string)", () => {
-			assert.throws(
-				() => Boolean.import("true"),
-				(err: any) =>
-					err instanceof TypeError &&
-					err.message === `Unable to import boolean from [source] due its ${typename("true")} type`
-			);
+			const value = "true";
+			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should throw TypeError for non-boolean values (object)", () => {
-			assert.throws(
-				() => Boolean.import({}),
-				(err: any) =>
-					err instanceof TypeError &&
-					err.message === `Unable to import boolean from [source] due its ${typename({})} type`
-			);
+			const value = {};
+			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should throw TypeError for non-boolean values (undefined)", () => {
-			assert.throws(
-				() => Boolean.import(undefined),
-				(err: any) =>
-					err instanceof TypeError &&
-					err.message === `Unable to import boolean from [source] due its ${typename(undefined)} type`
-			);
+			const value = undefined;
+			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should use custom name in error message", () => {
-			assert.throws(
-				() => Boolean.import(0, "customName"),
-				(err: any) =>
-					err instanceof TypeError &&
-					err.message === `Unable to import boolean from customName due its ${typename(0)} type`
-			);
+			const value = 0;
+			const expectedMessage = `Unable to import boolean from customName due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any, "customName")).toThrow(new TypeError(expectedMessage));
 		});
 	});
 });

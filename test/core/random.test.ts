@@ -1,5 +1,5 @@
 import { Random } from "adaptive-extender/core";
-import { strict as assert } from "assert";
+import { describe, it, expect } from "vitest";
 
 describe("Random", () => {
 	const random = new Random();
@@ -7,61 +7,61 @@ describe("Random", () => {
 	describe("boolean()", () => {
 		it("should return a boolean", () => {
 			const value = random.boolean();
-			assert.equal(typeof value, "boolean");
+			expect(typeof value).toBe("boolean");
 		});
 
 		it("should throw if factor is not finite", () => {
-			assert.throws(() => random.boolean(Infinity));
-			assert.throws(() => random.boolean(NaN));
+			expect(() => random.boolean(Infinity)).toThrow();
+			expect(() => random.boolean(NaN)).toThrow();
 		});
 
 		it("should throw if factor is out of range", () => {
-			assert.throws(() => random.boolean(-0.1), RangeError);
-			assert.throws(() => random.boolean(1.1), RangeError);
+			expect(() => random.boolean(-0.1)).toThrow(RangeError);
+			expect(() => random.boolean(1.1)).toThrow(RangeError);
 		});
 
 		it("should respect the factor probability", () => {
 			const results = Array.from({ length: 1000 }, () => random.boolean(0.8));
 			const trueCount = results.filter(Boolean).length;
-			assert.ok(trueCount > 700);
+			expect(trueCount).toBeGreaterThan(700);
 		});
 	});
 
 	describe("number()", () => {
 		it("should return a number", () => {
-			assert.equal(typeof random.number(), "number");
+			expect(typeof random.number()).toBe("number");
 		});
 
 		it("should return a number between 0 and max", () => {
 			const value = random.number(10);
-			assert.ok(value >= 0);
-			assert.ok(value < 10);
+			expect(value).toBeGreaterThanOrEqual(0);
+			expect(value).toBeLessThan(10);
 		});
 
 		it("should return a number between min and max", () => {
 			const value = random.number(5, 15);
-			assert.ok(value >= 5);
-			assert.ok(value < 15);
+			expect(value).toBeGreaterThanOrEqual(5);
+			expect(value).toBeLessThan(15);
 		});
 	});
 
 	describe("integer()", () => {
 		it("should return an integer", () => {
-			assert.ok(Number.isInteger(random.integer()));
+			expect(Number.isInteger(random.integer())).toBe(true);
 		});
 
 		it("should return an integer between 0 and max", () => {
 			const value = random.integer(10);
-			assert.ok(value >= 0);
-			assert.ok(value <= 10);
-			assert.ok(Number.isInteger(value));
+			expect(value).toBeGreaterThanOrEqual(0);
+			expect(value).toBeLessThanOrEqual(10);
+			expect(Number.isInteger(value)).toBe(true);
 		});
 
 		it("should return an integer between min and max", () => {
 			const value = random.integer(5, 15);
-			assert.ok(value >= 5);
-			assert.ok(value <= 15);
-			assert.ok(Number.isInteger(value));
+			expect(value).toBeGreaterThanOrEqual(5);
+			expect(value).toBeLessThanOrEqual(15);
+			expect(Number.isInteger(value)).toBe(true);
 		});
 	});
 
@@ -69,11 +69,11 @@ describe("Random", () => {
 		it("should return an item from the array", () => {
 			const arr = [1, 2, 3];
 			const item = random.item(arr);
-			assert.ok(arr.includes(item));
+			expect(arr).toContain(item);
 		});
 
 		it("should throw if array is empty", () => {
-			assert.throws(() => random.item([]));
+			expect(() => random.item([])).toThrow();
 		});
 	});
 
@@ -81,24 +81,24 @@ describe("Random", () => {
 		it("should return a shuffled copy of the array", () => {
 			const arr = [1, 2, 3, 4];
 			const sub = random.subarray(arr);
-			assert.deepEqual(sub.sort(), arr.sort());
-			assert.equal(sub.length, arr.length);
+			expect(sub.sort()).toEqual(arr.sort());
+			expect(sub.length).toBe(arr.length);
 		});
 
 		it("should return a random subset of given size", () => {
 			const arr = [1, 2, 3, 4, 5];
 			const sub = random.subarray(arr, 3);
-			assert.equal(sub.length, 3);
-			sub.forEach(item => assert.ok(arr.includes(item)));
+			expect(sub.length).toBe(3);
+			sub.forEach(item => expect(arr).toContain(item));
 		});
 
 		it("should throw if count is not integer", () => {
-			assert.throws(() => random.subarray([1, 2], 1.5));
+			expect(() => random.subarray([1, 2], 1.5)).toThrow();
 		});
 
 		it("should throw if count is out of range", () => {
-			assert.throws(() => random.subarray([1, 2], -1), RangeError);
-			assert.throws(() => random.subarray([1, 2], 3), RangeError);
+			expect(() => random.subarray([1, 2], -1)).toThrow(RangeError);
+			expect(() => random.subarray([1, 2], 3)).toThrow(RangeError);
 		});
 	});
 
@@ -107,7 +107,7 @@ describe("Random", () => {
 			const arr = [1, 2, 3, 4, 5];
 			const copy = [...arr];
 			random.shuffle(arr as any);
-			assert.deepEqual(arr.sort(), copy.sort());
+			expect(arr.sort()).toEqual(copy.sort());
 		});
 	});
 
@@ -119,17 +119,17 @@ describe("Random", () => {
 				["c", 7],
 			]);
 			const result = random.case(cases);
-			assert.ok(["a", "b", "c"].includes(result));
+			expect(["a", "b", "c"]).toContain(result);
 		});
 
 		it("should throw if map is empty", () => {
-			assert.throws(() => random.case(new Map()));
+			expect(() => random.case(new Map())).toThrow();
 		});
 	});
 
 	describe("global", () => {
 		it("should return the global instance", () => {
-			assert.ok(Random.global instanceof Random);
+			expect(Random.global).toBeInstanceOf(Random);
 		});
 	});
 });

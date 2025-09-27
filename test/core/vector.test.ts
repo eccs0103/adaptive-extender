@@ -1,8 +1,6 @@
 import { Vector } from "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
-// Minimal concrete subclass for testing
 class TestVector extends Vector {
 	#data: number[];
 	constructor(data: number[]) {

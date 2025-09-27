@@ -1,6 +1,5 @@
 import { ImplementationError } from "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
 describe("Error extensions", () => {
 	describe("Error.from", () => {
@@ -44,7 +43,6 @@ describe("Error extensions", () => {
 
 		it("should return name and message if stack is not available", () => {
 			const err = new Error("msg");
-			// Simulate missing stack
 			Object.defineProperty(err, "stack", { value: undefined });
 			assert.strictEqual(err.toString(), "Error: msg");
 		});

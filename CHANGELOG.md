@@ -1,3 +1,6 @@
+## 0.6.0 (27.09.2025)
+- Added modules [promise](), [engine](), [parent-node](), [element]().
+
 ## 0.5.0 (19.09.2025)
 - Added [timespan]() module.
 - Improved module separation.

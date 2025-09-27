@@ -1,6 +1,5 @@
 import "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
 describe("Date extensions", () => {
 	describe("Date.import", () => {

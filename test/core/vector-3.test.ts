@@ -1,6 +1,5 @@
 import { Vector, Vector3D } from "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
 describe("Vector3D", () => {
 	describe("constructor", () => {

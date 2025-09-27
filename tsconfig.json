@@ -26,7 +26,7 @@
 		"noUnusedParameters": false,
 
 		/* Miscellaneous */
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
 	},
 	"include": [ "**/*.ts" ],
 	"exclude": [ "*.test.ts" ]

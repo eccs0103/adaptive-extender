@@ -1,8 +1,0 @@
-{
-	"spec": "test/**/*.test.ts",
-	"require": "ts-node/register",
-	"extension": [ "ts" ],
-	"ts-node": {
-		"project": "test/tsconfig.json"
-	}
-}

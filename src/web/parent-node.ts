@@ -21,7 +21,7 @@ function getElement<T extends typeof Element>(parent: ParentNode, type: T, selec
 function getElements<T extends typeof Element>(parent: ParentNode, type: T, selectors: string): NodeListOf<InstanceType<T>> {
 	const elements: NodeListOf<Element> = parent.querySelectorAll(selectors);
 	for (let index = 0; index < elements.length; index++) {
-		const element = elements.item(0);
+		const element = elements.item(index);
 		if (!(element instanceof type)) throw new TypeError(`Element ${selectors} at ${index} has invalid type`);
 	}
 	return elements as NodeListOf<InstanceType<T>>;

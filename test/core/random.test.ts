@@ -1,6 +1,5 @@
 import { Random } from "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
 describe("Random", () => {
 	const random = new Random();

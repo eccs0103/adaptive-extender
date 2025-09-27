@@ -8,7 +8,6 @@ const { trunc } = Math;
 //#region Engine base
 interface WebEngineEventMap {
 	"trigger": Event;
-	"launch": Event;
 	"change": Event;
 }
 
@@ -25,10 +24,9 @@ class WebEngine extends EventTarget implements Engine {
 		return this.#launched;
 	}
 	set launched(value: boolean) {
-		const previous = this.#launched;
+		if (this.#launched === value) return;
 		this.#launched = value;
-		if (previous !== value) this.dispatchEvent(new Event("change"));
-		if (value) this.dispatchEvent(new Event("launch"));
+		this.dispatchEvent(new Event("change"));
 	}
 	#gap: number = 0;
 	get limit(): number {
@@ -134,6 +132,9 @@ class PreciseEngine extends WebEngine {
 //#endregion
 //#region Static engine
 class StaticEngine extends WebEngine {
+	get limit(): number {
+		return super.limit;
+	}
 	set limit(value: number) {
 		super.limit = value;
 		this.#fps = value;

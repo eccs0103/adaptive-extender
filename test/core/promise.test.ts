@@ -1,6 +1,5 @@
 import "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
 describe("Promise extensions", () => {
 	describe("Promise.prototype.isSettled", () => {

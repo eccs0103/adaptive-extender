@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		/* Language & Environment */
+		"target": "ES2016",
+		"module": "CommonJS",
+		"lib": [ "ES2016" ],
+		"types": [ "vitest/globals" ],
+		"outDir": "./dist",
+
+		/* Interop & Compatibility */
+		"esModuleInterop": true,
+		"allowJs": true,
+		"skipLibCheck": true,
+
+		/* Emit & Declarations */
+		"declaration": true,
+		"sourceMap": true,
+
+		/* Type Checking & Linting */
+		"strict": true,
+
+		/* Miscellaneous */
+		"forceConsistentCasingInFileNames": true,
+	},
+	"include": [ "./*.ts" ]
+}

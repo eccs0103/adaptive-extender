@@ -1,10 +1,10 @@
 import { Color, ColorFormats } from "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
 
-// Helper for approximate equality
+const { abs } = Math;
+
 function approxEqual(a: number, b: number, epsilon = 1): boolean {
-	return Math.abs(a - b) <= epsilon;
+	return abs(a - b) <= epsilon;
 }
 
 describe("Color", () => {

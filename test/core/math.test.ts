@@ -1,9 +1,10 @@
 import "adaptive-extender/core";
 import { strict as assert } from "assert";
-import { describe, it } from "mocha";
+
+const { abs, split, sqpw, toDegrees, toRadians, PI, meanArithmetic, meanGeometric, meanHarmonic } = Math;
 
 function approxEqual(a: number, b: number, epsilon = Number.EPSILON * 1e8): boolean {
-	return Math.abs(a - b) <= epsilon;
+	return abs(a - b) <= epsilon;
 }
 
 describe("Number extensions", () => {
@@ -65,101 +66,101 @@ describe("Number extensions", () => {
 describe("Math extensions", () => {
 	describe("Math.split", () => {
 		it("should split positive float", () => {
-			const [int, frac] = Math.split(3.14);
+			const [int, frac] = split(3.14);
 			assert.strictEqual(int, 3);
 			assert.ok(approxEqual(frac, 0.14));
 		});
 		it("should split negative float", () => {
-			const [int, frac] = Math.split(-2.5);
+			const [int, frac] = split(-2.5);
 			assert.strictEqual(int, -2);
 			assert.ok(approxEqual(frac, -0.5));
 		});
 		it("should split integer", () => {
-			assert.deepStrictEqual(Math.split(7), [7, 0]);
+			assert.deepStrictEqual(split(7), [7, 0]);
 		});
 		it("should split zero", () => {
-			assert.deepStrictEqual(Math.split(0), [0, 0]);
+			assert.deepStrictEqual(split(0), [0, 0]);
 		});
 	});
 
 	describe("Math.sqpw", () => {
 		it("should square positive number", () => {
-			assert.strictEqual(Math.sqpw(3), 9);
+			assert.strictEqual(sqpw(3), 9);
 		});
 		it("should square negative number", () => {
-			assert.strictEqual(Math.sqpw(-4), 16);
+			assert.strictEqual(sqpw(-4), 16);
 		});
 		it("should square zero", () => {
-			assert.strictEqual(Math.sqpw(0), 0);
+			assert.strictEqual(sqpw(0), 0);
 		});
 	});
 
 	describe("Math.toDegrees", () => {
 		it("should convert PI radians to degrees", () => {
-			assert.ok(approxEqual(Math.toDegrees(Math.PI), 180));
+			assert.ok(approxEqual(toDegrees(PI), 180));
 		});
 		it("should convert 0 radians to degrees", () => {
-			assert.strictEqual(Math.toDegrees(0), 0);
+			assert.strictEqual(toDegrees(0), 0);
 		});
 		it("should convert negative radians to degrees", () => {
-			assert.ok(approxEqual(Math.toDegrees(-Math.PI), -180));
+			assert.ok(approxEqual(toDegrees(-PI), -180));
 		});
 	});
 
 	describe("Math.toRadians", () => {
 		it("should convert 180 degrees to PI radians", () => {
-			assert.ok(approxEqual(Math.toRadians(180), Math.PI));
+			assert.ok(approxEqual(toRadians(180), PI));
 		});
 		it("should convert 0 degrees to radians", () => {
-			assert.strictEqual(Math.toRadians(0), 0);
+			assert.strictEqual(toRadians(0), 0);
 		});
 		it("should convert negative degrees to radians", () => {
-			assert.ok(approxEqual(Math.toRadians(-180), -Math.PI));
+			assert.ok(approxEqual(toRadians(-180), -PI));
 		});
 	});
 
 	describe("Math.meanArithmetic", () => {
 		it("should calculate mean of positive numbers", () => {
-			assert.strictEqual(Math.meanArithmetic(1, 2, 3, 4), 2.5);
+			assert.strictEqual(meanArithmetic(1, 2, 3, 4), 2.5);
 		});
 		it("should calculate mean of negative numbers", () => {
-			assert.strictEqual(Math.meanArithmetic(-1, -2, -3), -2);
+			assert.strictEqual(meanArithmetic(-1, -2, -3), -2);
 		});
 		it("should calculate mean of mixed numbers", () => {
-			assert.strictEqual(Math.meanArithmetic(-1, 1), 0);
+			assert.strictEqual(meanArithmetic(-1, 1), 0);
 		});
 		it("should calculate mean of single value", () => {
-			assert.strictEqual(Math.meanArithmetic(42), 42);
+			assert.strictEqual(meanArithmetic(42), 42);
 		});
 	});
 
 	describe("Math.meanGeometric", () => {
 		it("should calculate geometric mean of positive numbers", () => {
-			assert.ok(approxEqual(Math.meanGeometric(1, 4, 16), 4));
+			assert.ok(approxEqual(meanGeometric(1, 4, 16), 4));
 		});
 		it("should calculate geometric mean of single value", () => {
-			assert.strictEqual(Math.meanGeometric(9), 9);
+			assert.strictEqual(meanGeometric(9), 9);
 		});
 		it("should return 0 if any value is 0", () => {
-			assert.strictEqual(Math.meanGeometric(0, 4, 16), 0);
+			assert.strictEqual(meanGeometric(0, 4, 16), 0);
 		});
 		it("should return NaN for negative values", () => {
-			assert.ok(Number.isNaN(Math.meanGeometric(-1, 4)));
+			assert.ok(Number.isNaN(meanGeometric(-1, 4)));
 		});
 	});
 
 	describe("Math.meanHarmonic", () => {
 		it("should calculate harmonic mean of positive numbers", () => {
-			assert.ok(approxEqual(Math.meanHarmonic(1, 2, 4), 12 / 7));
+			assert.ok(approxEqual(meanHarmonic(1, 2, 4), 12 / 7));
 		});
 		it("should calculate harmonic mean of single value", () => {
-			assert.strictEqual(Math.meanHarmonic(5), 5);
+			assert.strictEqual(meanHarmonic(5), 5);
 		});
 		it("should return NaN if any value is 0", () => {
-			assert.ok(Number.isNaN(Math.meanHarmonic(1, 0, 2)));
+			assert.ok(Number.isNaN(meanHarmonic(1, 0, 2)));
 		});
 		it("should handle negative values", () => {
-			assert.ok(approxEqual(Math.meanHarmonic(-1, -2), -1.3333333333333333));
+			assert.ok(approxEqual(meanHarmonic(-1, -2), -1.3333333333333333));
 		});
 	});
 });

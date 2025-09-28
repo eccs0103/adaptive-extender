@@ -40,7 +40,7 @@
 	},
 	"keywords": [ "javascript", "typescript", "extensions", "core", "dom", "node" ],
 	"author": "eccs0103",
-	"license": "MIT",
+	"license": "Apache-2.0",
 	"bugs": {
 		"url": "https://github.com/eccs0103/adaptive-extender/issues"
 	},
@@ -50,7 +50,7 @@
 		"build:node": "tsc -p ./src/node/tsconfig.json",
 		"build:web": "tsc -p ./src/web/tsconfig.json",
 		"build": "npm run build:core && npm run build:node && npm run build:web",
-		
+
 		"test": "vitest",
 		"coverage": "vitest run --coverage"
 	},

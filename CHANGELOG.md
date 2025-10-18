@@ -1,3 +1,6 @@
+## 0.6.3 (19.10.2025)
+- Added module [archive]().
+
 ## 0.6.1 (27.09.2025)
 - Added modules [promise](), [engine](), [parent-node](), [element]().
 

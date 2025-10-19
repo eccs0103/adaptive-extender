@@ -1,6 +1,7 @@
 "use strict";
 
 import "../core/index.js";
+import type { ArchivablePrototype } from "../core/index.js";
 
 //#region Archive
 /**
@@ -60,5 +61,64 @@ class Archive {
 	}
 }
 //#endregion
+//#region Archive manager
+/**
+ * Manages the archiving of an object.
+ */
+class ArchiveManager<T extends ArchivablePrototype> {
+	#prototype: T;
+	#args: ConstructorParameters<T>;
+	#archive: Archive;
+	/**
+	 * @param key The key for the archive.
+	 * @param prototype The prototype of the archivable object.
+	 * @param args The arguments for the constructor of the archivable object.
+	 */
+	constructor(key: string, prototype: T, ...args: ConstructorParameters<T>) {
+		this.#prototype = prototype;
+		this.#args = args;
+		this.#archive = ArchiveManager.#newArchive(key, prototype, args);
+	}
+	static #newInstance<T extends ArchivablePrototype>(prototype: T, args: ConstructorParameters<T>): InstanceType<T> {
+		return Reflect.construct<ConstructorParameters<T>, InstanceType<T>>(prototype, args);
+	}
+	static #newArchive<T extends ArchivablePrototype>(key: string, prototype: T, args: ConstructorParameters<T>): Archive {
+		const instance = ArchiveManager.#newInstance(prototype, args);
+		return new Archive(key, prototype.export(instance));
+	}
+	/**
+	 * Key of the archive.
+	 */
+	get key(): string {
+		return this.#archive.key;
+	}
+	/**
+	 * Reads content of the archive.
+	 * @throws {ReferenceError} If the archive is missing from the local storage.
+	 * @throws {SyntaxError} If the archive is corrupted.
+	 */
+	get content(): InstanceType<T> {
+		try {
+			return this.#prototype.import(this.#archive.data);
+		} catch (error) {
+			if (!(error instanceof TypeError)) throw error;
+			throw new SyntaxError(`Archive at key '${this.#archive.key}' is corrupted`);
+		}
+	}
+	/**
+	 * Writes content of the archive.
+	 * @throws {SyntaxError} If the value could not be processed.
+	 */
+	set content(value: InstanceType<T>) {
+		this.#archive.data = this.#prototype.export(value);
+	}
+	/**
+	 * Resets the content of the archive to a new instance.
+	 */
+	reset(): void {
+		this.content = ArchiveManager.#newInstance(this.#prototype, this.#args);
+	}
+}
+//#endregion
 
-export { Archive };
+export { ArchiveManager };

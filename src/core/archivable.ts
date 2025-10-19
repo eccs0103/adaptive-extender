@@ -11,10 +11,12 @@ interface ArchivablePrototype<N = any> {
 	new(...args: any): any;
 	/**
 	 * Imports data from a source and returns a new instance.
+	 * @throws {TypeError} If unable to import the source.
 	 */
 	import(source: any): InstanceType<this>;
 	/**
 	 * Imports data from a source with a given name and returns a new instance.
+	 * @throws {TypeError} If unable to import the source.
 	 */
 	import(source: any, name: string): InstanceType<this>;
 	/**

@@ -1,5 +1,5 @@
-## 0.7.0 (19.10.2025)
-- Added module [archive](), [archive-manager]().
+## 0.7.1 (19.10.2025)
+- Added module [archive-manager]().
 
 ## 0.6.1 (27.09.2025)
 - Added modules [promise](), [engine](), [parent-node](), [element]().

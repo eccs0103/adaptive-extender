@@ -38,6 +38,13 @@ describe("Archive", () => {
 			localStorage.clear();
 			expect(() => archive.data).toThrow(ReferenceError);
 		});
+	});
+
+	describe("key getter", () => {
+		it("should return the correct key", () => {
+			const archive = new Archive(testKey, null);
+			expect(archive.key).toBe(testKey);
+		});
 
 		it("should throw SyntaxError if data is corrupted", () => {
 			localStorage.setItem(testKey, "{ not json }");

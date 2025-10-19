@@ -35,6 +35,12 @@ class Archive {
 		}
 	}
 	/**
+	 * The key used in the local storage.
+	 */
+	get key(): string {
+		return this.#key;
+	}
+	/**
 	 * The data stored in the archive.
 	 * @throws {ReferenceError} If the archive is missing from the local storage.
 	 * @throws {SyntaxError} If the archive is corrupted.

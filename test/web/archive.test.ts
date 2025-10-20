@@ -1,5 +1,5 @@
-import { ArchiveManager } from "adaptive-extender/web";
-import { describe, it, expect, beforeEach } from "vitest";
+import { ArchiveManager, ArchiveRepository } from "adaptive-extender/web";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 class MockArchivable {
 	constructor(public value: number, public name: string) { }
@@ -85,5 +85,51 @@ describe("ArchiveManager", () => {
 	it("should return the correct archive key", () => {
 		const manager = new ArchiveManager("another-key", MockArchivable, 0, "default");
 		expect(manager.key).toBe("another-key");
+	});
+});
+
+describe("ArchiveRepository", () => {
+	const archiveKey = "repo-test-archive";
+
+	beforeEach(() => {
+		localStorage.clear();
+		vi.useRealTimers();
+	});
+
+	it("should initialize and get content", () => {
+		const repo = new ArchiveRepository(archiveKey, MockArchivable, 20, "repo-initial");
+		expect(repo.key).toBe(archiveKey);
+		const content = repo.content;
+		expect(content.value).toBe(20);
+		expect(content.name).toBe("repo-initial");
+	});
+
+	it("should save content after a delay", () => {
+		vi.useFakeTimers();
+		const repo = new ArchiveRepository(archiveKey, MockArchivable, 1, "one");
+		repo.content.value = 100;
+		repo.save();
+
+		// Should not have saved yet
+		const rawData = localStorage.getItem(archiveKey);
+		const parsedData = JSON.parse(rawData!);
+		expect(parsedData.value).toBe(1);
+
+		// Fast-forward time
+		vi.runAllTimers();
+
+		const finalRawData = localStorage.getItem(archiveKey);
+		const finalParsedData = JSON.parse(finalRawData!);
+		expect(finalParsedData.value).toBe(100);
+	});
+
+	it("should reset content", () => {
+		const repo = new ArchiveRepository(archiveKey, MockArchivable, 30, "original-repo");
+		repo.content.name = "modified";
+		repo.reset();
+
+		const content = repo.content;
+		expect(content.value).toBe(30);
+		expect(content.name).toBe("original-repo");
 	});
 });

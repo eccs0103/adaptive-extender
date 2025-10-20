@@ -1,7 +1,7 @@
 "use strict";
 
 import "../core/index.js";
-import type { ArchivablePrototype } from "../core/index.js";
+import { type ArchivablePrototype } from "../core/index.js";
 
 //#region Archive
 /**
@@ -120,5 +120,62 @@ class ArchiveManager<T extends ArchivablePrototype> {
 	}
 }
 //#endregion
+//#region Archive repository
+/**
+ * Provides a repository pattern for managing an archivable object with saving.
+ */
+class ArchiveRepository<T extends ArchivablePrototype> {
+	#manager: ArchiveManager<T>;
+	#content: InstanceType<T>;
+	#idSaveTimeout: number = NaN;
+	/**
+	 * @param key The key for the archive.
+	 * @param prototype The prototype of the archivable object.
+	 * @param args The arguments for the constructor of the archivable object.
+	 */
+	constructor(key: string, prototype: T, ...args: ConstructorParameters<T>) {
+		this.#manager = new ArchiveManager(key, prototype, ...args);
+		this.#content = this.#manager.content;
+		window.addEventListener("beforeunload", (event) => {
+			if (Number.isNaN(this.#idSaveTimeout)) return;
+			event.returnValue = "Archive saving is in process. Do you want to interrupt?";
+			event.preventDefault();
+		});
+	}
+	/**
+	 * Key of the archive.
+	 */
+	get key(): string {
+		return this.#manager.key;
+	}
+	/**
+	 * The content of the archive.
+	 */
+	get content(): InstanceType<T> {
+		return this.#content;
+	}
+	#handler(): void {
+		try {
+			this.#manager.content = this.#content;
+		} finally {
+			this.#idSaveTimeout = NaN;
+		}
+	}
+	/**
+	 * Schedules a save of the content.
+	 */
+	save(): void {
+		if (!Number.isNaN(this.#idSaveTimeout)) clearTimeout(this.#idSaveTimeout);
+		this.#idSaveTimeout = setTimeout(this.#handler.bind(this));
+	}
+	/**
+	 * Resets the content of the archive to a new instance.
+	 */
+	reset(): void {
+		this.#manager.reset();
+		this.#content = this.#manager.content;
+	}
+}
+//#endregion
 
-export { ArchiveManager };
+export { ArchiveManager, ArchiveRepository };

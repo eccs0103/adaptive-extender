@@ -132,4 +132,19 @@ describe("ArchiveRepository", () => {
 		expect(content.value).toBe(30);
 		expect(content.name).toBe("original-repo");
 	});
+
+	it("should abort a pending save operation", () => {
+		vi.useFakeTimers();
+		const repo = new ArchiveRepository(archiveKey, MockArchivable, 1, "one");
+		repo.content.value = 100;
+		repo.save(100); // Save with a delay
+
+		repo.abort(); // Abort the save
+
+		vi.runAllTimers(); // Try to execute the save
+
+		const rawData = localStorage.getItem(archiveKey);
+		const parsedData = JSON.parse(rawData!);
+		expect(parsedData.value).toBe(1); // The value should not have changed
+	});
 });

@@ -162,11 +162,24 @@ class ArchiveRepository<T extends ArchivablePrototype> {
 		}
 	}
 	/**
-	 * Schedules a save of the content.
+	 * Schedules a instant save of the content.
 	 */
-	save(): void {
+	save(): void;
+	/**
+	 * Schedules a save of the content after a specified delay in milliseconds.
+	 */
+	save(delay: number): void;
+	save(delay?: number): void {
 		if (!Number.isNaN(this.#idSaveTimeout)) clearTimeout(this.#idSaveTimeout);
-		this.#idSaveTimeout = setTimeout(this.#handler.bind(this));
+		this.#idSaveTimeout = setTimeout(this.#handler.bind(this), delay);
+	}
+	/**
+	 * Aborts any pending save operations.
+	 */
+	abort(): void {
+		if (Number.isNaN(this.#idSaveTimeout)) return;
+		clearTimeout(this.#idSaveTimeout);
+		this.#idSaveTimeout = NaN;
 	}
 	/**
 	 * Resets the content of the archive to a new instance.

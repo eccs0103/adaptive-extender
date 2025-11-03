@@ -20,3 +20,4 @@ export * from "./vector-2.js";
 export * from "./vector-3.js";
 export * from "./timespan.js";
 export * from "./engine.js";
+export * from "./controller.js";

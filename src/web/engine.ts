@@ -1,7 +1,7 @@
 "use strict";
 
 import "../core/index.js";
-import { type Engine } from "../core/index.js";
+import { ImplementationError, type Engine } from "../core/index.js";
 
 const { trunc } = Math;
 
@@ -16,34 +16,62 @@ interface WebEngineOptions {
 }
 
 /**
+ * Represents the base class for web-based engines.
  * @abstract
  */
 class WebEngine extends EventTarget implements Engine {
 	#launched: boolean;
+	/**
+	 * Gets a value indicating whether the engine is running.
+	 */
 	get launched(): boolean {
 		return this.#launched;
 	}
+	/**
+	 * Sets a value indicating whether the engine is running.
+	 */
 	set launched(value: boolean) {
 		if (this.#launched === value) return;
 		this.#launched = value;
 		this.dispatchEvent(new Event("change"));
 	}
 	#gap: number = 0;
+	/**
+	 * Gets the target frame rate limit for the engine.
+	 */
 	get limit(): number {
 		return 1000 / this.#gap;
 	}
+	/**
+	 * Sets the target frame rate limit for the engine.
+	 */
 	set limit(value: number) {
 		if (Number.isNaN(value)) return;
 		if (value <= 0) return;
 		this.#gap = 1000 / value;
 	}
+	/**
+	 * Gets the current frames per second (FPS) of the engine.
+	 * @throws {ImplementationError} If the method is not implemented in a derived class.
+	 */
 	get fps(): number {
-		throw new Error("Method not implemented");
+		throw new ImplementationError();
 	}
+	/**
+	 * Gets the time elapsed between the current and previous frame, in seconds.
+	 * @throws {ImplementationError} If the method is not implemented in a derived class.
+	 */
 	get delta(): number {
-		throw new Error("Method not implemented");
+		throw new ImplementationError();
 	}
+	/**
+	 * @throws {TypeError} If this constructor is called directly on the `WebEngine` class.
+	 */
 	constructor();
+	/**
+	 * @param options An object that specifies options for the engine.
+	 * @throws {TypeError} If this constructor is called directly on the `WebEngine` class.
+	 */
 	constructor(options: Partial<WebEngineOptions>);
 	constructor(options: Partial<WebEngineOptions> = {}) {
 		super();
@@ -66,6 +94,9 @@ class WebEngine extends EventTarget implements Engine {
 //#endregion
 
 //#region Fast engine
+/**
+ * A high-performance, variable frame rate engine.
+ */
 class FastEngine extends WebEngine {
 	#fps: number = 0;
 	get fps(): number {
@@ -76,6 +107,9 @@ class FastEngine extends WebEngine {
 	}
 	#previous: number = 0;
 	constructor();
+	/**
+	 * @param options An object that specifies options for the engine.
+	 */
 	constructor(options: Partial<WebEngineOptions>);
 	constructor(options: Partial<WebEngineOptions> = {}) {
 		super(options);
@@ -99,6 +133,9 @@ class FastEngine extends WebEngine {
 }
 //#endregion
 //#region Precise engine
+/**
+ * A variable frame rate engine.
+ */
 class PreciseEngine extends WebEngine {
 	#fps: number = 0;
 	get fps(): number {
@@ -109,6 +146,9 @@ class PreciseEngine extends WebEngine {
 	}
 	#previous: number;
 	constructor();
+	/**
+	 * @param options An object that specifies options for the engine.
+	 */
 	constructor(options: Partial<WebEngineOptions>);
 	constructor(options: Partial<WebEngineOptions> = {}) {
 		super(options);
@@ -131,6 +171,9 @@ class PreciseEngine extends WebEngine {
 }
 //#endregion
 //#region Static engine
+/**
+ * A fixed frame rate engine.
+ */
 class StaticEngine extends WebEngine {
 	get limit(): number {
 		return super.limit;
@@ -148,6 +191,9 @@ class StaticEngine extends WebEngine {
 	}
 	#previous: number = 0;
 	constructor();
+	/**
+	 * @param options An object that specifies options for the engine.
+	 */
 	constructor(options: Partial<WebEngineOptions>);
 	constructor(options: Partial<WebEngineOptions> = {}) {
 		super(options);
@@ -170,5 +216,5 @@ class StaticEngine extends WebEngine {
 }
 //#endregion
 
-export { type WebEngineEventMap, type WebEngineOptions, WebEngine };
+export { type WebEngineOptions, WebEngine };
 export { FastEngine, PreciseEngine, StaticEngine };

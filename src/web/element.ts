@@ -5,7 +5,21 @@ import "../core/index.js";
 //#region Element
 declare global {
 	interface Element {
+		/**
+		 * Returns the closest ancestor of the current element (or the current element itself) which matches the selectors and the specified type.
+		 * @param type The type of the element to return.
+		 * @param selectors A string containing a selector list.
+		 * @throws {ReferenceError} If no element is found.
+		 * @throws {TypeError} If the found element is not of the specified type.
+		 */
 		getClosest<T extends typeof Element>(type: T, selectors: string): InstanceType<T>;
+		/**
+		 * Asynchronously returns the closest ancestor of the current element (or the current element itself) which matches the selectors and the specified type.
+		 * @param type The type of the element to return.
+		 * @param selectors A string containing a selector list.
+		 * @throws {ReferenceError} If no element is found.
+		 * @throws {TypeError} If the found element is not of the specified type.
+		 */
 		getClosestAsync<T extends typeof Element>(type: T, selectors: string): Promise<InstanceType<T>>;
 	}
 }

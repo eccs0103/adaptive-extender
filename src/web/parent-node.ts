@@ -5,9 +5,35 @@ import "../core/index.js";
 //#region Parent node
 declare global {
 	interface ParentNode {
+		/**
+		 * Returns the first element within the node's descendants that matches the specified selectors and type.
+		 * @param type The type of the element to return.
+		 * @param selectors A string containing a selector list.
+		 * @throws {ReferenceError} If no element is found.
+		 * @throws {TypeError} If the found element is not of the specified type.
+		 */
 		getElement<T extends typeof Element>(type: T, selectors: string): InstanceType<T>;
+		/**
+		 * Asynchronously returns the first element within the node's descendants that matches the specified selectors and type.
+		 * @param type The type of the element to return.
+		 * @param selectors A string containing a selector list.
+		 * @throws {ReferenceError} If no element is found.
+		 * @throws {TypeError} If the found element is not of the specified type.
+		 */
 		getElementAsync<T extends typeof Element>(type: T, selectors: string): Promise<InstanceType<T>>;
+		/**
+		 * Returns a list of elements within the node's descendants that match the specified selectors and type.
+		 * @param type The type of the elements to return.
+		 * @param selectors A string containing a selector list.
+		 * @throws {TypeError} If any of the found elements is not of the specified type.
+		 */
 		getElements<T extends typeof Element>(type: T, selectors: string): NodeListOf<InstanceType<T>>;
+		/**
+		 * Asynchronously returns a list of elements within the node's descendants that match the specified selectors and type.
+		 * @param type The type of the elements to return.
+		 * @param selectors A string containing a selector list.
+		 * @throws {TypeError} If any of the found elements is not of the specified type.
+		 */
 		getElementsAsync<T extends typeof Element>(type: T, selectors: string): Promise<NodeListOf<InstanceType<T>>>;
 	}
 }

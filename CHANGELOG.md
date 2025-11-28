@@ -1,7 +1,10 @@
+## 0.8.1 (28.11.2025)
+- Added [environment](./src/node/environment.ts) module.
+
 ## 0.8.0 (03.11.2025)
 - Added missing documentation.
 - Used `ImplementationError` errors for parts where implementation is missing.
-- Added [controller](./src/core/controller.ts) module
+- Added [controller](./src/core/controller.ts) module.
 
 ## 0.7.3 (20.10.2025)
 - Added module [archive](./src/web/archive.ts).

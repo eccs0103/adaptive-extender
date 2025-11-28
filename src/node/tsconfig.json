@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"lib": [ "ES2022" ],
 		"types": [ "node" ],
-		"rootDirs": [ "../core/", "../node/" ],
+		"rootDir": "../",
 		"outDir": "../../dist/"
 	},
 	"include": [ "./**/*.ts" ],

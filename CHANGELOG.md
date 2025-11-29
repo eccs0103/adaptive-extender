@@ -1,5 +1,5 @@
-## 0.8.1 (28.11.2025)
-- Added [environment](./src/node/environment.ts) module.
+## 0.8.2 (29.11.2025)
+- Added [reflect](./src/core/reflect.ts), [environment](./src/node/environment.ts) modules.
 
 ## 0.8.0 (03.11.2025)
 - Added missing documentation.

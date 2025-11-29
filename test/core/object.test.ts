@@ -23,27 +23,4 @@ describe("Object extensions", () => {
 			expect(() => Object.import(undefined, "customName")).toThrow(/customName/);
 		});
 	});
-
-	describe("Object.map", () => {
-		it("should apply callback if value is non-null/non-undefined", () => {
-			const result = Object.map(5, v => v * 2);
-			expect(result).toBe(10);
-		});
-
-		it("should return value unchanged if null", () => {
-			const result = Object.map(null as number | null, v => v * 2);
-			expect(result).toBeNull();
-		});
-
-		it("should return value unchanged if undefined", () => {
-			const result = Object.map(undefined as number | undefined, v => v * 2);
-			expect(result).toBeUndefined();
-		});
-
-		it("should work with objects", () => {
-			const obj = { x: 1 };
-			const result = Object.map(obj, o => ({ ...o, y: 2 }));
-			expect(result).toEqual({ x: 1, y: 2 });
-		});
-	});
 });

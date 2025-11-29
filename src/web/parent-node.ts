@@ -4,7 +4,7 @@ import "../core/index.js";
 
 //#region Parent node
 declare global {
-	interface ParentNode {
+	export interface ParentNode {
 		/**
 		 * Returns the first element within the node's descendants that matches the specified selectors and type.
 		 * @param type The type of the element to return.
@@ -101,5 +101,3 @@ DocumentFragment.prototype.getElementsAsync = async function <T extends typeof E
 	return getElements(this, type, selectors);
 };
 //#endregion
-
-export { };

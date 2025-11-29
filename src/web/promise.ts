@@ -5,7 +5,7 @@ import { type Promisable } from "../core/index.js";
 
 //#region Promise
 declare global {
-	interface PromiseConstructor {
+	export interface PromiseConstructor {
 		/**
 		 * Creates a promise that resolves after the specified timeout.
 		 * @param timeout The timeout in milliseconds.
@@ -39,5 +39,3 @@ Promise.withSignal = async function <T>(callback: (signal: AbortSignal, resolve:
 	}
 };
 //#endregion
-
-export { };

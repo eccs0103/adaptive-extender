@@ -2,7 +2,7 @@
 
 //#region Error
 declare global {
-	interface ErrorConstructor {
+	export interface ErrorConstructor {
 		/**
 		 * Generates an error object from the provided input.
 		 * @param reason The reason input.
@@ -10,7 +10,7 @@ declare global {
 		from(reason: any): Error;
 	}
 
-	interface Error {
+	export interface Error {
 		/**
 		 * Returns a string representation of the Error object.
 		 * @returns A string representation of the Error object.
@@ -31,7 +31,7 @@ Error.prototype.toString = function (): string {
 //#endregion
 //#region Reference error
 declare global {
-	interface ReferenceErrorConstructor {
+	export interface ReferenceErrorConstructor {
 		/**
 		 * Ensures the value is not null or undefined.
 		 * @throws {ReferenceError} If the value is null or undefined.
@@ -58,7 +58,7 @@ ReferenceError.suppress = function <T>(value: T, message: string = "Expected a r
  * Represents an error that indicates a method or functionality is not implemented.
  * Used as a sealed error type to prevent further extension.
  */
-class ImplementationError extends Error {
+export class ImplementationError extends Error {
 	constructor() {
 		super("Method not implemented");
 		if (new.target !== ImplementationError) throw new TypeError("Unable to create an instance of sealed-extended class");
@@ -66,5 +66,3 @@ class ImplementationError extends Error {
 	}
 }
 //#endregion
-
-export { ImplementationError };

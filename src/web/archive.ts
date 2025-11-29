@@ -65,7 +65,7 @@ class Archive {
 /**
  * Manages the archiving of an object.
  */
-class ArchiveManager<T extends ArchivablePrototype> {
+export class ArchiveManager<T extends ArchivablePrototype> {
 	#prototype: T;
 	#args: ConstructorParameters<T>;
 	#archive: Archive;
@@ -124,7 +124,7 @@ class ArchiveManager<T extends ArchivablePrototype> {
 /**
  * Provides a repository pattern for managing an archivable object with saving.
  */
-class ArchiveRepository<T extends ArchivablePrototype> {
+export class ArchiveRepository<T extends ArchivablePrototype> {
 	#manager: ArchiveManager<T>;
 	#content: InstanceType<T>;
 	#idSaveTimeout: number = NaN;
@@ -190,5 +190,3 @@ class ArchiveRepository<T extends ArchivablePrototype> {
 	}
 }
 //#endregion
-
-export { ArchiveManager, ArchiveRepository };

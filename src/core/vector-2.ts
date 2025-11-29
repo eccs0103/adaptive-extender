@@ -7,7 +7,7 @@ import { Vector1D } from "./vector-1.js";
 /**
  * Represents a 2D vector.
  */
-class Vector2D extends Vector1D {
+export class Vector2D extends Vector1D {
 	//#region Properties
 	#y: number;
 	/**
@@ -107,5 +107,3 @@ class Vector2D extends Vector1D {
 	//#endregion
 }
 //#endregion
-
-export { Vector2D };

@@ -4,7 +4,7 @@ import "./global.js";
 
 //#region Date
 declare global {
-	interface DateConstructor {
+	export interface DateConstructor {
 		/**
 		 * Imports a date from a source.
 		 * @param source The source value to import.
@@ -20,7 +20,7 @@ declare global {
 		isInvalid(date: unknown): boolean;
 	}
 
-	interface Date {
+	export interface Date {
 		/**
 		 * Returns the current date unless it is invalid, replacing it with the provided value.
 		 * @param value The fallback value.
@@ -45,5 +45,3 @@ Date.prototype.insteadInvalid = function <T>(value: T): Date | T {
 	return this;
 };
 //#endregion
-
-export { };

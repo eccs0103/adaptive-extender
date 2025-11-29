@@ -4,7 +4,7 @@ import "../core/index.js";
 
 //#region Element
 declare global {
-	interface Element {
+	export interface Element {
 		/**
 		 * Returns the closest ancestor of the current element (or the current element itself) which matches the selectors and the specified type.
 		 * @param type The type of the element to return.
@@ -34,5 +34,3 @@ Element.prototype.getClosestAsync = async function <T extends typeof Element>(ty
 	return this.getClosest(type, selectors);
 };
 //#endregion
-
-export { };

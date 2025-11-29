@@ -4,7 +4,7 @@ const { PI, trunc, pow } = Math;
 
 //#region Number
 declare global {
-	interface Number {
+	export interface Number {
 		/**
 		 * Clamps a value between a minimum and maximum.
 		 * @param min The minimum value.
@@ -74,7 +74,7 @@ Number.prototype.mod = function (arg1: number, arg2?: number): number {
 //#endregion
 //#region Math
 declare global {
-	interface Math {
+	export interface Math {
 		/**
 		 * Splits a number into its integer and fractional parts.
 		 * @param x The number to be split.
@@ -162,5 +162,3 @@ Math.meanHarmonic = function (...values: number[]): number {
 	return values.length / summary;
 };
 //#endregion
-
-export { };

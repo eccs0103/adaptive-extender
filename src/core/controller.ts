@@ -7,7 +7,7 @@ import "./error.js";
  * Represents a controller that can be launched and handle errors.
  * @abstract
  */
-class Controller {
+export class Controller {
 	/**
 	 * @throws {TypeError} If the constructor is called on ectly.
 	 */
@@ -37,5 +37,3 @@ class Controller {
 	}
 }
 //#endregion
-
-export { Controller };

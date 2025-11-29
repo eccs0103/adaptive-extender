@@ -2,7 +2,7 @@
 
 //#region Object
 declare global {
-	interface ObjectConstructor {
+	export interface ObjectConstructor {
 		/**
 		 * Imports an object from a source.
 		 * @param source The source to import from.
@@ -19,5 +19,3 @@ Object.import = function (source: any, name: string = "[source]"): object {
 	return source;
 };
 //#endregion
-
-export { };

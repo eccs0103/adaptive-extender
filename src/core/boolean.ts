@@ -4,7 +4,7 @@ import "./global.js";
 
 //#region Boolean
 declare global {
-	interface BooleanConstructor {
+	export interface BooleanConstructor {
 		/**
 		 * Imports a boolean value from a source.
 		 * @param source The source value to import.
@@ -21,5 +21,3 @@ Boolean.import = function (source: any, name: string = "[source]"): boolean {
 	return source.valueOf();
 };
 //#endregion
-
-export { };

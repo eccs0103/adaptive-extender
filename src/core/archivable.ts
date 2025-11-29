@@ -1,10 +1,11 @@
 "use strict";
 
+//#region Archivable prototype
 /**
  * Defines the interface for an archivable object's prototype.
- * @template N The type of the notation returned by the export method.
+ * @template S The type of the notation returned by the export method.
  */
-interface ArchivablePrototype<N = any> {
+export interface ArchivablePrototype<S = any> {
 	/**
 	 * Creates a new instance of the archivable object.
 	 */
@@ -22,7 +23,6 @@ interface ArchivablePrototype<N = any> {
 	/**
 	 * Exports the state of an instance to a notation.
 	 */
-	export(source: InstanceType<this>): N;
+	export(source: InstanceType<this>): S;
 }
-
-export { type ArchivablePrototype };
+//#endregion

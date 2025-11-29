@@ -6,7 +6,7 @@ const { trunc } = Math;
 
 //#region Array
 declare global {
-	interface ArrayConstructor {
+	export interface ArrayConstructor {
 		/**
 		 * Imports an array from a source.
 		 * @param source The source to import from.
@@ -29,7 +29,7 @@ declare global {
 		zip<T extends unknown[]>(...iterables: { [K in keyof T]: Iterable<T[K]> }): IteratorObject<T, void>;
 	}
 
-	interface Array<T> {
+	export interface Array<T> {
 		/**
 		 * Swaps the elements at the given indices in the array.
 		 * @param index1 The index of the first element.
@@ -83,5 +83,3 @@ Array.prototype.resize = function <T>(this: T[], length: number, _default: T): T
 	return this;
 };
 //#endregion
-
-export { };

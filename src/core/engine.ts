@@ -4,7 +4,7 @@
 /**
  * Represents the engine that controls update cycles and performance limits.
  */
-interface Engine {
+export interface Engine {
 	/**
 	 * Gets whether the engine is launched.
 	 */
@@ -31,5 +31,3 @@ interface Engine {
 	get delta(): number;
 }
 //#endregion
-
-export { type Engine };

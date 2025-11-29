@@ -5,7 +5,7 @@
  * Represents an abstract vector, an ordered collection of numbers.
  * @abstract
  */
-class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
+export class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
 	//#region Builders
 	/**
 	 * @throws {TypeError} If this constructor is called directly.
@@ -344,5 +344,3 @@ class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
 	//#endregion
 }
 //#endregion
-
-export { Vector };

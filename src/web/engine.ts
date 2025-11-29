@@ -11,7 +11,7 @@ interface WebEngineEventMap {
 	"change": Event;
 }
 
-interface WebEngineOptions {
+export interface WebEngineOptions {
 	launch: boolean;
 }
 
@@ -19,7 +19,7 @@ interface WebEngineOptions {
  * Represents the base class for web-based engines.
  * @abstract
  */
-class WebEngine extends EventTarget implements Engine {
+export class WebEngine extends EventTarget implements Engine {
 	#launched: boolean;
 	/**
 	 * Gets a value indicating whether the engine is running.
@@ -97,7 +97,7 @@ class WebEngine extends EventTarget implements Engine {
 /**
  * A high-performance, variable frame rate engine.
  */
-class FastEngine extends WebEngine {
+export class FastEngine extends WebEngine {
 	#fps: number = 0;
 	get fps(): number {
 		return this.#fps;
@@ -136,7 +136,7 @@ class FastEngine extends WebEngine {
 /**
  * A variable frame rate engine.
  */
-class PreciseEngine extends WebEngine {
+export class PreciseEngine extends WebEngine {
 	#fps: number = 0;
 	get fps(): number {
 		return this.#fps;
@@ -174,7 +174,7 @@ class PreciseEngine extends WebEngine {
 /**
  * A fixed frame rate engine.
  */
-class StaticEngine extends WebEngine {
+export class StaticEngine extends WebEngine {
 	get limit(): number {
 		return super.limit;
 	}
@@ -215,6 +215,3 @@ class StaticEngine extends WebEngine {
 	};
 }
 //#endregion
-
-export { type WebEngineOptions, WebEngine };
-export { FastEngine, PreciseEngine, StaticEngine };

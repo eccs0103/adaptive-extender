@@ -5,7 +5,7 @@ import { type PrimitivesHintMap } from "./primitives.js";
 const { trunc, abs, sign } = Math;
 
 //#region Timespan
-interface TimespanProperties {
+export interface TimespanProperties {
 	/**
 	 * Whether to include all components (days, milliseconds) even if zero.
 	 */
@@ -16,7 +16,7 @@ interface TimespanProperties {
  * Represents a time interval with precision up to milliseconds.
  * Provides utilities for creating, parsing, converting, and modifying time intervals.
  */
-class Timespan {
+export class Timespan {
 	//#region Properties
 	#value: number = 0;
 	#dm: Int32Array = new Int32Array(2);
@@ -281,5 +281,3 @@ class Timespan {
 	//#endregion
 }
 //#endregion
-
-export { type TimespanProperties, Timespan };

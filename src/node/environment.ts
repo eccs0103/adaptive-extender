@@ -7,7 +7,7 @@ import "dotenv/config";
 /**
  * Represents the system environment and provides utility methods to access environment variables.
  */
-class Environment {
+export class Environment {
 	/**
 	 * Retrieves a new instance of the Environment class.
 	 */
@@ -38,5 +38,3 @@ class Environment {
 	}
 }
 //#endregion
-
-export { Environment };

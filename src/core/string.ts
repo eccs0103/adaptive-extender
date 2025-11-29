@@ -4,7 +4,7 @@ import "./global.js";
 
 //#region String
 declare global {
-	interface StringConstructor {
+	export interface StringConstructor {
 		/**
 		 * Imports a string from a source.
 		 * @param source The source value to import.
@@ -29,7 +29,7 @@ declare global {
 		isWhitespace(text: string): boolean;
 	}
 
-	interface String {
+	export interface String {
 		/**
 		 * Returns the current string unless it is empty, replacing it with the provided value.
 		 * @returns Original string or fallback.
@@ -103,5 +103,3 @@ String.prototype.toLocalTitleCase = function (locales?: Intl.LocalesArgument | s
 	return this.toLocaleLowerCase(locales).replace(patternWordsFirstLetter, char => char.toLocaleUpperCase(locales));
 };
 //#endregion
-
-export { };

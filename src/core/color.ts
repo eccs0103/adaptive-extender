@@ -9,14 +9,14 @@ const { min, max, trunc, abs } = Math;
 /**
  * Represents available color formats.
  */
-enum ColorFormats {
+export enum ColorFormats {
 	rgb = "RGB",
 	hsl = "HSL",
 	hex = "HEX",
 }
 //#endregion
 //#region Color
-interface ColorProperties {
+export interface ColorProperties {
 	/**
 	 * Indicates whether the alpha channel is included.
 	 */
@@ -31,7 +31,7 @@ interface ColorProperties {
  * Represents a color in RGB, HSL, or HEX format with support for alpha channel,
  * conversion between formats, creation from components, and parsing from strings.
  */
-class Color {
+export class Color {
 	//#region Properties
 	#rgb: Uint8ClampedArray = new Uint8ClampedArray([0, 0, 0]);
 	/**
@@ -645,6 +645,3 @@ class Color {
 	//#endregion
 }
 //#endregion
-
-export { ColorFormats };
-export { type ColorProperties, Color };

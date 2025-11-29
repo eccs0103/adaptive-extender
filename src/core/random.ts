@@ -6,7 +6,7 @@ const { random, trunc } = Math;
 /**
  * Provides utility methods for generating random values.
  */
-class Random {
+export class Random {
 	static #global: Random = new Random();
 	/**
 	 * Gets the global shared random generator instance.
@@ -162,5 +162,3 @@ class Random {
 	};
 }
 //#endregion
-
-export { Random };

@@ -7,7 +7,7 @@ import { Vector2D } from "./vector-2.js";
 /**
  * Represents a 3D vector.
  */
-class Vector3D extends Vector2D {
+export class Vector3D extends Vector2D {
 	//#region Properties
 	#z: number;
 	/**
@@ -115,5 +115,3 @@ class Vector3D extends Vector2D {
 	//#endregion
 }
 //#endregion
-
-export { Vector3D };

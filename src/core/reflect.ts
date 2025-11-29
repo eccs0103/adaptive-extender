@@ -2,7 +2,7 @@
 
 //#region Reflect
 declare global {
-	namespace Reflect {
+	export namespace Reflect {
 		/**
 		 * Applies a callback function to a non-null value, or returns the original null value.
 		 * @param value The value to map.
@@ -42,5 +42,3 @@ Reflect.mapNullable = function <T, N extends Exclude<T, NonNullable<T>>, R>(valu
 	return callback(value) as NonNullable<R>;
 };
 //#endregion
-
-export { };

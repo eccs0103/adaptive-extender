@@ -4,7 +4,7 @@ import "./global.js";
 
 //#region Number
 declare global {
-	interface NumberConstructor {
+	export interface NumberConstructor {
 		/**
 		 * Imports a number from a source.
 		 * @param source The source value to import.
@@ -15,7 +15,7 @@ declare global {
 		import(source: any, name?: string): number;
 	}
 
-	interface Number {
+	export interface Number {
 		/**
 		 * Returns the current number unless it is NaN, replacing it with the provided value.
 		 * @param value The fallback value.
@@ -60,5 +60,3 @@ Number.prototype.insteadZero = function <T>(value: T): number | T {
 	return current;
 };
 //#endregion
-
-export { };

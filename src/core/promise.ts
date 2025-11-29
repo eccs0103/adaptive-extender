@@ -4,10 +4,10 @@
 /**
  * Represents a value that can be either a plain value or a Promise resolving to that value.
  */
-type Promisable<T> = T | Promise<T>;
+export type Promisable<T> = T | Promise<T>;
 
 declare global {
-	interface Promise<T> {
+	export interface Promise<T> {
 		/**
 		 * Checks if the promise is settled.
 		 */
@@ -88,5 +88,3 @@ Object.defineProperty(Promise.prototype, "reason", {
 	}
 });
 //#endregion
-
-export { type Promisable };

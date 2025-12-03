@@ -4,11 +4,11 @@ import { describe, it, expect } from "vitest";
 describe("String extensions", () => {
 	describe("String.import", () => {
 		it("should return the string if valid", () => {
-			expect(String.import("hello")).toBe("hello");
+			expect(String.import("hello", "[source]")).toBe("hello");
 		});
 
 		it("should throw TypeError if source is not a string", () => {
-			expect(() => String.import(123 as any)).toThrow(TypeError);
+			expect(() => String.import(123 as any, "[source]")).toThrow(TypeError);
 			expect(() => String.import({} as any, "obj")).toThrow(TypeError);
 			expect(() => String.import(null as any, "null")).toThrow(TypeError);
 			expect(() => String.import(undefined as any, "undef")).toThrow(TypeError);

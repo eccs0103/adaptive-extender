@@ -5,11 +5,11 @@ describe("Array extensions", () => {
 	describe("Array.import", () => {
 		it("should import an array", () => {
 			const arr = [1, 2, 3];
-			expect(Array.import(arr)).toEqual(arr);
+			expect(Array.import(arr, "[source]")).toEqual(arr);
 		});
 
 		it.each([123, "abc", {}, null, undefined])("should throw TypeError for non-array source: %s", (source) => {
-			expect(() => Array.import(source as any)).toThrow(TypeError);
+			expect(() => Array.import(source as any, "[source]")).toThrow(TypeError);
 		});
 	});
 

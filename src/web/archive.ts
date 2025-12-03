@@ -99,7 +99,7 @@ export class ArchiveManager<T extends ArchivablePrototype> {
 	 */
 	get content(): InstanceType<T> {
 		try {
-			return this.#prototype.import(this.#archive.data);
+			return this.#prototype.import(this.#archive.data, this.#archive.key);
 		} catch (error) {
 			if (!(error instanceof TypeError)) throw error;
 			throw new SyntaxError(`Archive at key '${this.#archive.key}' is corrupted`);

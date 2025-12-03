@@ -5,15 +5,15 @@ describe("Date extensions", () => {
 	describe("Date.import", () => {
 		it("should import a valid Date instance", () => {
 			const d = new Date();
-			expect(Date.import(d)).toBe(d);
+			expect(Date.import(d, "[source]")).toBe(d);
 		});
 
 		it("should throw TypeError for non-Date values", () => {
-			expect(() => Date.import("2024-01-01" as any)).toThrow(TypeError);
-			expect(() => Date.import(123 as any)).toThrow(TypeError);
-			expect(() => Date.import(null as any)).toThrow(TypeError);
-			expect(() => Date.import(undefined as any)).toThrow(TypeError);
-			expect(() => Date.import({} as any)).toThrow(TypeError);
+			expect(() => Date.import("2024-01-01" as any, "[source]")).toThrow(TypeError);
+			expect(() => Date.import(123 as any, "[source]")).toThrow(TypeError);
+			expect(() => Date.import(null as any, "[source]")).toThrow(TypeError);
+			expect(() => Date.import(undefined as any, "[source]")).toThrow(TypeError);
+			expect(() => Date.import({} as any, "[source]")).toThrow(TypeError);
 		});
 
 		it("should include the name in the error message", () => {

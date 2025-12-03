@@ -12,7 +12,7 @@ declare global {
 		 * @returns The imported date value.
 		 * @throws {TypeError} If the source is not a date.
 		 */
-		import(source: any, name?: string): Date;
+		import(source: any, name: string): Date;
 		/**
 		 * Checks whether a given date is invalid.
 		 * @returns `true` if the value is a `Date` and is invalid; otherwise, `false`.
@@ -30,7 +30,7 @@ declare global {
 	}
 }
 
-Date.import = function (source: any, name: string = "[source]"): Date {
+Date.import = function (source: any, name: string): Date {
 	if (!(source instanceof Date)) throw new TypeError(`Unable to import date from ${name} due its ${typename(source)} type`);
 	return source;
 };

@@ -10,11 +10,11 @@ declare global {
 		 * @returns The imported object.
 		 * @throws {TypeError} If the source is not an object or null.
 		 */
-		import(source: any, name?: string): object;
+		import(source: any, name: string): object;
 	}
 }
 
-Object.import = function (source: any, name: string = "[source]"): object {
+Object.import = function (source: any, name: string): object {
 	if (typeof (source) !== "object" || source === null) throw new TypeError(`Unable to import object from ${name} due its ${typename(source)} type`);
 	return source;
 };

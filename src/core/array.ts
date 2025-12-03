@@ -14,7 +14,7 @@ declare global {
 		 * @returns The imported array.
 		 * @throws {TypeError} If the source is not an array.
 		 */
-		import(source: any, name?: string): any[];
+		import(source: any, name: string): any[];
 		/**
 		 * Creates an array of integers between the specified minimum and maximum values (exclusive).
 		 * @param min The minimum value of the range (inclusive).
@@ -39,13 +39,13 @@ declare global {
 		/**
 		 * Resizes the array to a specified length, filling with a default value if extended.
 		 * @param length The new length of the array.
-		 * @param _default The value used to fill when the array grows.
+		 * @param $default The value used to fill when the array grows.
 		 */
-		resize(length: number, _default: T): T[];
+		resize(length: number, $default: T): T[];
 	}
 }
 
-Array.import = function (source: any, name: string = "[source]"): any[] {
+Array.import = function (source: any, name: string): any[] {
 	if (!Array.isArray(source)) throw new TypeError(`Unable to import array from ${name} due its ${typename(source)} type`);
 	return source;
 };
@@ -77,8 +77,8 @@ Array.prototype.swap = function (index1: number, index2: number): void {
 	this[index2] = temporary;
 };
 
-Array.prototype.resize = function <T>(this: T[], length: number, _default: T): T[] {
-	while (length > this.length) this.push(_default);
+Array.prototype.resize = function <T>(this: T[], length: number, $default: T): T[] {
+	while (length > this.length) this.push($default);
 	this.length = length;
 	return this;
 };

@@ -12,7 +12,7 @@ declare global {
 		 * @returns The imported string value.
 		 * @throws {TypeError} If the source is not a string.
 		 */
-		import(source: any, name?: string): string;
+		import(source: any, name: string): string;
 		/**
 		 * A constant empty string.
 		 */
@@ -63,7 +63,7 @@ declare global {
 	}
 }
 
-String.import = function (source: any, name: string = "[source]"): string {
+String.import = function (source: any, name: string): string {
 	if (typeof (source) !== "string") throw new TypeError(`Unable to import string from ${name} due its ${typename(source)} type`);
 	return source.valueOf();
 };

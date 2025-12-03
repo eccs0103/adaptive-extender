@@ -12,7 +12,7 @@ declare global {
 		 * @returns The imported number value.
 		 * @throws {TypeError} If the source is not a number.
 		 */
-		import(source: any, name?: string): number;
+		import(source: any, name: string): number;
 	}
 
 	export interface Number {
@@ -37,7 +37,7 @@ declare global {
 	}
 }
 
-Number.import = function (source: any, name: string = "[source]"): number {
+Number.import = function (source: any, name: string): number {
 	if (typeof (source) !== "number") throw new TypeError(`Unable to import number from ${name} due its ${typename(source)} type`);
 	return source.valueOf();
 };

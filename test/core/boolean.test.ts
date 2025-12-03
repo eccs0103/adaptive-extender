@@ -4,35 +4,35 @@ import { describe, it, expect } from "vitest";
 describe("Boolean extensions", () => {
 	describe("Boolean.import", () => {
 		it("should import true as true", () => {
-			expect(Boolean.import(true)).toBe(true);
+			expect(Boolean.import(true, "[source]")).toBe(true);
 		});
 
 		it("should import false as false", () => {
-			expect(Boolean.import(false)).toBe(false);
+			expect(Boolean.import(false, "[source]")).toBe(false);
 		});
 
 		it("should throw TypeError for non-boolean values (number)", () => {
 			const value = 1;
 			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should throw TypeError for non-boolean values (string)", () => {
 			const value = "true";
 			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should throw TypeError for non-boolean values (object)", () => {
 			const value = {};
 			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should throw TypeError for non-boolean values (undefined)", () => {
 			const value = undefined;
 			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any)).toThrow(new TypeError(expectedMessage));
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
 		});
 
 		it("should use custom name in error message", () => {

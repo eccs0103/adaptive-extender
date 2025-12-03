@@ -4,17 +4,17 @@ import { describe, it, expect } from "vitest";
 describe("Number extensions", () => {
 	describe("Number.import", () => {
 		it("should import a valid number", () => {
-			expect(Number.import(42)).toBe(42);
-			expect(Number.import(-3.14)).toBe(-3.14);
+			expect(Number.import(42, "[source]")).toBe(42);
+			expect(Number.import(-3.14, "[source]")).toBe(-3.14);
 		});
 
 		it("should throw TypeError for non-number types", () => {
-			expect(() => Number.import("42" as any)).toThrow(TypeError);
-			expect(() => Number.import(null as any)).toThrow(TypeError);
-			expect(() => Number.import(undefined as any)).toThrow(TypeError);
-			expect(() => Number.import({} as any)).toThrow(TypeError);
-			expect(() => Number.import([] as any)).toThrow(TypeError);
-			expect(() => Number.import(true as any)).toThrow(TypeError);
+			expect(() => Number.import("42" as any, "[source]")).toThrow(TypeError);
+			expect(() => Number.import(null as any, "[source]")).toThrow(TypeError);
+			expect(() => Number.import(undefined as any, "[source]")).toThrow(TypeError);
+			expect(() => Number.import({} as any, "[source]")).toThrow(TypeError);
+			expect(() => Number.import([] as any, "[source]")).toThrow(TypeError);
+			expect(() => Number.import(true as any, "[source]")).toThrow(TypeError);
 		});
 
 		it("should use custom name in error message", () => {

@@ -74,7 +74,7 @@ describe("ArchiveManager", () => {
 		expect(() => manager.content).toThrow(`Archive at key '${archiveKey}' is corrupted`);
 	});
 
-	it("should throw SyntaxError if imported data is invalid for the prototype", () => {
+	it("should throw SyntaxError if imported data is invalid for the constructor", () => {
 		localStorage.setItem(archiveKey, JSON.stringify({ value: 123 })); // Missing 'name' property
 		const manager = new ArchiveManager(archiveKey, MockArchivable, 0, "default");
 

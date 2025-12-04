@@ -218,10 +218,10 @@ export class Timespan {
 	[Symbol.toPrimitive]<K extends keyof PrimitivesHintMap>(hint: K): PrimitivesHintMap[K];
 	[Symbol.toPrimitive]<K extends keyof PrimitivesHintMap>(hint: K): PrimitivesHintMap[keyof PrimitivesHintMap] {
 		switch (hint) {
-			case "number": return this.valueOf();
-			case "boolean": return Boolean(this.#value);
-			case "string": return this.toString();
-			default: throw new Error(`Invalid '${hint}' hint for primitive`);
+		case "number": return this.valueOf();
+		case "boolean": return Boolean(this.#value);
+		case "string": return this.toString();
+		default: throw new Error(`Invalid '${hint}' hint for primitive`);
 		}
 	}
 	//#endregion

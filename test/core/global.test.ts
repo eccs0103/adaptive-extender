@@ -2,27 +2,27 @@ import "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 describe("Global extensions", () => {
-	describe("global prototype function", () => {
+	describe("global constructor function", () => {
 		it("should return the constructor of a string", () => {
-			expect(prototype("hello")).toBe(String);
+			expect(constructor("hello")).toBe(String);
 		});
 
 		it("should return the constructor of a number", () => {
-			expect(prototype(42)).toBe(Number);
+			expect(constructor(42)).toBe(Number);
 		});
 
 		it("should return the constructor of an array", () => {
-			expect(prototype([1, 2, 3])).toBe(Array);
+			expect(constructor([1, 2, 3])).toBe(Array);
 		});
 
 		it("should return the constructor of an object", () => {
-			expect(prototype({ a: 1 })).toBe(Object);
+			expect(constructor({ a: 1 })).toBe(Object);
 		});
 
 		it("should return the constructor of a custom class instance", () => {
 			class MyClass { }
 			const instance = new MyClass();
-			expect(prototype(instance)).toBe(MyClass);
+			expect(constructor(instance)).toBe(MyClass);
 		});
 	});
 

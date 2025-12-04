@@ -216,28 +216,28 @@ export class Color {
 	}
 	static #parse(string: string, deep: boolean, format: ColorFormats): Color {
 		switch (format) {
-			case ColorFormats.rgb: {
-				const regex = (deep ? Color.#patternRGBA : Color.#patternRGB);
-				const match = regex.exec(string.trim());
-				if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
-				const [, red, green, blue, alpha] = match.map(part => Number(part));
-				return Color.fromRGB(red, green, blue, deep ? alpha : 1);
-			};
-			case ColorFormats.hsl: {
-				const regex = (deep ? Color.#patternHSLA : Color.#patternHSL);
-				const match = regex.exec(string.trim());
-				if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
-				const [, hue, saturation, lightness, alpha] = match.map(part => Number(part));
-				return Color.fromHSL(hue, saturation, lightness, deep ? alpha : 1);
-			};
-			case ColorFormats.hex: {
-				const regex = (deep ? Color.#patternHEXA : Color.#patternHEX);
-				const match = regex.exec(string.trim());
-				if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
-				const [, red, green, blue, alpha] = match.map(part => Number.parseInt(part, 16));
-				return Color.fromRGB(red, green, blue, deep ? (alpha / 255) : 1);
-			};
-			default: throw new Error(`Invalid '${format}' format for color`);
+		case ColorFormats.rgb: {
+			const regex = (deep ? Color.#patternRGBA : Color.#patternRGB);
+			const match = regex.exec(string.trim());
+			if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
+			const [, red, green, blue, alpha] = match.map(part => Number(part));
+			return Color.fromRGB(red, green, blue, deep ? alpha : 1);
+		};
+		case ColorFormats.hsl: {
+			const regex = (deep ? Color.#patternHSLA : Color.#patternHSL);
+			const match = regex.exec(string.trim());
+			if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
+			const [, hue, saturation, lightness, alpha] = match.map(part => Number(part));
+			return Color.fromHSL(hue, saturation, lightness, deep ? alpha : 1);
+		};
+		case ColorFormats.hex: {
+			const regex = (deep ? Color.#patternHEXA : Color.#patternHEX);
+			const match = regex.exec(string.trim());
+			if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
+			const [, red, green, blue, alpha] = match.map(part => Number.parseInt(part, 16));
+			return Color.fromRGB(red, green, blue, deep ? (alpha / 255) : 1);
+		};
+		default: throw new Error(`Invalid '${format}' format for color`);
 		}
 	}
 	/**
@@ -309,10 +309,10 @@ export class Color {
 	}
 	static #toHue(maximum: number, red: number, green: number, blue: number, difference: number): number {
 		switch (maximum) {
-			case red: return (green - blue) / difference + 0;
-			case green: return (blue - red) / difference + 2;
-			case blue: return (red - green) / difference + 4;
-			default: throw new Error(`Invalid '${maximum}' maximum for colors`);
+		case red: return (green - blue) / difference + 0;
+		case green: return (blue - red) / difference + 2;
+		case blue: return (red - green) / difference + 4;
+		default: throw new Error(`Invalid '${maximum}' maximum for colors`);
 		}
 	}
 	/**
@@ -354,10 +354,10 @@ export class Color {
 		format ??= ColorFormats.rgb;
 		deep ??= true;
 		switch (format) {
-			case ColorFormats.rgb: return `rgb${deep ? "a" : String.empty}(${this.red}, ${this.green}, ${this.blue}${deep ? `, ${this.alpha}` : String.empty})`;
-			case ColorFormats.hsl: return `hsl${deep ? "a" : String.empty}(${this.hue}deg, ${this.saturation}%, ${this.lightness}%${deep ? `, ${this.alpha}` : String.empty})`;
-			case ColorFormats.hex: return `#${Color.#toHEXString(this.red)}${Color.#toHEXString(this.green)}${Color.#toHEXString(this.blue)}${deep ? Color.#toHEXString(trunc(this.alpha * 255)) : String.empty}`;
-			default: throw new Error(`Invalid '${format}' format for color`);
+		case ColorFormats.rgb: return `rgb${deep ? "a" : String.empty}(${this.red}, ${this.green}, ${this.blue}${deep ? `, ${this.alpha}` : String.empty})`;
+		case ColorFormats.hsl: return `hsl${deep ? "a" : String.empty}(${this.hue}deg, ${this.saturation}%, ${this.lightness}%${deep ? `, ${this.alpha}` : String.empty})`;
+		case ColorFormats.hex: return `#${Color.#toHEXString(this.red)}${Color.#toHEXString(this.green)}${Color.#toHEXString(this.blue)}${deep ? Color.#toHEXString(trunc(this.alpha * 255)) : String.empty}`;
+		default: throw new Error(`Invalid '${format}' format for color`);
 		}
 	}
 	//#endregion

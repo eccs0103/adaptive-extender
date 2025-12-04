@@ -47,9 +47,9 @@ declare global {
 
 ReferenceError.suppress = function <T>(value: T, message: string = "Expected a reference with not missing value"): NonNullable<T> {
 	switch (value) {
-		case undefined:
-		case null: throw new ReferenceError(message);
-		default: return (value as NonNullable<T>);
+	case undefined:
+	case null: throw new ReferenceError(message);
+	default: return (value as NonNullable<T>);
 	}
 };
 //#endregion

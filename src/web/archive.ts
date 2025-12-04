@@ -1,7 +1,7 @@
 "use strict";
 
 import "../core/index.js";
-import { type ArchivablePrototype } from "../core/index.js";
+import { type PortableConstructor } from "../core/index.js";
 
 //#region Archive
 /**
@@ -65,26 +65,26 @@ class Archive {
 /**
  * Manages the archiving of an object.
  */
-export class ArchiveManager<T extends ArchivablePrototype> {
-	#prototype: T;
+export class ArchiveManager<T extends PortableConstructor> {
+	#$constructor: T;
 	#args: ConstructorParameters<T>;
 	#archive: Archive;
 	/**
 	 * @param key The key for the archive.
-	 * @param prototype The prototype of the archivable object.
+	 * @param constructor The constructor of the archivable object.
 	 * @param args The arguments for the constructor of the archivable object.
 	 */
-	constructor(key: string, prototype: T, ...args: ConstructorParameters<T>) {
-		this.#prototype = prototype;
+	constructor(key: string, constructor: T, ...args: ConstructorParameters<T>) {
+		this.#$constructor = constructor;
 		this.#args = args;
-		this.#archive = ArchiveManager.#newArchive(key, prototype, args);
+		this.#archive = ArchiveManager.#newArchive(key, constructor, args);
 	}
-	static #newInstance<T extends ArchivablePrototype>(prototype: T, args: ConstructorParameters<T>): InstanceType<T> {
-		return Reflect.construct<ConstructorParameters<T>, InstanceType<T>>(prototype, args);
+	static #newInstance<T extends PortableConstructor>(constructor: T, args: ConstructorParameters<T>): InstanceType<T> {
+		return Reflect.construct<ConstructorParameters<T>, InstanceType<T>>(constructor, args);
 	}
-	static #newArchive<T extends ArchivablePrototype>(key: string, prototype: T, args: ConstructorParameters<T>): Archive {
-		const instance = ArchiveManager.#newInstance(prototype, args);
-		return new Archive(key, prototype.export(instance));
+	static #newArchive<T extends PortableConstructor>(key: string, constructor: T, args: ConstructorParameters<T>): Archive {
+		const instance = ArchiveManager.#newInstance(constructor, args);
+		return new Archive(key, constructor.export(instance));
 	}
 	/**
 	 * Key of the archive.
@@ -99,7 +99,7 @@ export class ArchiveManager<T extends ArchivablePrototype> {
 	 */
 	get content(): InstanceType<T> {
 		try {
-			return this.#prototype.import(this.#archive.data, this.#archive.key);
+			return this.#$constructor.import(this.#archive.data, this.#archive.key);
 		} catch (error) {
 			if (!(error instanceof TypeError)) throw error;
 			throw new SyntaxError(`Archive at key '${this.#archive.key}' is corrupted`);
@@ -110,13 +110,13 @@ export class ArchiveManager<T extends ArchivablePrototype> {
 	 * @throws {SyntaxError} If the value could not be processed.
 	 */
 	set content(value: InstanceType<T>) {
-		this.#archive.data = this.#prototype.export(value);
+		this.#archive.data = this.#$constructor.export(value);
 	}
 	/**
 	 * Resets the content of the archive to a new instance.
 	 */
 	reset(): void {
-		this.content = ArchiveManager.#newInstance(this.#prototype, this.#args);
+		this.content = ArchiveManager.#newInstance(this.#$constructor, this.#args);
 	}
 }
 //#endregion
@@ -124,17 +124,17 @@ export class ArchiveManager<T extends ArchivablePrototype> {
 /**
  * Provides a repository pattern for managing an archivable object with saving.
  */
-export class ArchiveRepository<T extends ArchivablePrototype> {
+export class ArchiveRepository<T extends PortableConstructor> {
 	#manager: ArchiveManager<T>;
 	#content: InstanceType<T>;
 	#idSaveTimeout: number = NaN;
 	/**
 	 * @param key The key for the archive.
-	 * @param prototype The prototype of the archivable object.
+	 * @param constructor The constructor of the archivable object.
 	 * @param args The arguments for the constructor of the archivable object.
 	 */
-	constructor(key: string, prototype: T, ...args: ConstructorParameters<T>) {
-		this.#manager = new ArchiveManager(key, prototype, ...args);
+	constructor(key: string, constructor: T, ...args: ConstructorParameters<T>) {
+		this.#manager = new ArchiveManager(key, constructor, ...args);
 		this.#content = this.#manager.content;
 		window.addEventListener("beforeunload", (event) => {
 			if (Number.isNaN(this.#idSaveTimeout)) return;

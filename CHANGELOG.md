@@ -1,4 +1,4 @@
-## 0.8.4 (03.12.2025)
+## 0.8.5 (04.12.2025)
 - Added [reflect](./src/core/reflect.ts), [environment](./src/node/environment.ts) modules.
 
 ## 0.8.0 (03.11.2025)

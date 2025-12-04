@@ -10,7 +10,7 @@ export * from "./math.js";
 export * from "./array.js";
 export * from "./object.js";
 export * from "./reflect.js";
-export * from "./archivable.js";
+export * from "./portable.js";
 export * from "./error.js";
 export * from "./promise.js";
 export * from "./random.js";

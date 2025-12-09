@@ -53,6 +53,57 @@ describe("Array extensions", () => {
 		});
 	});
 
+	describe("Array.fromAsync", () => {
+		it("should create an array from an async iterable", async () => {
+			async function* asyncGen() {
+				yield 1;
+				yield 2;
+				yield 3;
+			}
+			const result = await Array.fromAsync(asyncGen());
+			expect(result).toEqual([1, 2, 3]);
+		});
+
+		it("should create an array from a sync iterable", async () => {
+			function* syncGen() {
+				yield "a";
+				yield "b";
+			}
+			const result = await Array.fromAsync(syncGen());
+			expect(result).toEqual(["a", "b"]);
+		});
+
+		it("should use a mapper function", async () => {
+			async function* asyncGen() {
+				yield 1;
+				yield 2;
+			}
+			const result = await Array.fromAsync(asyncGen(), (x) => x * 2);
+			expect(result).toEqual([2, 4]);
+		});
+
+		it("should use a mapper function returning a promise", async () => {
+			async function* asyncGen() {
+				yield 1;
+				yield 2;
+			}
+			const result = await Array.fromAsync(asyncGen(), async (x) => x * 2);
+			expect(result).toEqual([2, 4]);
+		});
+
+		it("should use context with mapper", async () => {
+			const context = { multiplier: 3 };
+			async function* asyncGen() {
+				yield 1;
+				yield 2;
+			}
+			const result = await Array.fromAsync(asyncGen(), function (this: typeof context, x) {
+				return x * this.multiplier;
+			}, context);
+			expect(result).toEqual([3, 6]);
+		});
+	});
+
 	describe("Array.prototype.swap", () => {
 		it("should swap two elements", () => {
 			const arr = [1, 2, 3];

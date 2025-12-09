@@ -1,6 +1,7 @@
 "use strict";
 
 import "./global.js";
+import type { Promisable } from "./promise.js";
 
 const { trunc } = Math;
 
@@ -27,6 +28,18 @@ declare global {
 		 * @returns An iterator yielding tuples.
 		 */
 		zip<T extends unknown[]>(...iterables: { [K in keyof T]: Iterable<T[K]> }): IteratorObject<T, void>;
+		/**
+		 * Creates an array from an async iterable or iterable object.
+		 * @param iterable An async iterable or iterable object to convert to an array.
+		 */
+		fromAsync<T>(iterable: AsyncIterable<T> | Iterable<T>): Promise<T[]>;
+		/**
+		 * Creates an array from an async iterable or iterable object.
+		 * @param iterable An async iterable or iterable object to convert to an array.
+		 * @param mapper A mapping function to call on every element of the array.
+		 * @param context Value of 'this' used to invoke the mapper.
+		 */
+		fromAsync<T, U>(iterable: AsyncIterable<T> | Iterable<T>, mapper: (value: T, key: number) => U | PromiseLike<U>, context?: unknown): Promise<U[]>;
 	}
 
 	export interface Array<T> {
@@ -69,6 +82,26 @@ Array.zip = function*<T extends unknown[]>(...iterables: { [K in keyof T]: Itera
 	}
 };
 
+Array.fromAsync = async function <T, U>(iterable: AsyncIterable<T> | Iterable<T>, mapper?: (value: T, key: number) => Promisable<U>, context?: unknown): Promise<(T | U)[]> {
+	const array: (T | U)[] = [];
+	let index = 0;
+	for await (const element of iterable) {
+		if (mapper === undefined) {
+			array.push(element);
+			index++;
+			continue;
+		}
+		if (context === undefined) {
+			array.push(await mapper(element, index));
+			index++;
+			continue;
+		}
+		array.push(await mapper.call(context, element, index));
+		index++;
+	}
+	return array;
+};
+
 Array.prototype.swap = function (index1: number, index2: number): void {
 	index1 = trunc(index1);
 	index2 = trunc(index2);
@@ -83,3 +116,5 @@ Array.prototype.resize = function <T>(this: T[], length: number, $default: T): T
 	return this;
 };
 //#endregion
+
+Array.from;

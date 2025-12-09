@@ -1,3 +1,6 @@
+## 0.8.6 (09.12.2025)
+- Added `Array.fromAsync` function.
+
 ## 0.8.5 (04.12.2025)
 - Added [reflect](./src/core/reflect.ts), [environment](./src/node/environment.ts) modules.
 

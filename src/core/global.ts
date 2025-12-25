@@ -3,16 +3,6 @@
 //#region Global
 declare global {
 	/**
-	 * Exclude null from T
-	 */
-	export type NonNull<T> = T & ({} | undefined);
-
-	/**
-	 * Exclude undefined from T
-	 */
-	export type NonUndefined<T> = T & ({} | null);
-
-	/**
 	 * Returns the constructor of the given non-nullable value.
 	 */
 	export function constructor<T>(value: NonNullable<T>): Function;

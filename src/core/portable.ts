@@ -4,9 +4,7 @@
 /**
  * Represents a generic class constructor.
  */
-export interface Constructor {
-	new(...args: any): any;
-}
+export type Constructor = abstract new (...args: any[]) => any;
 //#endregion
 //#region Importable constructor
 /**

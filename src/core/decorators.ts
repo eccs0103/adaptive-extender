@@ -8,14 +8,10 @@ export function Scheme(type: PortableSchema<any>, name?: string) {
 	return function (target: undefined, context: ClassFieldDecoratorContext) {
 		const propertyKey = String(context.name);
 		const schemeKey = name ?? propertyKey;
-
 		context.addInitializer(function () {
-			// this.constructor строго типизирован в рантайме
-			MetadataStorage.registerField((this as any).constructor, {
-				propertyKey,
-				schemeKey,
-				type
-			});
+			const instance = ReferenceError.suppress(this);
+			const Type = constructor(instance);
+			MetadataStorage.registerField(Type, { propertyKey, schemeKey, type });
 		});
 	};
 }
@@ -37,9 +33,9 @@ export function Portable<T extends Constructor>(target: T, context: ClassDecorat
 		const subtypes = MetadataStorage.getPolymorphism(target);
 		if (subtypes) {
 			// Используем Object.import (из вашего расширения) для безопасного получения объекта
-			const object = (Object as any).import(source, name);
+			const object = Object.import(source, name);
 			// Используем String.import для получения типа
-			const typeName = (String as any).import(Reflect.get(object, "$type"), `${name}.$type`);
+			const typeName = String.import(Reflect.get(object, "$type"), `${name}.$type`);
 
 			const match = subtypes.find(s => s.name === typeName);
 			if (match) return match.import(source, name);
@@ -49,7 +45,7 @@ export function Portable<T extends Constructor>(target: T, context: ClassDecorat
 
 		// 2. Десериализация полей
 		// Важно: вызываем Object.import, чтобы удостовериться что source это объект
-		const object = (Object as any).import(source, name);
+		const object = Object.import(source, name);
 		const instance = Object.create(target.prototype);
 
 		const fields = MetadataStorage.getFields(target);

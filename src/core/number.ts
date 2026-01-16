@@ -13,6 +13,7 @@ declare global {
 		 * @throws {TypeError} If the source is not a number.
 		 */
 		import(source: any, name: string): number;
+		export(source: number): number;
 	}
 
 	export interface Number {

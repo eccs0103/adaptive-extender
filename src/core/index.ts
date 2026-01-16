@@ -23,45 +23,25 @@ export * from "./timespan.js";
 export * from "./engine.js";
 export * from "./controller.js";
 
-import { Portable, PolymorphicBase, Scheme } from "./decorators.js";
-import { ArrayOf, Nullable, Optional, Deferred } from "./infrastructure.js";
-import { Activity } from "./activity.js";
+"use strict";
+import { PolymorphicBase, Portable, Scheme } from "./decorators.js";
 
-// Пример сложной вложенности для демонстрации
+//#region Base model
 @Portable
-class Artist {
-	@Scheme(String) name: string;
+@PolymorphicBase(DerivedModel)
+export abstract class BaseModel {
+	@Scheme(String, "value_1")
+	value1: string;
 
-	// Циклическая зависимость: Артист может иметь похожих артистов
-	@Scheme(Optional(ArrayOf(Deferred(() => Artist))))
-	similar: Artist[] | undefined;
+	constructor() {
+		if (new.target === BaseModel) throw new TypeError("Unable to create an instance of an abstract class");
+	}
 }
-
+//#endregion
+//#region Derived model
 @Portable
-@PolymorphicBase(SpotifyLikeActivity)
-export abstract class SpotifyActivity extends Activity {
-	// ... конструктор ...
+export class DerivedModel extends BaseModel {
+	@Scheme(Number, "value_2")
+	value2: number;
 }
-
-@Portable
-export class SpotifyLikeActivity extends SpotifyActivity {
-
-	@Scheme(String) // schemeKey = "title"
-	title: string;
-
-	// Рекурсия: ArrayOf вызывает String.import
-	@Scheme(ArrayOf(String))
-	artists: string[];
-
-	// Комбинация: Nullable вызывает String.import
-	@Scheme(Nullable(String))
-	cover: string | null;
-
-	@Scheme(String)
-	url: string;
-
-	// Пример рекурсивного микса:
-	// Опциональный массив нуллабельных строк
-	@Scheme(Optional(ArrayOf(Nullable(String))), "extra_tags")
-	tags: (string | null)[] | undefined;
-}
+//#endregion

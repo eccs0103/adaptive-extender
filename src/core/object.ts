@@ -11,6 +11,7 @@ declare global {
 		 * @throws {TypeError} If the source is not an object or null.
 		 */
 		import(source: any, name: string): object;
+		export(source: object): object;
 	}
 }
 

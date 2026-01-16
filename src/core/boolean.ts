@@ -13,6 +13,7 @@ declare global {
 		 * @throws {TypeError} If the source is not a boolean.
 		 */
 		import(source: any, name: string): boolean;
+		export(source: boolean): boolean;
 	}
 }
 

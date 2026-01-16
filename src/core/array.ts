@@ -16,6 +16,7 @@ declare global {
 		 * @throws {TypeError} If the source is not an array.
 		 */
 		import(source: any, name: string): any[];
+		export(source: any[]): any[];
 		/**
 		 * Creates an array of integers between the specified minimum and maximum values (exclusive).
 		 * @param min The minimum value of the range (inclusive).

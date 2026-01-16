@@ -13,6 +13,7 @@ declare global {
 		 * @throws {TypeError} If the source is not a string.
 		 */
 		import(source: any, name: string): string;
+		export(source: string): string;
 		/**
 		 * A constant empty string.
 		 */

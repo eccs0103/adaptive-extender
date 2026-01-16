@@ -13,6 +13,7 @@ declare global {
 		 * @throws {TypeError} If the source is not a date.
 		 */
 		import(source: any, name: string): Date;
+		export(source: Date): Date;
 		/**
 		 * Checks whether a given date is invalid.
 		 * @returns `true` if the value is a `Date` and is invalid; otherwise, `false`.

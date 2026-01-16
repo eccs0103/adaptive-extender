@@ -27,15 +27,12 @@ import { PortableModel } from "./portable-model.js";
 import { PolymorphicBase, Scheme } from "./decorators.js";
 import { ArrayOf, Nullable } from "./wrappers.js";
 
-// --- Base Class ---
-// Наследуемся от PortableModel -> получаем import/export
-// Передаем callback () => [...], чтобы Derived был виден, даже если он ниже в файле
+//#region Spotify activity
 @PolymorphicBase(() => [SpotifyLikeActivity])
 export abstract class SpotifyActivity extends PortableModel {
-	// В абстрактном классе конструктор можно пока опустить или оставить пустым
 }
-
-// --- Derived Class ---
+//#endregion
+//#region Spotify like activity
 export class SpotifyLikeActivity extends SpotifyActivity {
 
 	@Scheme(String, "title")
@@ -50,8 +47,8 @@ export class SpotifyLikeActivity extends SpotifyActivity {
 	@Scheme(String, "url")
 	url!: string;
 }
+//#endregion
 
-// --- Использование ---
 /*
 const raw = {
 	$type: "SpotifyLikeActivity",

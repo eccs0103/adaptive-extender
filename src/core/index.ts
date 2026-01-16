@@ -23,25 +23,47 @@ export * from "./timespan.js";
 export * from "./engine.js";
 export * from "./controller.js";
 
-"use strict";
-import { PolymorphicBase, Portable, Scheme } from "./decorators.js";
+import { PortableModel } from "./portable-model.js";
+import { PolymorphicBase, Scheme } from "./decorators.js";
+import { ArrayOf, Nullable } from "./wrappers.js";
 
-//#region Base model
-@Portable
-@PolymorphicBase(DerivedModel)
-export abstract class BaseModel {
-	@Scheme(String, "value_1")
-	value1: string;
+// --- Base Class ---
+// Наследуемся от PortableModel -> получаем import/export
+// Передаем callback () => [...], чтобы Derived был виден, даже если он ниже в файле
+@PolymorphicBase(() => [SpotifyLikeActivity])
+export abstract class SpotifyActivity extends PortableModel {
+	// В абстрактном классе конструктор можно пока опустить или оставить пустым
+}
 
-	constructor() {
-		if (new.target === BaseModel) throw new TypeError("Unable to create an instance of an abstract class");
-	}
+// --- Derived Class ---
+export class SpotifyLikeActivity extends SpotifyActivity {
+
+	@Scheme(String, "title")
+	title!: string; // Используем !, так как поля заполняются через import, минуя конструктор
+
+	@Scheme(ArrayOf(String), "artists")
+	artists!: string[];
+
+	@Scheme(Nullable(String), "cover")
+	cover!: string | null;
+
+	@Scheme(String, "url")
+	url!: string;
 }
-//#endregion
-//#region Derived model
-@Portable
-export class DerivedModel extends BaseModel {
-	@Scheme(Number, "value_2")
-	value2: number;
-}
-//#endregion
+
+// --- Использование ---
+/*
+const raw = {
+	$type: "SpotifyLikeActivity",
+	title: "Song",
+	artists: ["Artist A"],
+	cover: null,
+	url: "http..."
+};
+
+// SpotifyActivity.import вернет экземпляр SpotifyLikeActivity
+const activity = SpotifyActivity.import(raw, "api_response"); 
+
+console.log(activity instanceof SpotifyLikeActivity); // true
+console.log(activity.title); // "Song"
+*/

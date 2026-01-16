@@ -1,106 +1,114 @@
 // infrastructure.ts
-import { type Constructor, type PortableConstructor } from "./portable.js";
+import { type PortableConstructor, type Constructor } from "./portable.js";
 
-// --- Строгие типы ---
-
-export interface Converter<T> {
+// Внутренний тип для всего, что умеет импортировать/экспортировать.
+// Это может быть как реальный Класс, так и наша Объект-обертка.
+export interface PortableSchema<T> {
 	import(source: unknown, name: string): T;
 	export(source: T): unknown;
 }
 
-// Тип для схемы поля
-interface PropertySchema {
+// --- Хранилище метаданных ---
+const SCHEMAS = new WeakMap<object, FieldMetadata[]>();
+const POLYMORPHISM = new WeakMap<object, PortableConstructor[]>();
+
+interface FieldMetadata {
 	propertyKey: string;
 	schemeKey: string;
-	converter: Converter<unknown>;
+	type: PortableSchema<any>; // Здесь теперь лежит либо Класс, либо Обертка
 }
-
-// Тип для хранения полиморфных связей
-interface PolymorphicSchema {
-	subtypes: PortableConstructor[];
-}
-
-// --- Хранилище Метаданных (Singleton) ---
-// Используем WeakMap, чтобы не удерживать классы в памяти и не засорять сами классы полями
-const SCHEMAS = new WeakMap<object, PropertySchema[]>();
-const POLYMORPHISM = new WeakMap<object, PolymorphicSchema>();
 
 export const MetadataStorage = {
-	registerProperty(target: object, schema: PropertySchema): void {
+	registerField(target: object, metadata: FieldMetadata) {
 		const existing = SCHEMAS.get(target) ?? [];
-		SCHEMAS.set(target, [...existing, schema]);
+		SCHEMAS.set(target, [...existing, metadata]);
 	},
 
-	getProperties(target: object): PropertySchema[] {
-		// Рекурсивно собираем схемы по цепочке прототипов
-		let result: PropertySchema[] = [];
+	getFields(target: object): FieldMetadata[] {
+		let result: FieldMetadata[] = [];
 		let current = target;
-
 		while (current && current !== Object.prototype) {
 			const schemas = SCHEMAS.get(current);
-			if (schemas) {
-				// Добавляем в начало, чтобы переопределенные поля (если будут) были корректны
-				result = [...schemas, ...result];
-			}
+			if (schemas) result = [...schemas, ...result];
 			current = Reflect.getPrototypeOf(current) as object;
 		}
 		return result;
 	},
 
-	registerPolymorphism(target: object, subtypes: PortableConstructor[]): void {
-		POLYMORPHISM.set(target, { subtypes });
+	registerPolymorphism(target: object, subtypes: PortableConstructor[]) {
+		POLYMORPHISM.set(target, subtypes);
 	},
 
-	getPolymorphism(target: object): PolymorphicSchema | undefined {
+	getPolymorphism(target: object) {
 		return POLYMORPHISM.get(target);
 	}
 };
 
-// --- Базовые Конвертеры (Strict) ---
+// --- Wrappers (Композиторы типов) ---
 
-export const StringConverter: Converter<string> = {
-	import(source: unknown, name: string): string {
-		// Здесь вызываем ваш существующий String.import (предполагаем его наличие)
-		// Если его нет в контексте, вот строгая реализация:
-		if (typeof source !== "string") throw new TypeError(`Field '${name}' must be a string, got ${typeof source}`);
-		return source;
-	},
-	export(source: string): unknown {
-		return source;
-	}
-};
-
-export const NumberConverter: Converter<number> = {
-	import(source: unknown, name: string): number {
-		if (typeof source !== "number") throw new TypeError(`Field '${name}' must be a number`);
-		return source;
-	},
-	export(source: number): unknown {
-		return source;
-	}
-};
-
-export function ArrayOf<T>(converter: Converter<T>): Converter<T[]> {
+// 1. ArrayOf - использует Array.import для проверки массива, затем мапит элементы
+export function ArrayOf<T>(inner: PortableSchema<T>): PortableSchema<T[]> {
 	return {
 		import(source: unknown, name: string): T[] {
-			if (!Array.isArray(source)) throw new TypeError(`Field '${name}' must be an array`);
-			return source.map((item, index) => converter.import(item, `${name}[${index}]`));
+			// Используем нативный Array.import из вашего расширения
+			const array = (Array as any).import(source, name);
+			return array.map((item: any, index: number) =>
+				inner.import(item, `${name}[${index}]`)
+			);
 		},
-		export(source: T[]): unknown {
-			return source.map(item => converter.export(item));
+		export(source: T[]): unknown[] {
+			return source.map(item => inner.export(item));
 		}
 	};
 }
 
-export function Nullable<T>(converter: Converter<T>): Converter<T | null> {
+// 2. Nullable - пропускает null, иначе вызывает inner.import
+export function Nullable<T>(inner: PortableSchema<T>): PortableSchema<T | null> {
 	return {
 		import(source: unknown, name: string): T | null {
-			if (source === null || source === undefined) return null;
-			return converter.import(source, name);
+			if (source === null) return null;
+			// Делегируем undefined проверку в inner или вызываем ошибку там, 
+			// но если пришел undefined, а ожидаем null | T, поведение зависит от бизнес-логики.
+			// Обычно undefined -> ошибка, если поле не Optional.
+			return inner.import(source, name);
 		},
 		export(source: T | null): unknown {
 			if (source === null) return null;
-			return converter.export(source);
+			return inner.export(source);
+		}
+	};
+}
+
+// 3. Optional - пропускает undefined, иначе вызывает inner.import
+export function Optional<T>(inner: PortableSchema<T>): PortableSchema<T | undefined> {
+	return {
+		import(source: unknown, name: string): T | undefined {
+			if (source === undefined) return undefined;
+			return inner.import(source, name);
+		},
+		export(source: T | undefined): unknown {
+			if (source === undefined) return undefined;
+			return inner.export(source);
+		}
+	};
+}
+
+// 4. Deferred - для циклических зависимостей
+// Принимает функцию, возвращающую PortableSchema
+export function Deferred<T>(loader: () => PortableSchema<T>): PortableSchema<T> {
+	// Кешируем результат, чтобы не вызывать loader каждый раз
+	let resolved: PortableSchema<T>;
+	const getInner = () => {
+		if (!resolved) resolved = loader();
+		return resolved;
+	};
+
+	return {
+		import(source: unknown, name: string): T {
+			return getInner().import(source, name);
+		},
+		export(source: T): unknown {
+			return getInner().export(source);
 		}
 	};
 }

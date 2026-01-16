@@ -23,44 +23,45 @@ export * from "./timespan.js";
 export * from "./engine.js";
 export * from "./controller.js";
 
-// feature.ts
 import { Portable, PolymorphicBase, Scheme } from "./decorators.js";
-import { StringConverter, ArrayOf, Nullable } from "./infrastructure.js";
+import { ArrayOf, Nullable, Optional, Deferred } from "./infrastructure.js";
+import { Activity } from "./activity.js";
 
-// --- Абстрактный класс ---
-
-// Обратите внимание: Abstract классы тоже помечаем @Portable,
-// чтобы они получили статический метод import, который будет работать как диспетчер.
+// Пример сложной вложенности для демонстрации
 @Portable
-@PolymorphicBase(SpotifyLikeActivity) // Здесь регистрируем наследников
-export abstract class SpotifyActivity extends Activity {
-	// Если в Activity есть поля, которые нужно сериализовать, 
-	// добавьте @Scheme и туда, или переопределите их здесь с декоратором.
+class Artist {
+	@Scheme(String) name: string;
 
-	constructor(platform: string, timestamp: Date) {
-		super(platform, timestamp);
-		if (new.target === SpotifyActivity) {
-			throw new TypeError("Unable to create an instance of an abstract class");
-		}
-	}
-
-	// Abstract класс не требует реализации import/export вручную,
-	// декоратор @PolymorphicBase сделает всю работу.
+	// Циклическая зависимость: Артист может иметь похожих артистов
+	@Scheme(Optional(ArrayOf(Deferred(() => Artist))))
+	similar: Artist[] | undefined;
 }
 
-// --- Конкретный класс ---
+@Portable
+@PolymorphicBase(SpotifyLikeActivity)
+export abstract class SpotifyActivity extends Activity {
+	// ... конструктор ...
+}
 
 @Portable
 export class SpotifyLikeActivity extends SpotifyActivity {
-	@Scheme(StringConverter, "title")
+
+	@Scheme(String) // schemeKey = "title"
 	title: string;
 
-	@Scheme(ArrayOf(StringConverter), "artists") // "artists" совпадает, второй аргумент можно опустить, но для явности оставим
+	// Рекурсия: ArrayOf вызывает String.import
+	@Scheme(ArrayOf(String))
 	artists: string[];
 
-	@Scheme(Nullable(StringConverter), "cover")
+	// Комбинация: Nullable вызывает String.import
+	@Scheme(Nullable(String))
 	cover: string | null;
 
-	@Scheme(StringConverter, "url")
+	@Scheme(String)
 	url: string;
+
+	// Пример рекурсивного микса:
+	// Опциональный массив нуллабельных строк
+	@Scheme(Optional(ArrayOf(Nullable(String))), "extra_tags")
+	tags: (string | null)[] | undefined;
 }

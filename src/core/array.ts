@@ -1,7 +1,7 @@
 "use strict";
 
 import "./global.js";
-import type { Promisable } from "./promise.js";
+import { type Promisable } from "./promise.js";
 
 const { trunc } = Math;
 

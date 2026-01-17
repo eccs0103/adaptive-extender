@@ -1,9 +1,9 @@
 import "adaptive-extender/core";
-import { ArrayOf, Field, Nullable, PolymorphicBase, PortableModel } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Field, Nullable, PolymorphicBase, PortableModel } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 //#region Spotify activity
-@PolymorphicBase(() => [SpotifyLikeActivity])
+@PolymorphicBase(Deferred(_ => SpotifyLikeActivity))
 export abstract class SpotifyActivity extends PortableModel {
 }
 //#endregion
@@ -24,19 +24,22 @@ export class SpotifyLikeActivity extends SpotifyActivity {
 //#endregion
 
 describe("Hoooo", () => {
-	const raw = {
-		$type: "SpotifyLikeActivity",
-		title: "Song",
-		artists: ["Artist A"],
-		cover: null,
-		url: "http..."
-	};
-	console.log("raw_before", raw);
+	it("Asda", () => {
+		const raw = {
+			$type: "SpotifyLikeActivity",
+			title: "Song",
+			artists: ["Artist A"],
+			cover: null,
+			url: "http..."
+		};
 
-	const activity = SpotifyActivity.import(raw, "api_response");
-	console.log("port", activity);
-	expect(activity instanceof SpotifyLikeActivity);
+		console.log("raw_before", raw);
+		const activity = SpotifyActivity.import(raw, "api_response");
 
-	const raw2 = SpotifyActivity.export(activity);
-	console.log("raw_after", raw2);
+		expect(activity instanceof SpotifyLikeActivity);
+		console.log("port", activity);
+
+		const raw2 = SpotifyActivity.export(activity);
+		console.log("raw_after", raw2);
+	});
 });

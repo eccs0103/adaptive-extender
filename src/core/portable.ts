@@ -104,7 +104,18 @@ class PortabilityMetadata {
 }
 //#endregion
 //#region Portable model
+/**
+ * The abstract base class for all portable data models.
+ * Provides mechanism for type-safe import and export of data structures.
+ */
 export abstract class PortableModel {
+	/**
+	 * Creates an instance of the model from a raw source.
+	 * Handles polymorphic resolution and recursive field mapping.
+	 * @param source The raw source object (e.g. from JSON).
+	 * @param name The context path for error reporting.
+	 * @throws {TypeError} If validation fails or types do not match.
+	 */
 	static import<T extends typeof PortableModel, S = any>(this: T, source: any, name: string): InstanceType<T> {
 		const { descendants } = PortabilityMetadata.read(this);
 		if (descendants.length > 0) {
@@ -126,6 +137,11 @@ export abstract class PortableModel {
 		return instance;
 	}
 
+	/**
+	 * Serializes the model instance to a raw object.
+	 * Includes type discrimination for polymorphic models.
+	 * @param source The model instance to export.
+	 */
 	static export<T extends typeof PortableModel, S = any>(this: T, source: InstanceType<T>): S {
 		const { descendants } = PortabilityMetadata.read(this);
 		if (descendants.length > 0) {
@@ -147,6 +163,17 @@ export abstract class PortableModel {
 }
 //#endregion
 //#region Decorators
+/**
+ * Decorator to register a class field as part of the portable schema.
+ * @param type The portable constructor to use for import/export.
+ */
+export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, context: ClassFieldDecoratorContext<PortableModel, S>) => void;
+/**
+ * Decorator to register a class field as part of the portable schema.
+ * @param type The portable constructor to use for import/export.
+ * @param name Alias for the field in the external source.
+ */
+export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<PortableModel, S>) => void;
 export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<PortableModel, S>) => void {
 	return function (_: void, context: ClassFieldDecoratorContext<PortableModel>): void {
 		const key = context.name;
@@ -161,6 +188,10 @@ export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (ta
 	};
 }
 
+/**
+ * Creates a portable wrapper for array types.
+ * @param type The portable type of the array elements.
+ */
 export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M[], S[]> {
 	return class {
 		static import(source: any, name: string): M[] {
@@ -173,6 +204,10 @@ export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstruc
 	} as unknown as PortableConstructor<M[], S[]>;
 }
 
+/**
+ * Creates a portable wrapper for nullable types.
+ * @param type The inner portable type.
+ */
 export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | null, S | null> {
 	return class {
 		static import(source: any, name: string): M | null {
@@ -185,6 +220,10 @@ export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstru
 	} as unknown as PortableConstructor<M | null, S | null>;
 }
 
+/**
+ * Creates a portable wrapper for optional types.
+ * @param type The inner portable type.
+ */
 export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | undefined, S | undefined> {
 	return class {
 		static import(source: any, name: string): M | undefined {
@@ -197,6 +236,10 @@ export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstru
 	} as unknown as PortableConstructor<M | undefined, S | undefined>;
 }
 
+/**
+ * Creates a wrapper for circular or deferred type references.
+ * @param resolver Function that returns the actual type constructor.
+ */
 export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S> {
 	return class {
 		static [Symbol.hasInstance](instance: any): boolean {
@@ -217,6 +260,10 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
 	} as unknown as PortableConstructor<M, S>;
 }
 
+/**
+ * Decorator to register a descendant class in the base class's polymorphic registry.
+ * @param descendant The subclass constructor to register.
+ */
 export function PolymorphicBase<M extends typeof PortableModel>(descendant: PortableConstructor): (target: M, context: ClassDecoratorContext) => M {
 	return function (model: M): M {
 		const { descendants } = PortabilityMetadata.read(model);

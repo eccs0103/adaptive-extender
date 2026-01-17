@@ -5,6 +5,8 @@ import { describe, it, expect } from "vitest";
 //#region Spotify activity
 @PolymorphicBase(Deferred(_ => SpotifyLikeActivity))
 export abstract class SpotifyActivity extends PortableModel {
+	@Field(String, "url")
+	link!: string;
 }
 //#endregion
 //#region Spotify like activity
@@ -17,9 +19,6 @@ export class SpotifyLikeActivity extends SpotifyActivity {
 
 	@Field(Nullable(String), "cover")
 	cover!: string | null;
-
-	@Field(String, "url")
-	url!: string;
 }
 //#endregion
 
@@ -27,10 +26,10 @@ describe("Hoooo", () => {
 	it("Asda", () => {
 		const raw = {
 			$type: "SpotifyLikeActivity",
+			url: "http...",
 			title: "Song",
 			artists: ["Artist A"],
 			cover: null,
-			url: "http..."
 		};
 
 		console.log("raw_before", raw);

@@ -17,9 +17,8 @@ export interface WebEngineOptions {
 
 /**
  * Represents the base class for web-based engines.
- * @abstract
  */
-export class WebEngine extends EventTarget implements Engine {
+export abstract class WebEngine extends EventTarget implements Engine {
 	#launched: boolean;
 	/**
 	 * Gets a value indicating whether the engine is running.

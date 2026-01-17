@@ -5,9 +5,8 @@ import "./error.js";
 //#region Controller
 /**
  * Represents a controller that can be launched and handle errors.
- * @abstract
  */
-export class Controller {
+export abstract class Controller {
 	/**
 	 * @throws {TypeError} If the constructor is called on ectly.
 	 */

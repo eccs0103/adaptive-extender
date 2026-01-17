@@ -6,13 +6,16 @@ import "./global.js";
 declare global {
 	export interface BooleanConstructor {
 		/**
-		 * Imports a boolean value from a source.
-		 * @param source The source value to import.
-		 * @param name The name of the source value.
-		 * @returns The imported boolean value.
+		 * Validates and imports a boolean value from a raw source.
+		 * @param source The raw value to check.
+		 * @param name The field name for error context.
 		 * @throws {TypeError} If the source is not a boolean.
 		 */
 		import(source: any, name: string): boolean;
+		/**
+		 * Returns the primitive boolean value for export.
+		 * @param source The boolean to export.
+		 */
 		export(source: boolean): boolean;
 	}
 }

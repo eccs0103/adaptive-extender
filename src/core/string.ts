@@ -6,13 +6,16 @@ import "./global.js";
 declare global {
 	export interface StringConstructor {
 		/**
-		 * Imports a string from a source.
-		 * @param source The source value to import.
-		 * @param name The name of the source value.
-		 * @returns The imported string value.
+		 * Validates and imports a string value from a raw source.
+		 * @param source The raw value to check.
+		 * @param name The field name for error context.
 		 * @throws {TypeError} If the source is not a string.
 		 */
 		import(source: any, name: string): string;
+		/**
+		 * Returns the primitive string value for export.
+		 * @param source The string to export.
+		 */
 		export(source: string): string;
 		/**
 		 * A constant empty string.

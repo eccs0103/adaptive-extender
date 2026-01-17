@@ -9,13 +9,16 @@ const { trunc } = Math;
 declare global {
 	export interface ArrayConstructor {
 		/**
-		 * Imports an array from a source.
-		 * @param source The source to import from.
-		 * @param name The name of the source.
-		 * @returns The imported array.
+		 * Validates that the source is an array and returns it.
+		 * @param source The raw data to check.
+		 * @param name The field name for error context.
 		 * @throws {TypeError} If the source is not an array.
 		 */
 		import(source: any, name: string): any[];
+		/**
+		 * Returns the array as-is for export purposes.
+		 * @param source The array to export.
+		 */
 		export(source: any[]): any[];
 		/**
 		 * Creates an array of integers between the specified minimum and maximum values (exclusive).

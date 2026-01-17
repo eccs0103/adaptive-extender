@@ -4,13 +4,16 @@
 declare global {
 	export interface ObjectConstructor {
 		/**
-		 * Imports an object from a source.
-		 * @param source The source to import from.
-		 * @param name The name of the source.
-		 * @returns The imported object.
-		 * @throws {TypeError} If the source is not an object or null.
+		 * Validates that the source is a non-null object.
+		 * @param source The raw data to check.
+		 * @param name The field name for error context.
+		 * @throws {TypeError} If the source is not an object or is null.
 		 */
 		import(source: any, name: string): object;
+		/**
+		 * Returns the object as-is for export purposes.
+		 * @param source The object to export.
+		 */
 		export(source: object): object;
 	}
 }

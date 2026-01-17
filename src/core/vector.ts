@@ -3,9 +3,8 @@
 //#region Vector
 /**
  * Represents an abstract vector, an ordered collection of numbers.
- * @abstract
  */
-export class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
+export abstract class Vector implements Iterable<number, BuiltinIteratorReturn, unknown> {
 	//#region Builders
 	/**
 	 * @throws {TypeError} If this constructor is called directly.

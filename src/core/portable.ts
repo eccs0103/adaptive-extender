@@ -105,7 +105,7 @@ class PortabilityMetadata {
 //#endregion
 //#region Portable model
 export abstract class PortableModel {
-	static import<T extends typeof PortableModel>(this: T, source: unknown, name: string): InstanceType<T> {
+	static import<T extends typeof PortableModel, S = any>(this: T, source: any, name: string): InstanceType<T> {
 		const { descendants } = PortabilityMetadata.read(this);
 		if (descendants.length > 0) {
 			const object = Object.import(source, name);
@@ -126,7 +126,7 @@ export abstract class PortableModel {
 		return instance;
 	}
 
-	static export<T extends typeof PortableModel>(this: T, source: InstanceType<T>): unknown {
+	static export<T extends typeof PortableModel, S = any>(this: T, source: InstanceType<T>): S {
 		const { descendants } = PortabilityMetadata.read(this);
 		if (descendants.length > 0) {
 			const descendant = descendants.find(descendant => source instanceof descendant) as T | undefined;

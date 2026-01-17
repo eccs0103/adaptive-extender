@@ -6,13 +6,16 @@ import "./global.js";
 declare global {
 	export interface NumberConstructor {
 		/**
-		 * Imports a number from a source.
-		 * @param source The source value to import.
-		 * @param name The name of the source value.
-		 * @returns The imported number value.
+		 * Validates and imports a number value from a raw source.
+		 * @param source The raw value to check.
+		 * @param name The field name for error context.
 		 * @throws {TypeError} If the source is not a number.
 		 */
 		import(source: any, name: string): number;
+		/**
+		 * Returns the primitive number value for export.
+		 * @param source The number to export.
+		 */
 		export(source: number): number;
 	}
 

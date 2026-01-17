@@ -153,8 +153,8 @@ export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (ta
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;
 		context.addInitializer(function () {
-			const type = constructor(this) as typeof PortableModel; /** @todo Fix constructor */
-			const { fields } = PortabilityMetadata.read(type);
+			const model = constructor(this) as typeof PortableModel; /** @todo Fix constructor */
+			const { fields } = PortabilityMetadata.read(model);
 			if (fields.some(field => field.key === key)) return;
 			fields.push(new FieldDescriptor(key, association, type));
 		});
@@ -217,11 +217,11 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
 	} as unknown as PortableConstructor<M, S>;
 }
 
-export function PolymorphicBase<C extends typeof PortableModel>(descendant: PortableConstructor): (target: C, context: ClassDecoratorContext) => C {
-	return function (target: C): C {
-		const { descendants } = PortabilityMetadata.read(target);
+export function PolymorphicBase<M extends typeof PortableModel>(descendant: PortableConstructor): (target: M, context: ClassDecoratorContext) => M {
+	return function (model: M): M {
+		const { descendants } = PortabilityMetadata.read(model);
 		descendants.push(descendant);
-		return target;
+		return model;
 	};
 }
 //#endregion

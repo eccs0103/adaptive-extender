@@ -43,6 +43,10 @@ Number.import = function (source: any, name: string): number {
 	return source.valueOf();
 };
 
+Number.export = function (source: number): number {
+	return source.valueOf();
+};
+
 Number.prototype.insteadNaN = function <T>(value: T): number | T {
 	const current = this.valueOf();
 	if (Number.isNaN(current)) return value;

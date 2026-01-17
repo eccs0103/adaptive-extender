@@ -61,132 +61,132 @@ class Archive {
 	}
 }
 //#endregion
-//#region Archive manager
-/**
- * Manages the archiving of an object.
- */
-export class ArchiveManager<T extends PortableConstructor> {
-	#$constructor: T;
-	#args: ConstructorParameters<T>;
-	#archive: Archive;
-	/**
-	 * @param key The key for the archive.
-	 * @param constructor The constructor of the archivable object.
-	 * @param args The arguments for the constructor of the archivable object.
-	 */
-	constructor(key: string, constructor: T, ...args: ConstructorParameters<T>) {
-		this.#$constructor = constructor;
-		this.#args = args;
-		this.#archive = ArchiveManager.#newArchive(key, constructor, args);
-	}
-	static #newInstance<T extends PortableConstructor>(constructor: T, args: ConstructorParameters<T>): InstanceType<T> {
-		return Reflect.construct<ConstructorParameters<T>, InstanceType<T>>(constructor, args);
-	}
-	static #newArchive<T extends PortableConstructor>(key: string, constructor: T, args: ConstructorParameters<T>): Archive {
-		const instance = ArchiveManager.#newInstance(constructor, args);
-		return new Archive(key, constructor.export(instance));
-	}
-	/**
-	 * Key of the archive.
-	 */
-	get key(): string {
-		return this.#archive.key;
-	}
-	/**
-	 * Reads content of the archive.
-	 * @throws {ReferenceError} If the archive is missing from the local storage.
-	 * @throws {SyntaxError} If the archive is corrupted.
-	 */
-	get content(): InstanceType<T> {
-		try {
-			return this.#$constructor.import(this.#archive.data, this.#archive.key);
-		} catch (error) {
-			if (!(error instanceof TypeError)) throw error;
-			throw new SyntaxError(`Archive at key '${this.#archive.key}' is corrupted`);
-		}
-	}
-	/**
-	 * Writes content of the archive.
-	 * @throws {SyntaxError} If the value could not be processed.
-	 */
-	set content(value: InstanceType<T>) {
-		this.#archive.data = this.#$constructor.export(value);
-	}
-	/**
-	 * Resets the content of the archive to a new instance.
-	 */
-	reset(): void {
-		this.content = ArchiveManager.#newInstance(this.#$constructor, this.#args);
-	}
-}
-//#endregion
-//#region Archive repository
-/**
- * Provides a repository pattern for managing an archivable object with saving.
- */
-export class ArchiveRepository<T extends PortableConstructor> {
-	#manager: ArchiveManager<T>;
-	#content: InstanceType<T>;
-	#idSaveTimeout: number = NaN;
-	/**
-	 * @param key The key for the archive.
-	 * @param constructor The constructor of the archivable object.
-	 * @param args The arguments for the constructor of the archivable object.
-	 */
-	constructor(key: string, constructor: T, ...args: ConstructorParameters<T>) {
-		this.#manager = new ArchiveManager(key, constructor, ...args);
-		this.#content = this.#manager.content;
-		window.addEventListener("beforeunload", (event) => {
-			if (Number.isNaN(this.#idSaveTimeout)) return;
-			event.returnValue = "Archive saving is in process. Do you want to interrupt?";
-			event.preventDefault();
-		});
-	}
-	/**
-	 * Key of the archive.
-	 */
-	get key(): string {
-		return this.#manager.key;
-	}
-	/**
-	 * The content of the archive.
-	 */
-	get content(): InstanceType<T> {
-		return this.#content;
-	}
-	#handler(): void {
-		try {
-			this.#manager.content = this.#content;
-		} finally {
-			this.#idSaveTimeout = NaN;
-		}
-	}
-	/**
-	 * Schedules a instant save of the content.
-	 */
-	save(): void;
-	/**
-	 * Schedules a save of the content after a specified delay in milliseconds.
-	 */
-	save(delay: number): void;
-	save(delay?: number): void {
-		if (!Number.isNaN(this.#idSaveTimeout)) clearTimeout(this.#idSaveTimeout);
-		this.#idSaveTimeout = setTimeout(this.#handler.bind(this), delay);
-	}
-	/**
-	 * Aborts any pending save operations.
-	 */
-	abort(): void {
-		if (Number.isNaN(this.#idSaveTimeout)) return;
-		clearTimeout(this.#idSaveTimeout);
-		this.#idSaveTimeout = NaN;
-	}
-	/**
-	 * Resets the content of the archive to a new instance.
-	 */
-	reset(): void {
-		this.#manager.reset();
-		this.#content = this.#manager.content;
-	}
-}
-//#endregion
+// //#region Archive manager
+// /**
+//  * Manages the archiving of an object.
+//  */
+// export class ArchiveManager<T extends PortableConstructor> {
+// 	#$constructor: T;
+// 	#args: ConstructorParameters<T>;
+// 	#archive: Archive;
+// 	/**
+// 	 * @param key The key for the archive.
+// 	 * @param constructor The constructor of the archivable object.
+// 	 * @param args The arguments for the constructor of the archivable object.
+// 	 */
+// 	constructor(key: string, constructor: T, ...args: ConstructorParameters<T>) {
+// 		this.#$constructor = constructor;
+// 		this.#args = args;
+// 		this.#archive = ArchiveManager.#newArchive(key, constructor, args);
+// 	}
+// 	static #newInstance<T extends PortableConstructor>(constructor: T, args: ConstructorParameters<T>): InstanceType<T> {
+// 		return Reflect.construct<ConstructorParameters<T>, InstanceType<T>>(constructor, args);
+// 	}
+// 	static #newArchive<T extends PortableConstructor>(key: string, constructor: T, args: ConstructorParameters<T>): Archive {
+// 		const instance = ArchiveManager.#newInstance(constructor, args);
+// 		return new Archive(key, constructor.export(instance));
+// 	}
+// 	/**
+// 	 * Key of the archive.
+// 	 */
+// 	get key(): string {
+// 		return this.#archive.key;
+// 	}
+// 	/**
+// 	 * Reads content of the archive.
+// 	 * @throws {ReferenceError} If the archive is missing from the local storage.
+// 	 * @throws {SyntaxError} If the archive is corrupted.
+// 	 */
+// 	get content(): InstanceType<T> {
+// 		try {
+// 			return this.#$constructor.import(this.#archive.data, this.#archive.key);
+// 		} catch (error) {
+// 			if (!(error instanceof TypeError)) throw error;
+// 			throw new SyntaxError(`Archive at key '${this.#archive.key}' is corrupted`);
+// 		}
+// 	}
+// 	/**
+// 	 * Writes content of the archive.
+// 	 * @throws {SyntaxError} If the value could not be processed.
+// 	 */
+// 	set content(value: InstanceType<T>) {
+// 		this.#archive.data = this.#$constructor.export(value);
+// 	}
+// 	/**
+// 	 * Resets the content of the archive to a new instance.
+// 	 */
+// 	reset(): void {
+// 		this.content = ArchiveManager.#newInstance(this.#$constructor, this.#args);
+// 	}
+// }
+// //#endregion
+// //#region Archive repository
+// /**
+//  * Provides a repository pattern for managing an archivable object with saving.
+//  */
+// export class ArchiveRepository<T extends PortableConstructor> {
+// 	#manager: ArchiveManager<T>;
+// 	#content: InstanceType<T>;
+// 	#idSaveTimeout: number = NaN;
+// 	/**
+// 	 * @param key The key for the archive.
+// 	 * @param constructor The constructor of the archivable object.
+// 	 * @param args The arguments for the constructor of the archivable object.
+// 	 */
+// 	constructor(key: string, constructor: T, ...args: ConstructorParameters<T>) {
+// 		this.#manager = new ArchiveManager(key, constructor, ...args);
+// 		this.#content = this.#manager.content;
+// 		window.addEventListener("beforeunload", (event) => {
+// 			if (Number.isNaN(this.#idSaveTimeout)) return;
+// 			event.returnValue = "Archive saving is in process. Do you want to interrupt?";
+// 			event.preventDefault();
+// 		});
+// 	}
+// 	/**
+// 	 * Key of the archive.
+// 	 */
+// 	get key(): string {
+// 		return this.#manager.key;
+// 	}
+// 	/**
+// 	 * The content of the archive.
+// 	 */
+// 	get content(): InstanceType<T> {
+// 		return this.#content;
+// 	}
+// 	#handler(): void {
+// 		try {
+// 			this.#manager.content = this.#content;
+// 		} finally {
+// 			this.#idSaveTimeout = NaN;
+// 		}
+// 	}
+// 	/**
+// 	 * Schedules a instant save of the content.
+// 	 */
+// 	save(): void;
+// 	/**
+// 	 * Schedules a save of the content after a specified delay in milliseconds.
+// 	 */
+// 	save(delay: number): void;
+// 	save(delay?: number): void {
+// 		if (!Number.isNaN(this.#idSaveTimeout)) clearTimeout(this.#idSaveTimeout);
+// 		this.#idSaveTimeout = setTimeout(this.#handler.bind(this), delay);
+// 	}
+// 	/**
+// 	 * Aborts any pending save operations.
+// 	 */
+// 	abort(): void {
+// 		if (Number.isNaN(this.#idSaveTimeout)) return;
+// 		clearTimeout(this.#idSaveTimeout);
+// 		this.#idSaveTimeout = NaN;
+// 	}
+// 	/**
+// 	 * Resets the content of the archive to a new instance.
+// 	 */
+// 	reset(): void {
+// 		this.#manager.reset();
+// 		this.#content = this.#manager.content;
+// 	}
+// }
+// //#endregion

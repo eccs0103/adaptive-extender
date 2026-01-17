@@ -3,7 +3,7 @@
 		/* Language & Environment */
 		"target": "ES2016",
 		"module": "CommonJS",
-		"lib": [ "ES2016"],
+		"lib": [ "ES2016" ],
 		"types": [ "node" ],
 
 		/* Interop & Compatibility */

@@ -19,4 +19,8 @@ Object.import = function (source: any, name: string): object {
 	if (typeof (source) !== "object" || source === null) throw new TypeError(`Unable to import object from ${name} due its ${typename(source)} type`);
 	return source;
 };
+
+Object.export = function (source: object): object {
+	return source;
+};
 //#endregion

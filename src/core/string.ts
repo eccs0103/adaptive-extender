@@ -69,6 +69,10 @@ String.import = function (source: any, name: string): string {
 	return source.valueOf();
 };
 
+String.export = function (source: string): string {
+	return source.valueOf();
+};
+
 Object.defineProperty(String, "empty", {
 	value: "",
 	writable: false,

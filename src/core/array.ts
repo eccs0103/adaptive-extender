@@ -64,6 +64,10 @@ Array.import = function (source: any, name: string): any[] {
 	return source;
 };
 
+Array.export = function (source: any[]): any[] {
+	return source;
+};
+
 Array.range = function (min: number, max: number): number[] {
 	min = trunc(min);
 	max = trunc(max);

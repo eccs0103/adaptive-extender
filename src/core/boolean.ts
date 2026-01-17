@@ -21,4 +21,8 @@ Boolean.import = function (source: any, name: string): boolean {
 	if (typeof (source) !== "boolean") throw new TypeError(`Unable to import boolean from ${name} due its ${typename(source)} type`);
 	return source.valueOf();
 };
+
+Boolean.export = function (source: boolean): boolean {
+	return source.valueOf();
+};
 //#endregion

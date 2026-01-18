@@ -72,9 +72,9 @@ class FieldDescriptor {
 //#endregion
 //#region Portability metadata
 class PortabilityMetadata {
-	static #registry: Map<string, PortabilityMetadata> = new Map();
+	static #registry: WeakMap<typeof PortableModel, PortabilityMetadata> = new WeakMap();
 	#model: typeof PortableModel;
-	#fields: FieldDescriptor[] = [];
+	#fields: Map<string, FieldDescriptor> = new Map();
 	#descendants: PortableConstructor[] = [];
 
 	constructor(model: typeof PortableModel) {
@@ -83,10 +83,10 @@ class PortabilityMetadata {
 
 	static read(model: typeof PortableModel): PortabilityMetadata {
 		const registry = PortabilityMetadata.#registry;
-		let metadata = registry.get(model.name);
+		let metadata = registry.get(model);
 		if (metadata !== undefined) return metadata;
 		metadata = new PortabilityMetadata(model);
-		registry.set(model.name, metadata);
+		registry.set(model, metadata);
 		return metadata;
 	}
 
@@ -94,7 +94,7 @@ class PortabilityMetadata {
 		return this.#model;
 	}
 
-	get fields(): FieldDescriptor[] {
+	get fields(): Map<string, FieldDescriptor> {
 		return this.#fields;
 	}
 
@@ -129,7 +129,7 @@ export abstract class PortableModel {
 		const object = Object.import(source, name);
 		const instance: InstanceType<T> = Reflect.construct(this, []);
 		const { fields } = PortabilityMetadata.read(this);
-		for (const { key, association, type } of fields) {
+		for (const { key, association, type } of fields.values()) {
 			const raw = Reflect.get(object, association);
 			const value = type.import(raw, `${name}.${association}`);
 			Reflect.set(instance, key, value);
@@ -153,10 +153,10 @@ export abstract class PortableModel {
 		const object = Object();
 		Reflect.set(object, "$type", this.name);
 		const { fields } = PortabilityMetadata.read(this);
-		for (const { key, association, type } of fields) {
-			const value = Reflect.get(source, key);
-			const raw = type.export(value);
-			Reflect.set(object, association, raw);
+		for (const field of fields.values()) {
+			const value = Reflect.get(source, field.key);
+			const raw = field.type.export(value);
+			Reflect.set(object, field.association, raw);
 		}
 		return object;
 	}
@@ -180,10 +180,10 @@ export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (ta
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;
 		context.addInitializer(function () {
-			const model = constructor(this) as typeof PortableModel; /** @todo Fix constructor */
+			const model = constructor(this) as typeof PortableModel;
 			const { fields } = PortabilityMetadata.read(model);
-			if (fields.some(field => field.key === key)) return;
-			fields.push(new FieldDescriptor(key, association, type));
+			if (fields.has(key)) return;
+			fields.set(key, new FieldDescriptor(key, association, type));
 		});
 	};
 }
@@ -264,11 +264,10 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
  * Decorator to register a descendant class in the base class's polymorphic registry.
  * @param descendant The subclass constructor to register.
  */
-export function PolymorphicBase<M extends typeof PortableModel>(descendant: PortableConstructor): (target: M, context: ClassDecoratorContext) => M {
-	return function (model: M): M {
+export function Descendant<M extends typeof PortableModel>(descendant: PortableConstructor): (target: M, context: ClassDecoratorContext) => void {
+	return function (model: M): void {
 		const { descendants } = PortabilityMetadata.read(model);
 		descendants.push(descendant);
-		return model;
 	};
 }
 //#endregion

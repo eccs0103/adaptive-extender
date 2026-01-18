@@ -1,9 +1,9 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Field, Nullable, PolymorphicBase, PortableModel } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, Field, Nullable, PortableModel } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 //#region Spotify activity
-@PolymorphicBase(Deferred(_ => SpotifyLikeActivity))
+@Descendant(Deferred(_ => SpotifyLikeActivity))
 export abstract class SpotifyActivity extends PortableModel {
 	@Field(String, "url")
 	link!: string;
@@ -42,3 +42,14 @@ describe("Hoooo", () => {
 		console.log("raw_after", raw2);
 	});
 });
+
+//#region Node
+export interface NodeScheme {
+	children: NodeScheme[];
+}
+
+export class Node extends PortableModel {
+	@Field(ArrayOf(Deferred(_ => Node)))
+	children!: Node[];
+}
+//#endregion

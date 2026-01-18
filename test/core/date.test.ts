@@ -2,25 +2,6 @@ import "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 describe("Date extensions", () => {
-	// describe("Date.import", () => {
-	// 	it("should import a valid Date instance", () => {
-	// 		const d = new Date();
-	// 		expect(Date.import(d, "[source]")).toBe(d);
-	// 	});
-
-	// 	it("should throw TypeError for non-Date values", () => {
-	// 		expect(() => Date.import("2024-01-01" as any, "[source]")).toThrow(TypeError);
-	// 		expect(() => Date.import(123 as any, "[source]")).toThrow(TypeError);
-	// 		expect(() => Date.import(null as any, "[source]")).toThrow(TypeError);
-	// 		expect(() => Date.import(undefined as any, "[source]")).toThrow(TypeError);
-	// 		expect(() => Date.import({} as any, "[source]")).toThrow(TypeError);
-	// 	});
-
-	// 	it("should include the name in the error message", () => {
-	// 		expect(() => Date.import("not a date" as any, "customName")).toThrow(/customName/);
-	// 	});
-	// });
-
 	describe("Date.isInvalid", () => {
 		it("should return false for non-Date values", () => {
 			expect(Date.isInvalid("2024-01-01")).toBe(false);

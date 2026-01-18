@@ -22,6 +22,13 @@ describe("Number extensions", () => {
 		});
 	});
 
+	describe("Number.export", () => {
+		it("should export a number as-is", () => {
+			expect(Number.export(42)).toBe(42);
+			expect(Number.export(-3.14)).toBe(-3.14);
+		});
+	});
+
 	describe("Number.prototype.insteadNaN", () => {
 		it("should return fallback for NaN", () => {
 			expect((NaN as number).insteadNaN("fallback")).toBe("fallback");

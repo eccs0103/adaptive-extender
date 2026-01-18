@@ -41,4 +41,14 @@ describe("Boolean extensions", () => {
 			expect(() => Boolean.import(value as any, "customName")).toThrow(new TypeError(expectedMessage));
 		});
 	});
+
+	describe("Boolean.export", () => {
+		it("should export true as true", () => {
+			expect(Boolean.export(true)).toBe(true);
+		});
+
+		it("should export false as false", () => {
+			expect(Boolean.export(false)).toBe(false);
+		});
+	});
 });

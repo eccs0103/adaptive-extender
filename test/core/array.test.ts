@@ -13,6 +13,13 @@ describe("Array extensions", () => {
 		});
 	});
 
+	describe("Array.export", () => {
+		it("should export an array as-is", () => {
+			const arr = [1, 2, 3];
+			expect(Array.export(arr)).toEqual(arr);
+		});
+	});
+
 	describe("Array.range", () => {
 		it("should create a range of integers", () => {
 			expect(Array.range(1, 5)).toEqual([1, 2, 3, 4]);

@@ -3,6 +3,8 @@ import { describe, it, expect, vi } from "vitest";
 
 describe("WebEngine", () => {
 	it("should not allow direct instantiation", () => {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		expect(() => new WebEngine()).toThrow(TypeError);
 	});
 

@@ -1,3 +1,8 @@
+## 0.9.0 (18.01.2026)
+- Added automatic model porting using decorators in [portable](./src/core/portable.ts).
+- Built-in types now implement the `PortableConstructor` interface.
+- Improved `ArchiveManager` and `ArchiveRepository` classes for working with archives.
+
 ## 0.8.7 (09.12.2025)
 - Added `Array.fromAsync` function.
 

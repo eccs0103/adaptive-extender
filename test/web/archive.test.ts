@@ -1,152 +1,162 @@
-// import { ArchiveManager, ArchiveRepository } from "adaptive-extender/web";
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { ArchiveManager, ArchiveRepository } from "adaptive-extender/web";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
+// A Mock Portable Model that behaves correctly
 class MockArchivable {
-	constructor(public value: number, public name: string) { }
+	value: number;
+	name: string;
 
-	static import(data: any): MockArchivable {
-		if (typeof data?.value !== "number" || typeof data?.name !== "string") {
-			throw new TypeError("Invalid data for MockArchivable");
+	constructor(value: number = 0, name: string = "") {
+		this.value = value;
+		this.name = name;
+	}
+
+	// PortableConstructor Interface Implementation
+	static import(source: any, name: string): MockArchivable {
+		if (typeof source !== "object" || source === null) {
+			throw new TypeError(`Invalid source for ${name}`);
 		}
-		return new MockArchivable(data.value, data.name);
+		// Basic validation to simulate type checking
+		if (typeof source.value !== "number") throw new TypeError("Missing or invalid 'value'");
+		if (typeof source.name !== "string") throw new TypeError("Missing or invalid 'name'");
+		
+		return new MockArchivable(source.value, source.name);
 	}
 
 	static export(instance: MockArchivable): any {
-		return { value: instance.value, name: instance.name };
+		return {
+			value: instance.value,
+			name: instance.name
+		};
 	}
 }
 
 describe("ArchiveManager", () => {
-	expect(true);
-
-	const archiveKey = "test-archive";
+	const KEY = "test_archive_key";
 
 	beforeEach(() => {
 		localStorage.clear();
 	});
 
-	// it("should initialize with a new instance if archive is empty", () => {
-	// 	const manager = new ArchiveManager(archiveKey, MockArchivable, 10, "initial");
-	// 	const content = manager.content;
+	it("should initialize with initial instance if storage is empty", () => {
+		const initial = new MockArchivable(10, "init");
+		const manager = new ArchiveManager(KEY, MockArchivable, initial);
 
-	// 	expect(content).toBeInstanceOf(MockArchivable);
-	// 	expect(content.value).toBe(10);
-	// 	expect(content.name).toBe("initial");
-	// });
+		expect(manager.content.value).toBe(10);
+		expect(manager.content.name).toBe("init");
+		
+		// Should have persisted to localStorage immediately (or via Archive ctor)
+		const raw = localStorage.getItem(KEY);
+		expect(raw).toBeTruthy();
+	});
 
-	// it("should load existing data from archive", () => {
-	// 	// Pre-populate localStorage
-	// 	const initialData = { value: 99, name: "existing" };
-	// 	localStorage.setItem(archiveKey, JSON.stringify(initialData));
+	it("should restore from existing storage", () => {
+		const data = { value: 99, name: "stored" };
+		localStorage.setItem(KEY, JSON.stringify(data));
 
-	// 	const manager = new ArchiveManager(archiveKey, MockArchivable, 0, "default");
-	// 	const content = manager.content;
+		const manager = new ArchiveManager(KEY, MockArchivable, new MockArchivable(0, "default"));
+		
+		expect(manager.content.value).toBe(99);
+		expect(manager.content.name).toBe("stored");
+	});
 
-	// 	expect(content.value).toBe(99);
-	// 	expect(content.name).toBe("existing");
-	// });
+	it("should persist changes when content setter is called", () => {
+		const manager = new ArchiveManager(KEY, MockArchivable, new MockArchivable(1, "a"));
+		const next = new MockArchivable(2, "b");
+		manager.content = next;
 
-	// it("should save content to the archive", () => {
-	// 	const manager = new ArchiveManager(archiveKey, MockArchivable, 1, "one");
-	// 	const newContent = new MockArchivable(2, "two");
-	// 	manager.content = newContent;
+		const raw = localStorage.getItem(KEY);
+		const parsed = JSON.parse(raw!);
+		expect(parsed).toEqual({ value: 2, name: "b" });
+	});
 
-	// 	const rawData = localStorage.getItem(archiveKey);
-	// 	expect(rawData).not.toBeNull();
-	// 	const parsedData = JSON.parse(rawData!);
-	// 	expect(parsedData).toEqual({ value: 2, name: "two" });
-	// });
+	it("should reset to initial state", () => {
+		const initial = new MockArchivable(5, "start");
+		const manager = new ArchiveManager(KEY, MockArchivable, initial);
+		
+		manager.content = new MockArchivable(10, "change");
+		expect(manager.content.value).toBe(10);
 
-	// it("should reset the archive to a new instance", () => {
-	// 	const manager = new ArchiveManager(archiveKey, MockArchivable, 5, "original");
-	// 	manager.content = new MockArchivable(50, "changed");
+		manager.reset();
+		expect(manager.content.value).toBe(5);
+		expect(manager.content.name).toBe("start");
+	});
 
-	// 	manager.reset();
+	it("should throw TypeError during construction if instance is incompatible", () => {
+		// Mock an instance that fails export/import cycle check
+		class BadModel {
+			static import(s: any) { return new BadModel(); }
+			static export(i: any) { throw new Error("Export failed"); }
+		}
 
-	// 	const content = manager.content;
-	// 	expect(content.value).toBe(5);
-	// 	expect(content.name).toBe("original");
-	// });
+		expect(() => {
+			new ArchiveManager(KEY, BadModel as any, new BadModel() as any);
+		}).toThrow(TypeError);
+	});
 
-	// it("should throw SyntaxError if archive data is corrupted", () => {
-	// 	localStorage.setItem(archiveKey, "this is not json");
-	// 	const manager = new ArchiveManager(archiveKey, MockArchivable, 0, "default");
-
-	// 	expect(() => manager.content).toThrow(SyntaxError);
-	// 	expect(() => manager.content).toThrow(`Archive at key '${archiveKey}' is corrupted`);
-	// });
-
-	// it("should throw SyntaxError if imported data is invalid for the constructor", () => {
-	// 	localStorage.setItem(archiveKey, JSON.stringify({ value: 123 })); // Missing 'name' property
-	// 	const manager = new ArchiveManager(archiveKey, MockArchivable, 0, "default");
-
-	// 	expect(() => manager.content).toThrow(SyntaxError);
-	// 	expect(() => manager.content).toThrow(`Archive at key '${archiveKey}' is corrupted`);
-	// });
-
-	// it("should return the correct archive key", () => {
-	// 	const manager = new ArchiveManager("another-key", MockArchivable, 0, "default");
-	// 	expect(manager.key).toBe("another-key");
-	// });
+	it("should throw SyntaxError if storage is corrupted", () => {
+		localStorage.setItem(KEY, "{ invalid json");
+		const manager = new ArchiveManager(KEY, MockArchivable, new MockArchivable(0, ""));
+		
+		expect(() => manager.content).toThrow(SyntaxError);
+	});
 });
 
 describe("ArchiveRepository", () => {
-	const archiveKey = "repo-test-archive";
+	const KEY = "repo_key";
 
 	beforeEach(() => {
 		localStorage.clear();
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
 		vi.useRealTimers();
 	});
 
-	// it("should initialize and get content", () => {
-	// 	const repo = new ArchiveRepository(archiveKey, MockArchivable, 20, "repo-initial");
-	// 	expect(repo.key).toBe(archiveKey);
-	// 	const content = repo.content;
-	// 	expect(content.value).toBe(20);
-	// 	expect(content.name).toBe("repo-initial");
-	// });
+	it("should provide access to in-memory content", () => {
+		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(100, "repo"));
+		expect(repo.content.value).toBe(100);
+	});
 
-	// it("should save content after a delay", () => {
-	// 	vi.useFakeTimers();
-	// 	const repo = new ArchiveRepository(archiveKey, MockArchivable, 1, "one");
-	// 	repo.content.value = 100;
-	// 	repo.save();
+	it("should save with delay (debounce)", () => {
+		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
+		repo.content.value = 500;
+		
+		repo.save(1000);
 
-	// 	// Should not have saved yet
-	// 	const rawData = localStorage.getItem(archiveKey);
-	// 	const parsedData = JSON.parse(rawData!);
-	// 	expect(parsedData.value).toBe(1);
+		// Not saved yet
+		let stored = JSON.parse(localStorage.getItem(KEY)!);
+		expect(stored.value).toBe(1);
 
-	// 	// Fast-forward time
-	// 	vi.runAllTimers();
+		// Run timers
+		vi.advanceTimersByTime(1000);
 
-	// 	const finalRawData = localStorage.getItem(archiveKey);
-	// 	const finalParsedData = JSON.parse(finalRawData!);
-	// 	expect(finalParsedData.value).toBe(100);
-	// });
+		stored = JSON.parse(localStorage.getItem(KEY)!);
+		expect(stored.value).toBe(500);
+	});
 
-	// it("should reset content", () => {
-	// 	const repo = new ArchiveRepository(archiveKey, MockArchivable, 30, "original-repo");
-	// 	repo.content.name = "modified";
-	// 	repo.reset();
+	it("should abort pending save", () => {
+		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
+		repo.content.value = 500;
+		repo.save(1000);
+		
+		repo.abort();
+		vi.advanceTimersByTime(1000);
 
-	// 	const content = repo.content;
-	// 	expect(content.value).toBe(30);
-	// 	expect(content.name).toBe("original-repo");
-	// });
+		// Should still be initial value in storage
+		const stored = JSON.parse(localStorage.getItem(KEY)!);
+		expect(stored.value).toBe(1);
+	});
 
-	// it("should abort a pending save operation", () => {
-	// 	vi.useFakeTimers();
-	// 	const repo = new ArchiveRepository(archiveKey, MockArchivable, 1, "one");
-	// 	repo.content.value = 100;
-	// 	repo.save(100); // Save with a delay
-
-	// 	repo.abort(); // Abort the save
-
-	// 	vi.runAllTimers(); // Try to execute the save
-
-	// 	const rawData = localStorage.getItem(archiveKey);
-	// 	const parsedData = JSON.parse(rawData!);
-	// 	expect(parsedData.value).toBe(1); // The value should not have changed
-	// });
+	it("should reset repository state", () => {
+		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
+		repo.content.value = 999;
+		
+		repo.reset();
+		
+		expect(repo.content.value).toBe(1);
+		const stored = JSON.parse(localStorage.getItem(KEY)!);
+		expect(stored.value).toBe(1);
+	});
 });

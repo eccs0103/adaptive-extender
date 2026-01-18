@@ -23,4 +23,11 @@ describe("Object extensions", () => {
 			expect(() => Object.import(undefined, "customName")).toThrow(/customName/);
 		});
 	});
+
+	describe("Object.export", () => {
+		it("should export an object as-is", () => {
+			const obj = { a: 1 };
+			expect(Object.export(obj)).toBe(obj);
+		});
+	});
 });

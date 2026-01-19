@@ -1,10 +1,10 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, Field, Nullable, Optional, PortableModel } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, Field, Nullable, Optional, Model, PortableConstructor } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
 
-class SimpleModel extends PortableModel {
+class SimpleModel extends Model {
 	@Field(String)
 	name!: string;
 
@@ -12,7 +12,7 @@ class SimpleModel extends PortableModel {
 	age!: number;
 }
 
-class ComplexModel extends PortableModel {
+class ComplexModel extends Model {
 	@Field(SimpleModel)
 	child!: SimpleModel;
 
@@ -27,18 +27,22 @@ class ComplexModel extends PortableModel {
 }
 
 // Recursive/Deferred Model
-class Node extends PortableModel {
+class Node extends Model {
 	@Field(String)
 	id!: string;
 
-	@Field(ArrayOf(Deferred(() => Node)))
+	@Field(ArrayOf(Deferred(_ => Node)))
 	children!: Node[];
 }
 
 // Polymorphic Models
-@Descendant(Deferred(() => Dog))
-@Descendant(Deferred(() => Cat))
-abstract class Animal extends PortableModel {
+interface AnimalScheme {
+	name: string;
+}
+
+@Descendant(Deferred(_ => Dog))
+@Descendant(Deferred(_ => Cat))
+abstract class Animal extends Model {
 	@Field(String)
 	name!: string;
 }
@@ -53,13 +57,13 @@ class Cat extends Animal {
 	indoor!: boolean;
 }
 
-class Shelter extends PortableModel {
-	@Field(ArrayOf(Deferred(() => Animal)))
+class Shelter extends Model {
+	@Field(ArrayOf(Deferred<Animal, AnimalScheme>(_ => Animal)))
 	animals!: Animal[];
 }
 
 
-describe("PortableModel Tests", () => {
+describe("Model Tests", () => {
 
 	describe("Basic Field Mapping", () => {
 		it("should import simple fields", () => {

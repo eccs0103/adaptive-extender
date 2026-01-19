@@ -72,16 +72,16 @@ class FieldDescriptor {
 //#endregion
 //#region Portability metadata
 class PortabilityMetadata {
-	static #registry: WeakMap<typeof PortableModel, PortabilityMetadata> = new WeakMap();
-	#model: typeof PortableModel;
+	static #registry: WeakMap<PortableConstructor, PortabilityMetadata> = new WeakMap();
+	#model: PortableConstructor;
 	#fields: Map<string, FieldDescriptor> = new Map();
 	#descendants: PortableConstructor[] = [];
 
-	constructor(model: typeof PortableModel) {
+	constructor(model: PortableConstructor) {
 		this.#model = model;
 	}
 
-	static read(model: typeof PortableModel): PortabilityMetadata {
+	static read(model: PortableConstructor): PortabilityMetadata {
 		const registry = PortabilityMetadata.#registry;
 		let metadata = registry.get(model);
 		if (metadata !== undefined) return metadata;
@@ -90,7 +90,7 @@ class PortabilityMetadata {
 		return metadata;
 	}
 
-	get model(): typeof PortableModel {
+	get model(): PortableConstructor {
 		return this.#model;
 	}
 
@@ -103,12 +103,12 @@ class PortabilityMetadata {
 	}
 }
 //#endregion
-//#region Portable model
+//#region Model
 /**
  * The abstract base class for all portable data models.
  * Provides mechanism for type-safe import and export of data structures.
  */
-export abstract class PortableModel {
+export abstract class Model {
 	/**
 	 * Creates an instance of the model from a raw source.
 	 * Handles polymorphic resolution and recursive field mapping.
@@ -116,22 +116,23 @@ export abstract class PortableModel {
 	 * @param name The context path for error reporting.
 	 * @throws {TypeError} If validation fails or types do not match.
 	 */
-	static import<T extends typeof PortableModel, S = any>(this: T, source: any, name: string): InstanceType<T> {
+	static import<M extends PortableConstructor<InstanceType<M>, S>, S>(this: M, source: any, name: string): InstanceType<M> {
 		const { descendants } = PortabilityMetadata.read(this);
 		if (descendants.length > 0) {
 			const object = Object.import(source, name);
 			const descriminator = String.import(Reflect.get(object, "$type"), `${name}.$type`);
-			const descendant = descendants.find(descendant => descendant.name === descriminator) as T | undefined;
+			const descendant = descendants.find(descendant => descendant.name === descriminator) as M | undefined;
 			if (descendant === undefined) throw new TypeError(`Invalid '${descriminator}' descriminator for ${name}`);
 			return descendant.import(source, name);
 		}
 
 		const object = Object.import(source, name);
-		const instance: InstanceType<T> = Reflect.construct(this, []);
+		const instance: InstanceType<M> = Reflect.construct(this, []);
 		const { fields } = PortabilityMetadata.read(this);
 		for (const { key, association, type } of fields.values()) {
 			const raw = Reflect.get(object, association);
 			const value = type.import(raw, `${name}.${association}`);
+			// @ts-ignore
 			Reflect.set(instance, key, value);
 		}
 		return instance;
@@ -142,10 +143,10 @@ export abstract class PortableModel {
 	 * Includes type discrimination for polymorphic models.
 	 * @param source The model instance to export.
 	 */
-	static export<T extends typeof PortableModel, S = any>(this: T, source: InstanceType<T>): S {
+	static export<M extends PortableConstructor<InstanceType<M>, S>, S>(this: M, source: InstanceType<M>): S {
 		const { descendants } = PortabilityMetadata.read(this);
 		if (descendants.length > 0) {
-			const descendant = descendants.find(descendant => source instanceof descendant) as T | undefined;
+			const descendant = descendants.find(descendant => source instanceof descendant) as M | undefined;
 			if (descendant === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
 			return descendant.export(source);
 		}
@@ -154,6 +155,7 @@ export abstract class PortableModel {
 		Reflect.set(object, "$type", this.name);
 		const { fields } = PortabilityMetadata.read(this);
 		for (const field of fields.values()) {
+			// @ts-ignore
 			const value = Reflect.get(source, field.key);
 			const raw = field.type.export(value);
 			Reflect.set(object, field.association, raw);
@@ -163,24 +165,24 @@ export abstract class PortableModel {
 }
 //#endregion
 //#region Decorators
-/**
- * Decorator to register a class field as part of the portable schema.
- * @param type The portable constructor to use for import/export.
- */
-export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, context: ClassFieldDecoratorContext<PortableModel, S>) => void;
-/**
- * Decorator to register a class field as part of the portable schema.
- * @param type The portable constructor to use for import/export.
- * @param name Alias for the field in the external source.
- */
-export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<PortableModel, S>) => void;
-export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<PortableModel, S>) => void {
-	return function (_: void, context: ClassFieldDecoratorContext<PortableModel>): void {
+// /**
+//  * Decorator to register a class field as part of the portable schema.
+//  * @param type The portable constructor to use for import/export.
+//  */
+// export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void;
+// /**
+//  * Decorator to register a class field as part of the portable schema.
+//  * @param type The portable constructor to use for import/export.
+//  * @param name Alias for the field in the external source.
+//  */
+// export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void;
+export function Field<M extends PortableConstructor<InstanceType<M>, S>, S>(type: M, name?: string) {
+	return function (_: void, context: ClassFieldDecoratorContext<Model, S>): void {
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;
 		context.addInitializer(function () {
-			const model = constructor(this) as typeof PortableModel;
+			const model = constructor(ReferenceError.suppress(this)) as PortableConstructor;
 			const { fields } = PortabilityMetadata.read(model);
 			if (fields.has(key)) return;
 			fields.set(key, new FieldDescriptor(key, association, type));
@@ -264,7 +266,7 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
  * Decorator to register a descendant class in the base class's polymorphic registry.
  * @param descendant The subclass constructor to register.
  */
-export function Descendant<M extends typeof PortableModel>(descendant: PortableConstructor): (target: M, context: ClassDecoratorContext) => void {
+export function Descendant<M extends PortableConstructor<InstanceType<M>>>(descendant: PortableConstructor): (model: M, context: ClassDecoratorContext) => void {
 	return function (model: M): void {
 		const { descendants } = PortabilityMetadata.read(model);
 		descendants.push(descendant);

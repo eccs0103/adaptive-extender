@@ -255,3 +255,71 @@ export function Descendant<M extends typeof Model>(descendant: PortableConstruct
 	};
 }
 //#endregion
+//#region Adapters
+/**
+ * A portable adapter that facilitates the conversion between `Date` instances and millisecond timestamps.
+ */
+export const Timestamp = {
+	[Symbol.hasInstance](instance: any): boolean {
+		return instance instanceof Date;
+	},
+
+	get name(): string {
+		return "Timestamp";
+	},
+
+	import(source: any, name: string): Date {
+		if (typeof (source) !== "number") throw new TypeError(`Unable to import date from ${name} due its ${typename(source)} type`);
+		return new Date(source);
+	},
+
+	export(source: Date): number {
+		return source.getTime();
+	},
+} as unknown as PortableConstructor<Date, number>;
+
+/**
+ * A portable adapter that facilitates the conversion between `Date` instances and Unix second timestamps.
+ */
+export const UnixSeconds = {
+	[Symbol.hasInstance](instance: any): boolean {
+		return instance instanceof Date;
+	},
+
+	get name(): string {
+		return "UnixSeconds";
+	},
+
+	import(source: any, name: string): Date {
+		if (typeof (source) !== "number") throw new TypeError(`Unable to import date from ${name} due its ${typename(source)} type`);
+		return new Date(source * 1000);
+	},
+
+	export(source: Date): number {
+		return Math.trunc(source.getTime() / 1000);
+	},
+} as unknown as PortableConstructor<Date, number>;
+
+/**
+ * A portable adapter that allows any value to pass through without validation or transformation.
+ */
+export const Any = {
+	[Symbol.hasInstance](instance: any): boolean {
+		void instance;
+		return true;
+	},
+
+	get name(): string {
+		return "Any";
+	},
+
+	import(source: any, name: string): any {
+		void name;
+		return source;
+	},
+
+	export(source: any): any {
+		return source;
+	},
+} as unknown as PortableConstructor<any, any>;
+//#endregion

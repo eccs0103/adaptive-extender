@@ -1,4 +1,4 @@
-## 0.9.1 (20.01.2026)
+## 0.9.2 (20.01.2026)
 - Unified the `ImportableConstructor` and `ExportableConstructor` interfaces into `PortableConstructor`.
 - Improved typing for object porting; decorators now possess better context inference.
 - Moved `Constructor` to [global](./src/core/global.ts).

@@ -151,15 +151,15 @@ export abstract class Model {
  * Decorator to register a class field as part of the portable schema.
  * @param type The portable constructor to use for import/export.
  */
-export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void;
+export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, context: ClassFieldDecoratorContext<Model, M>) => void;
 /**
  * Decorator to register a class field as part of the portable schema.
  * @param type The portable constructor to use for import/export.
  * @param name Alias for the field in the external source.
  */
-export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void;
-export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void {
-	return function (_: void, context: ClassFieldDecoratorContext<Model, S>): void {
+export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<Model, M>) => void;
+export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<Model, M>) => void {
+	return function (_: void, context: ClassFieldDecoratorContext<Model, M>): void {
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;

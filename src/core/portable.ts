@@ -172,59 +172,67 @@ export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (ta
 	};
 }
 
+
+type S<T> = T extends PortableConstructor<any, infer S> ? S : unknown;
+
 /**
  * Creates a portable wrapper for array types.
  * @param type The portable type of the array elements.
  */
-export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M[], S[]> {
+export function ArrayOf<T extends PortableConstructor>(type: T): PortableConstructor<InstanceType<T>[], S<T>[]> {
 	return class {
-		static import(source: any, name: string): M[] {
+		static import(source: any, name: string): InstanceType<T>[] {
 			return Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`));
 		}
 
-		static export(source: M[]): S[] {
+		static export(source: InstanceType<T>[]): S<T>[] {
+			//@ts-ignore
 			return source.map(item => type.export(item));
 		}
-	} as unknown as PortableConstructor<M[], S[]>;
+	} as unknown as PortableConstructor<InstanceType<T>[], S<T>[]>;
 }
 
 /**
  * Creates a portable wrapper for nullable types.
  * @param type The inner portable type.
  */
-export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | null, S | null> {
+export function Nullable<T extends PortableConstructor>(type: T): PortableConstructor<InstanceType<T> | null, S<T> | null> {
 	return class {
-		static import(source: any, name: string): M | null {
+		static import(source: any, name: string): InstanceType<T> | null {
 			return Reflect.mapNull(source, source => type.import(source, name));
 		}
 
-		static export(source: M | null): S | null {
+		static export(source: InstanceType<T> | null): S<T> | null {
+			//@ts-ignore
 			return Reflect.mapNull(source, source => type.export(source));
 		}
-	} as unknown as PortableConstructor<M | null, S | null>;
+	} as unknown as PortableConstructor<InstanceType<T> | null, S<T> | null>;
 }
 
 /**
  * Creates a portable wrapper for optional types.
  * @param type The inner portable type.
  */
-export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | undefined, S | undefined> {
+export function Optional<T extends PortableConstructor>(type: T): PortableConstructor<InstanceType<T> | undefined, S<T> | undefined> {
 	return class {
-		static import(source: any, name: string): M | undefined {
+		static import(source: any, name: string): InstanceType<T> | undefined {
 			return Reflect.mapUndefined(source, source => type.import(source, name));
 		}
 
-		static export(source: M | undefined): S | undefined {
+		static export(source: InstanceType<T> | undefined): S<T> | undefined {
+			//@ts-ignore
 			return Reflect.mapUndefined(source, source => type.export(source));
 		}
-	} as unknown as PortableConstructor<M | undefined, S | undefined>;
+	} as unknown as PortableConstructor<InstanceType<T> | undefined, S<T> | undefined>;
 }
 
 /**
  * Creates a wrapper for circular or deferred type references.
  * @param resolver Function that returns the actual type constructor.
  */
-export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S> {
+export function Deferred<T extends PortableConstructor>(resolver: (_: void) => T): T;
+export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S>;
+export function Deferred(resolver: (_: void) => PortableConstructor): PortableConstructor {
 	return class {
 		static [Symbol.hasInstance](instance: any): boolean {
 			return instance instanceof resolver();
@@ -234,14 +242,14 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
 			return resolver().name;
 		}
 
-		static import(source: any, name: string): M {
+		static import(source: any, name: string): any {
 			return resolver().import(source, name);
 		}
 
-		static export(source: M): S {
+		static export(source: any): any {
 			return resolver().export(source);
 		}
-	} as unknown as PortableConstructor<M, S>;
+	} as unknown as PortableConstructor;
 }
 
 /**

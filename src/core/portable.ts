@@ -6,13 +6,9 @@ import "./boolean.js";
 import "./array.js";
 import "./object.js";
 import "./reflect.js";
+import { type Constructor } from "./global.js";
 
 //#region Constructor
-/**
- * Represents a generic class constructor.
- */
-export type Constructor<I = any, P extends readonly any[] = []> = abstract new (...args: P) => I;
-
 /**
  * Represents a constructor that supports facilitating the safe conversion between anonymous schemes and typed instances.
  */
@@ -102,19 +98,20 @@ export abstract class Model {
 	 * @param name The context path for error reporting.
 	 * @throws {TypeError} If validation fails or types do not match.
 	 */
-	static import<M extends typeof Model>(this: M, source: any, name: string): InstanceType<M> {
-		const { descendants } = PortabilityMetadata.read(this);
+	static import<I extends Model>(this: Constructor<I>, source: any, name: string): I {
+		const model = this as unknown as typeof Model;
+		const { descendants } = PortabilityMetadata.read(model);
 		if (descendants.length > 0) {
 			const object = Object.import(source, name);
 			const descriminator = String.import(Reflect.get(object, "$type"), `${name}.$type`);
-			const descendant = descendants.find(descendant => descendant.name === descriminator) as M | undefined;
+			const descendant = descendants.find(descendant => descendant.name === descriminator) as PortableConstructor<I>;
 			if (descendant === undefined) throw new TypeError(`Invalid '${descriminator}' descriminator for ${name}`);
 			return descendant.import(source, name);
 		}
 
 		const object = Object.import(source, name);
-		const instance: InstanceType<M> = Reflect.construct(this, []);
-		const { fields } = PortabilityMetadata.read(this);
+		const instance = Reflect.construct(this, []) as I;
+		const { fields } = PortabilityMetadata.read(model);
 		for (const { key, association, type } of fields.values()) {
 			const raw = Reflect.get(object, association);
 			const value = type.import(raw, `${name}.${association}`);
@@ -128,17 +125,18 @@ export abstract class Model {
 	 * Includes type discrimination for polymorphic models.
 	 * @param source The model instance to export.
 	 */
-	static export<M extends typeof Model, S = any>(this: M, source: InstanceType<M>): S {
-		const { descendants } = PortabilityMetadata.read(this);
+	static export<I extends Model, S = any>(this: Constructor<I>, source: I): S {
+		const model = this as unknown as typeof Model;
+		const { descendants } = PortabilityMetadata.read(model);
 		if (descendants.length > 0) {
-			const descendant = descendants.find(descendant => source instanceof descendant) as M | undefined;
+			const descendant = descendants.find(descendant => source instanceof descendant) as PortableConstructor<I, S>;
 			if (descendant === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
 			return descendant.export(source);
 		}
 
 		const object = Object();
-		Reflect.set(object, "$type", this.name);
-		const { fields } = PortabilityMetadata.read(this);
+		Reflect.set(object, "$type", model.name);
+		const { fields } = PortabilityMetadata.read(model);
 		for (const field of fields.values()) {
 			const value = Reflect.get(source, field.key);
 			const raw = field.type.export(value);
@@ -161,7 +159,7 @@ export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, con
  */
 export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void;
 export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<Model, S>) => void {
-	return function (_: void, context: ClassFieldDecoratorContext<Model>): void {
+	return function (_: void, context: ClassFieldDecoratorContext<Model, S>): void {
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;
@@ -257,18 +255,3 @@ export function Descendant<M extends typeof Model>(descendant: PortableConstruct
 	};
 }
 //#endregion
-
-interface NodeScheme {
-	id: string;
-	children: NodeScheme[];
-}
-
-Deferred<Node, NodeScheme>(_ => Node)
-
-class Node extends Model {
-	@Field(String)
-	id!: string;
-
-	@Field(ArrayOf(Deferred(_ => Node)))
-	children!: Node[];
-}

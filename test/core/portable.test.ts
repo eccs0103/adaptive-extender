@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, Field, Nullable, Optional, Model, PortableConstructor } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -198,6 +198,76 @@ describe("Model Tests", () => {
 			const raw: any = Animal.export(dog);
 			expect(raw.$type).toBe("Dog");
 			expect(raw.breed).toBe("Pug");
+		});
+	});
+
+	describe("Adapters", () => {
+		describe("Timestamp", () => {
+			it("should identify as Timestamp", () => {
+				expect(Timestamp.name).toBe("Timestamp");
+				expect(Timestamp[Symbol.hasInstance](new Date())).toBe(true);
+			});
+
+			it("should import number as Date", () => {
+				const time = 1705752000000; // 2024-01-20T12:00:00.000Z
+				const date = Timestamp.import(time, "ts");
+				expect(date).toBeInstanceOf(Date);
+				expect(date.getTime()).toBe(time);
+			});
+
+			it("should throw on invalid import type", () => {
+				expect(() => Timestamp.import("invalid", "ts")).toThrow(TypeError);
+			});
+
+			it("should export Date as number (milliseconds)", () => {
+				const time = 1705752000000;
+				const date = new Date(time);
+				expect(Timestamp.export(date)).toBe(time);
+			});
+		});
+
+		describe("UnixSeconds", () => {
+			it("should identify as UnixSeconds", () => {
+				expect(UnixSeconds.name).toBe("UnixSeconds");
+				expect(UnixSeconds[Symbol.hasInstance](new Date())).toBe(true);
+			});
+
+			it("should import seconds number as Date", () => {
+				const seconds = 1705752000; // 2024-01-20T12:00:00.000Z
+				const date = UnixSeconds.import(seconds, "unix");
+				expect(date).toBeInstanceOf(Date);
+				expect(date.getTime()).toBe(seconds * 1000);
+			});
+
+			it("should throw on invalid import type", () => {
+				expect(() => UnixSeconds.import("invalid", "unix")).toThrow(TypeError);
+			});
+
+			it("should export Date as number (seconds)", () => {
+				const seconds = 1705752000;
+				const date = new Date(seconds * 1000 + 500); // +500ms (should be truncated)
+				expect(UnixSeconds.export(date)).toBe(seconds);
+			});
+		});
+
+		describe("Any", () => {
+			it("should identify as Any", () => {
+				expect(Any.name).toBe("Any");
+				expect(Any[Symbol.hasInstance]({})).toBe(true);
+				expect(Any[Symbol.hasInstance](null)).toBe(true);
+			});
+
+			it("should pass through any value on import", () => {
+				const obj = { context: "data" };
+				expect(Any.import(obj, "any")).toBe(obj);
+				expect(Any.import(123, "any")).toBe(123);
+				expect(Any.import(null, "any")).toBe(null);
+			});
+
+			it("should pass through any value on export", () => {
+				const obj = { context: "data" };
+				expect(Any.export(obj)).toBe(obj);
+			});
 		});
 	});
 });

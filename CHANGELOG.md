@@ -1,3 +1,10 @@
+## 0.9.1 (20.01.2026)
+- Unified the `ImportableConstructor` and `ExportableConstructor` interfaces into `PortableConstructor`.
+- Improved typing for object porting; decorators now possess better context inference.
+- Moved `Constructor` to [global](./src/core/global.ts).
+- The built-in `Date` class now complies with the `PortableConstructor` contract. Additionally, `Timestamp` and `UnixSeconds` adapters have been added for comprehensive `Date` porting.
+- Added the `Any` adapter for porting arbitrary types.
+
 ## 0.9.0 (18.01.2026)
 - Added automatic model porting using decorators in [portable](./src/core/portable.ts).
 - Built-in types now implement the `PortableConstructor` interface.

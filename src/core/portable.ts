@@ -85,7 +85,7 @@ class PortabilityMetadata {
 	}
 }
 //#endregion
-//#region Portable model
+//#region Model
 /**
  * The abstract base class for all portable data models.
  * Provides mechanism for type-safe import and export of data structures.
@@ -131,16 +131,17 @@ export abstract class Model {
 		if (descendants.length > 0) {
 			const descendant = descendants.find(descendant => source instanceof descendant) as PortableConstructor<I, S>;
 			if (descendant === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
-			return descendant.export(source);
+			const exported = descendant.export(source);
+			if (typeof (exported) === "object" && exported !== null) Reflect.set(exported, "$type", descendant.name);
+			return exported;
 		}
 
 		const object = Object();
-		Reflect.set(object, "$type", model.name);
 		const { fields } = PortabilityMetadata.read(model);
-		for (const field of fields.values()) {
-			const value = Reflect.get(source, field.key);
-			const raw = field.type.export(value);
-			Reflect.set(object, field.association, raw);
+		for (const { key, association, type } of fields.values()) {
+			const value = Reflect.get(source, key);
+			const raw = type.export(value);
+			Reflect.set(object, association, raw);
 		}
 		return object;
 	}

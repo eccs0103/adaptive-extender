@@ -82,7 +82,6 @@ describe("Model Tests", () => {
 
 			const raw = SimpleModel.export(model);
 			expect(raw).toEqual({
-				$type: "SimpleModel",
 				name: "Jane",
 				age_value: 25
 			});

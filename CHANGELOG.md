@@ -1,4 +1,4 @@
-## 0.9.3 (23.01.2026)
+## 0.9.4 (23.01.2026)
 - Ported models no longer automatically receive a discriminator unless they are polymorphic descendants.
 - Improved typing for `Model.export` and its descendants in `Descendant`, ensuring that data is handled as at least an `object` type.
 

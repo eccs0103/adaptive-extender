@@ -4,162 +4,127 @@
 
 Adaptive library for JS/TS development environments.
 
-**Adaptive Extender** is a comprehensive TypeScript library designed to bridge the gap between raw JavaScript primitives and high-level application logic. It augments native objects with fluent, intuitive APIs and provides robust systems for data modeling, time management, and asynchronous control flow.
+**Adaptive Extender** enables strict portability, structured time management, and LINQ-like collections by extending native prototypes. It provides a robust standard library layer for enterprise-grade architecture.
 
 [Change log](./CHANGELOG.md)
 
 ---
 
-## ⚡ Key Features & Problems Solved
+## Core Systems
 
-### 1. Type-Safe Data Portability (`Portable`)
-**The Problem:**
-Reading data from external sources (APIs, JSON files) usually results in `any` or untyped objects. Validating them requires verbose boilerplate repetitive mapping code. `JSON.parse` offers zero guarantees about shape or types.
-
-**The Solution:**
-The `Portable` system allows you to define strict schemas using decorators directly on your classes. It handles validation, type conversion, and polymorphic resolution automatically.
+### 1. Strict Data Portability (`Portable`)
+Integrates validation and serialization directly into domain models via decorators. The class definition serves as the authoritative schema, enabling automatic type checking and polymorphic resolution.
 
 ```typescript
-import { Model, Field, ArrayOf, Nullable } from "adaptive-extender/core";
+import { Model, Field, ArrayOf } from "adaptive-extender/core";
 
-// Define a model
 class User extends Model {
-    @Field(String)
-    name: string = "";
-
-    @Field(Nullable(Number))
-    age: number | null = null;
-    
-    @Field(ArrayOf(String))
-    tags: string[] = [];
+    @Field(String) name: string = "Guest";
+    @Field(ArrayOf(Number)) scores: number[] = [];
 }
 
-// ❌ The Problem: Unsafe JSON
-const rawData = JSON.parse('{"name": "Alice", "tags": ["admin"]}');
-
-// ✅ The Solution: Typed Import
-// Validates structure and types automatically. Throws informative errors if invalid.
-const user = User.import(rawData, "api_response"); 
-
-console.log(user instanceof User); // true
-console.log(user.name); // "Alice"
+// 1. Validates types at runtime
+// 2. Instantiates actual 'User' class
+// 3. Throws informative errors on failure
+const user = User.import(json, "api.user"); 
 ```
 
-### 2. First-Class Time Management (`Timespan`)
-**The Problem:**
-Calculating durations using raw milliseconds (e.g., `86400000` for a day) is prone to "magic number" errors and is hard to read. Converting back and forth between days, minutes, and milliseconds creates messy math in your business logic.
-
-**The Solution:**
-The `Timespan` class offers a structured, readable way to handle time intervals, inspired by robust systems like .NET.
+### 2. Value-Object Time (`Timespan`)
+A dedicated structural type for time intervals. It encapsulates duration logic, preventing logic errors associated with raw millisecond arithmetic.
 
 ```typescript
 import { Timespan } from "adaptive-extender/core";
 
-// ❌ The Problem: Unreadable Math
-// setTimeout(() => {}, 2 * 60 * 60 * 1000 + 30 * 1000); 
+// Readable, safe arithmetic
+const cacheDuration = Timespan.fromComponents(0, 0, 5, 0); // 5 minutes
+const uptime = Timespan.fromValue(process.uptime() * 1000);
 
-// ✅ The Solution: Explicit Definition
-const duration = Timespan.fromComponents(0, 2, 30, 0); // 0 days, 2 hours, 30 min
-
-console.log(duration.valueOf()); // 9000000 (milliseconds)
-console.log(`Duration: ${duration.hours}h ${duration.minutes}m`);
-
-// Parsing support
-const fromString = Timespan.parse("02:30:00.000");
-```
-
-### 3. Extended Native Prototypes
-**The Problem:**
-JavaScript's standard library often lacks convenient utility methods found in other languages. Developers often write repetitive helper functions like `isEmpty(str)` or manual `for` loops to generate number ranges.
-
-**The Solution:**
-Adaptive Extender safely adds non-enumerable, standard-compliant extensions to native prototypes (`Array`, `String`, `Math`, etc.), making your code more expressive.
-
-#### String Utilities
-```typescript
-// ❌ Original: Checks are verbose
-if (str !== null && str !== undefined && str.trim() !== "") { ... }
-
-// ✅ Extended: Clean & Readable
-if (!String.isWhitespace(str)) { ... }
-
-// Fallback values
-const displayName = userInput.insteadWhitespace("files/default.png");
-```
-
-#### Array Utilities
-```typescript
-// ❌ Original: Manual loops for sequences
-const nums = [];
-for (let i = 0; i < 5; i++) nums.push(i);
-
-// ✅ Extended: Python-like Range
-const nums = Array.range(0, 5); // [0, 1, 2, 3, 4]
-
-// Zipping arrays
-const names = ["A", "B"];
-const ages = [20, 30];
-for (const [name, age] of Array.zip(names, ages)) {
-    console.log(`${name} is ${age}`);
-}
-```
-
-### 4. Advanced Promise Control
-**The Problem:**
-Managing complex asynchronous states or checking if a promise has settled without awaiting it can be difficult.
-
-**The Solution:**
-Extensions to `Promise` and the `Promisable<T>` type simplify async workflows.
-
-```typescript
-import { type Promisable } from "adaptive-extender/core";
-
-// Unified type for Sync or Async values
-function process(input: Promisable<string>) {
-    // ...
+// Use valueOf() for precise millisecond comparison
+if (uptime.valueOf() > cacheDuration.valueOf()) {
+    console.log("Cache expired"); 
 }
 
-// Check status (async check)
-if (await mytask.isSettled) {
-    console.log("Task finished");
+// Structured formatting
+console.log(uptime.toString()); // e.g. "0.00:12:45.123"
+```
+
+### 3. Native Prototype Extensions
+Native prototypes (`Array`, `String`, `Math`) are augmented with missing standard utility methods. These extensions are non-enumerable and designed to be conflict-free.
+
+```typescript
+// Sequence generation
+for (const i of Array.range(0, 5)) { ... } 
+
+// Parallel iteration
+for (const [user, role] of Array.zip(users, roles)) { ... }
+
+// Safe Swap
+items.swap(0, items.length - 1);
+```
+
+### 4. Structured Primitives (`Vector`, `Controller`)
+Provides abstract base classes for mathematical vectors and unified controller logic for complex execution flows.
+
+```typescript
+import { Controller } from "adaptive-extender/core";
+
+// Cancellable, error-handling async worker
+class ImportTask extends Controller {
+    async run() { ... }
+    async catch(err) { ... }
 }
 ```
 
 ---
 
-## 📦 Modules
+## Native Extensions
 
-The library is split into scopes to keep your bundle size optimal:
+A collection of high-performance utilities that eliminate common boilerplate.
 
-- **`adaptive-extender/core`**:
-  Platform-agnostic utilities (Math, Primitives, Time, Portable System). Works in Node.js, Deno, and Browser.
-  
-- **`adaptive-extender/node`**:
-  Node.js specific extensions (Environment, File System processing).
-  
-- **`adaptive-extender/web`**:
-  Browser specific DOM extensions (Element, ParentNode hooks).
+| Feature | Native JavaScript | Adaptive Extender |
+| :--- | :--- | :--- |
+| **Math Clamping** | `Math.min(Math.max(val, 0), 100)` | `val.clamp(0, 100)` |
+| **Math Remap** | `(val - a) * (d - c) / (b - a) + c` | `val.lerp(a, b, c, d)` |
+| **Modulo** | `((val % n) + n) % n` | `val.mod(n)` |
+| **Random** | `Math.floor(Math.random()...` | `Random.global.number(min, max)` |
+| **String Empty** | `!str \|\| str.trim().length === 0` | `String.isWhitespace(str)` |
+| **String Defaults** | `str \|\| "default"` | `str.insteadEmpty("default")` |
+| **Async List** | *Manual loop with `Promise.all`* | `await Array.fromAsync(stream)` |
+| **Promise State** | *n/a* | `await task.isSettled` |
 
 ---
 
-## 🚀 Installation
+## Architecture
+
+- **`adaptive-extender/core`**: 
+  Universal utilities. Works in Browser, Node, Deno.
+  *(Math, arrays, promises, portable system, time)*
+
+- **`adaptive-extender/node`**: 
+  Backend-specific tools.
+  *(Enhanced `fs` operations, strict environment variable parsing)*
+
+- **`adaptive-extender/web`**: 
+  Frontend-specific tools.
+  *(DOM element wrappers, parent-node extensions)*
+
+## Installation
 
 ```bash
 npm install adaptive-extender
 ```
 
-## 🛠 Usage
-
-Simply import the module to activate the extensions.
+## Usage
 
 ```typescript
-// Import core to register global proto extensions
 import "adaptive-extender/core";
 
-// Use features
-const list = Array.range(1, 10);
+// Extensions are now active
+if (String.isEmpty(config.name)) {
+  // ...
+}
 ```
 
-## 📄 License
+## License
 
 Apache-2.0

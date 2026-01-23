@@ -1,3 +1,7 @@
+## 0.9.3 (23.01.2026)
+- Ported models no longer automatically receive a discriminator unless they are polymorphic descendants.
+- Improved typing for `Model.export` and its descendants in `Descendant`, ensuring that data is handled as at least an `object` type.
+
 ## 0.9.2 (20.01.2026)
 - Unified the `ImportableConstructor` and `ExportableConstructor` interfaces into `PortableConstructor`.
 - Improved typing for object porting; decorators now possess better context inference.

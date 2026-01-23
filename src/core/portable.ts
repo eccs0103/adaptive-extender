@@ -57,7 +57,7 @@ class PortabilityMetadata {
 	static #registry: WeakMap<typeof Model, PortabilityMetadata> = new WeakMap();
 	#model: typeof Model;
 	#fields: Map<string, FieldDescriptor> = new Map();
-	#descendants: PortableConstructor[] = [];
+	#descendants: PortableConstructor<Model, object>[] = [];
 
 	constructor(model: typeof Model) {
 		this.#model = model;
@@ -80,7 +80,7 @@ class PortabilityMetadata {
 		return this.#fields;
 	}
 
-	get descendants(): PortableConstructor[] {
+	get descendants(): PortableConstructor<Model, object>[] {
 		return this.#descendants;
 	}
 }
@@ -93,8 +93,7 @@ class PortabilityMetadata {
 export abstract class Model {
 	/**
 	 * Creates an instance of the model from a raw source.
-	 * Handles polymorphic resolution and recursive field mapping.
-	 * @param source The raw source object (e.g. from JSON).
+	 * @param source The raw source object.
 	 * @param name The context path for error reporting.
 	 * @throws {TypeError} If validation fails or types do not match.
 	 */
@@ -104,7 +103,7 @@ export abstract class Model {
 		if (descendants.length > 0) {
 			const object = Object.import(source, name);
 			const descriminator = String.import(Reflect.get(object, "$type"), `${name}.$type`);
-			const descendant = descendants.find(descendant => descendant.name === descriminator) as PortableConstructor<I>;
+			const descendant = descendants.find(descendant => descendant.name === descriminator) as PortableConstructor<I, object>;
 			if (descendant === undefined) throw new TypeError(`Invalid '${descriminator}' descriminator for ${name}`);
 			return descendant.import(source, name);
 		}
@@ -122,21 +121,20 @@ export abstract class Model {
 
 	/**
 	 * Serializes the model instance to a raw object.
-	 * Includes type discrimination for polymorphic models.
 	 * @param source The model instance to export.
 	 */
-	static export<I extends Model, S = any>(this: Constructor<I>, source: I): S {
+	static export<I extends Model, S extends object>(this: Constructor<I>, source: I): S {
 		const model = this as unknown as typeof Model;
 		const { descendants } = PortabilityMetadata.read(model);
 		if (descendants.length > 0) {
 			const descendant = descendants.find(descendant => source instanceof descendant) as PortableConstructor<I, S>;
 			if (descendant === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
 			const exported = descendant.export(source);
-			if (typeof (exported) === "object" && exported !== null) Reflect.set(exported, "$type", descendant.name);
+			Reflect.set(exported, "$type", descendant.name);
 			return exported;
 		}
 
-		const object = Object();
+		const object = new Object() as S;
 		const { fields } = PortabilityMetadata.read(model);
 		for (const { key, association, type } of fields.values()) {
 			const value = Reflect.get(source, key);
@@ -249,7 +247,7 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
  * Decorator to register a descendant class in the base class's polymorphic registry.
  * @param descendant The subclass constructor to register.
  */
-export function Descendant<M extends typeof Model>(descendant: PortableConstructor): (target: M, context: ClassDecoratorContext) => void {
+export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>): (target: M, context: ClassDecoratorContext) => void {
 	return function (model: M): void {
 		const { descendants } = PortabilityMetadata.read(model);
 		descendants.push(descendant);

@@ -51,7 +51,7 @@
 		"build:web": "tsc -p ./src/web/tsconfig.json",
 		"build": "npm run build:core && npm run build:node && npm run build:web",
 
-		"test": "vitest",
+		"test": "vitest run",
 		"coverage": "vitest run --coverage"
 	},
 	"devDependencies": {

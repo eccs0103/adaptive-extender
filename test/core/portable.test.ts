@@ -62,6 +62,24 @@ class Shelter extends Model {
 	animals!: Animal[];
 }
 
+// Custom Discriminator Models
+@Descendant(Deferred(_ => CustomTypeA), "type-a")
+@Descendant(Deferred(_ => CustomTypeB), "type-b")
+abstract class CustomBase extends Model {
+	@Field(String)
+	id!: string;
+}
+
+class CustomTypeA extends CustomBase {
+	@Field(String)
+	valueA!: string;
+}
+
+class CustomTypeB extends CustomBase {
+	@Field(Number)
+	valueB!: number;
+}
+
 
 describe("Model Tests", () => {
 
@@ -267,6 +285,43 @@ describe("Model Tests", () => {
 				const obj = { context: "data" };
 				expect(Any.export(obj)).toBe(obj);
 			});
+		});
+	});
+
+	describe("Custom Discriminator Polymorphism", () => {
+		it("should export with custom discriminator", () => {
+			const instance = new CustomTypeA();
+			instance.id = "1";
+			instance.valueA = "test";
+			const exported = CustomBase.export<CustomBase, any>(instance);
+			expect(exported.$type).toBe("type-a");
+			expect(exported.id).toBe("1");
+			expect(exported.valueA).toBe("test");
+		});
+
+		it("should import with custom discriminator", () => {
+			const source = { $type: "type-b", id: "2", valueB: 123 };
+			const instance = CustomBase.import(source, "root") as CustomTypeB;
+			expect(instance).toBeInstanceOf(CustomTypeB);
+			expect(instance.id).toBe("2");
+			expect(instance.valueB).toBe(123);
+		});
+
+		it("should throw for unknown custom discriminator", () => {
+			const source = { $type: "type-z", id: "3" };
+			expect(() => CustomBase.import(source, "root")).toThrow(TypeError);
+		});
+	});
+
+	describe("Validation Tests", () => {
+		it("should throw error when Field is used on static property", () => {
+			expect(() => {
+				class InvalidModel extends Model {
+					@Field(String)
+					static staticField: string;
+				}
+				void InvalidModel;
+			}).toThrow("Portable fields cannot be static");
 		});
 	});
 });

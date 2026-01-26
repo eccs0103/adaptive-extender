@@ -130,9 +130,11 @@ export abstract class Model {
 		const { descendants, discriminator: key } = PortabilityMetadata.read(model);
 		if (descendants.length > 0) {
 			const object = Object.import(source, name);
-			const discriminator = String.import(Reflect.get(object, key), `${name}.${key}`);
+			const value = Reflect.get(object, key);
+			if (value === undefined) throw new TypeError(`Missing '${key}' discriminator in ${name}`);
+			const discriminator = String.import(value, `${name}.${key}`);
 			const descriptor = descendants.find(descriptor => descriptor.discriminator === discriminator);
-			if (descriptor === undefined) throw new TypeError(`Invalid '${discriminator}' discriminator for ${name}`);
+			if (descriptor === undefined) throw new TypeError(`Unknown '${discriminator}' discriminator for ${name}`);
 			return descriptor.type.import(source, name) as I;
 		}
 
@@ -206,7 +208,15 @@ export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (ta
  * @param type The portable type of the array elements.
  */
 export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M[], S[]> {
-	return class {
+	return class ArrayWrapper {
+		static [Symbol.hasInstance](instance: any): boolean {
+			return type[Symbol.hasInstance](instance);
+		}
+
+		static get name(): string {
+			return type.name;
+		}
+
 		static import(source: any, name: string): M[] {
 			return Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`));
 		}
@@ -222,7 +232,15 @@ export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstruc
  * @param type The inner portable type.
  */
 export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | null, S | null> {
-	return class {
+	return class NullableWrapper {
+		static [Symbol.hasInstance](instance: any): boolean {
+			return type[Symbol.hasInstance](instance);
+		}
+
+		static get name(): string {
+			return type.name;
+		}
+
 		static import(source: any, name: string): M | null {
 			return Reflect.mapNull(source, source => type.import(source, name));
 		}
@@ -238,7 +256,15 @@ export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstru
  * @param type The inner portable type.
  */
 export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | undefined, S | undefined> {
-	return class {
+	return class OptionalWrapper {
+		static [Symbol.hasInstance](instance: any): boolean {
+			return type[Symbol.hasInstance](instance);
+		}
+
+		static get name(): string {
+			return type.name;
+		}
+
 		static import(source: any, name: string): M | undefined {
 			return Reflect.mapUndefined(source, source => type.import(source, name));
 		}
@@ -254,9 +280,9 @@ export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstru
  * @param resolver Function that returns the actual type constructor.
  */
 export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S> {
-	return class {
+	return class DeferredWrapper {
 		static [Symbol.hasInstance](instance: any): boolean {
-			return instance instanceof resolver();
+			return resolver()[Symbol.hasInstance](instance);
 		}
 
 		static get name(): string {
@@ -308,7 +334,7 @@ export function DiscriminatorKey<M extends typeof Model>(key: string): (target: 
  */
 export const Timestamp = {
 	[Symbol.hasInstance](instance: any): boolean {
-		return instance instanceof Date;
+		return Date[Symbol.hasInstance](instance);
 	},
 
 	get name(): string {
@@ -330,7 +356,7 @@ export const Timestamp = {
  */
 export const UnixSeconds = {
 	[Symbol.hasInstance](instance: any): boolean {
-		return instance instanceof Date;
+		return Date[Symbol.hasInstance](instance);
 	},
 
 	get name(): string {

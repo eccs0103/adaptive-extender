@@ -223,7 +223,7 @@ describe("Model Tests", () => {
 				$type: "Bird",
 				name: "Tweety"
 			};
-			expect(() => Animal.import(raw, "bird")).toThrow(TypeError);
+			expect(() => Animal.import(raw, "bird")).toThrow(`Unknown 'Bird' discriminator for bird`);
 		});
 
 		it("should export with $type discriminator", () => {
@@ -328,7 +328,7 @@ describe("Model Tests", () => {
 
 		it("should throw for unknown custom discriminator", () => {
 			const source = { $type: "type-z", id: "3" };
-			expect(() => CustomBase.import(source, "root")).toThrow(TypeError);
+			expect(() => CustomBase.import(source, "root")).toThrow(`Unknown 'type-z' discriminator for root`);
 		});
 	});
 
@@ -355,7 +355,7 @@ describe("Model Tests", () => {
 		it("should throw if custom key is missing", () => {
 			const source = { $type: "alert", timestamp: 555, level: 1 };
 			// Should fail because it looks for 'kind', not '$type'
-			expect(() => Event.import(source, "event")).toThrow(TypeError);
+			expect(() => Event.import(source, "event")).toThrow("Missing 'kind' discriminator in event");
 		});
 	});
 

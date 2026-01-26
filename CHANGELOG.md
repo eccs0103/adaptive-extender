@@ -1,3 +1,8 @@
+## 0.9.5 (27.01.2026)
+- Added the ability to specify custom keys (via `DiscriminatorKey`) and values (via `Descendant`) for discriminators.
+- Fixed an issue where static fields could be marked for porting.
+- Improved descriptions for certain porting-related errors.
+
 ## 0.9.4 (23.01.2026)
 - Ported models no longer automatically receive a discriminator unless they are polymorphic descendants.
 - Improved typing for `Model.export` and its descendants in `Descendant`, ensuring that data is handled as at least an `object` type.

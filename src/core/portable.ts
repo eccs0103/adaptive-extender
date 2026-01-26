@@ -77,6 +77,7 @@ class PortabilityMetadata {
 	#model: typeof Model;
 	#fields: Map<string, FieldDescriptor> = new Map();
 	#descendants: DescendantDescriptor[] = [];
+	#discriminator: string = "$type";
 
 	constructor(model: typeof Model) {
 		this.#model = model;
@@ -102,6 +103,14 @@ class PortabilityMetadata {
 	get descendants(): DescendantDescriptor[] {
 		return this.#descendants;
 	}
+
+	get discriminator(): string {
+		return this.#discriminator;
+	}
+
+	set discriminator(value: string) {
+		this.#discriminator = value;
+	}
 }
 //#endregion
 //#region Model
@@ -118,10 +127,10 @@ export abstract class Model {
 	 */
 	static import<I extends Model>(this: Constructor<I>, source: any, name: string): I {
 		const model = this as unknown as typeof Model;
-		const { descendants } = PortabilityMetadata.read(model);
+		const { descendants, discriminator: key } = PortabilityMetadata.read(model);
 		if (descendants.length > 0) {
 			const object = Object.import(source, name);
-			const discriminator = String.import(Reflect.get(object, "$type"), `${name}.$type`);
+			const discriminator = String.import(Reflect.get(object, key), `${name}.${key}`);
 			const descriptor = descendants.find(descriptor => descriptor.discriminator === discriminator);
 			if (descriptor === undefined) throw new TypeError(`Invalid '${discriminator}' discriminator for ${name}`);
 			return descriptor.type.import(source, name) as I;
@@ -144,13 +153,13 @@ export abstract class Model {
 	 */
 	static export<I extends Model, S extends object>(this: Constructor<I>, source: I): S {
 		const model = this as unknown as typeof Model;
-		const { descendants } = PortabilityMetadata.read(model);
+		const { descendants, discriminator: key } = PortabilityMetadata.read(model);
 		if (descendants.length > 0) {
 			const descriptor = descendants.find(descriptor => source instanceof descriptor.type);
 			if (descriptor === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
 			const descendant = descriptor.type as PortableConstructor<I, S>;
 			const exported = descendant.export(source);
-			Reflect.set(exported, "$type", descriptor.discriminator);
+			Reflect.set(exported, key, descriptor.discriminator);
 			return exported;
 		}
 
@@ -279,6 +288,17 @@ export function Descendant<M extends typeof Model>(descendant: PortableConstruct
 	return function (model: M): void {
 		const { descendants } = PortabilityMetadata.read(model);
 		descendants.push(new DescendantDescriptor(descendant, discriminator));
+	};
+}
+
+/**
+ * Decorator to register a custom discriminator key for the polymorphic model.
+ * @param key The property key to use for the discriminator.
+ */
+export function DiscriminatorKey<M extends typeof Model>(key: string): (target: M, context: ClassDecoratorContext) => void {
+	return function (model: M): void {
+		const metadata = PortabilityMetadata.read(model);
+		metadata.discriminator = key;
 	};
 }
 //#endregion

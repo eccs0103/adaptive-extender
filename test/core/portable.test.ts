@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, DiscriminatorKey, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -80,6 +80,25 @@ class CustomTypeB extends CustomBase {
 	valueB!: number;
 }
 
+
+// Custom Discriminator Key Models
+@DiscriminatorKey("kind")
+@Descendant(Deferred(_ => Notification), "msg")
+@Descendant(Deferred(_ => Alert), "alert")
+abstract class Event extends Model {
+	@Field(Number)
+	timestamp!: number;
+}
+
+class Notification extends Event {
+	@Field(String)
+	message!: string;
+}
+
+class Alert extends Event {
+	@Field(Number)
+	level!: number;
+}
 
 describe("Model Tests", () => {
 
@@ -310,6 +329,33 @@ describe("Model Tests", () => {
 		it("should throw for unknown custom discriminator", () => {
 			const source = { $type: "type-z", id: "3" };
 			expect(() => CustomBase.import(source, "root")).toThrow(TypeError);
+		});
+	});
+
+	describe("Custom Discriminator Key ($type override)", () => {
+		it("should export with custom key 'kind'", () => {
+			const notification = new Notification();
+			notification.timestamp = 12345;
+			notification.message = "Hello";
+
+			const exported: any = Event.export(notification);
+			expect(exported.kind).toBe("msg");
+			expect(exported.$type).toBeUndefined();
+			expect(exported.message).toBe("Hello");
+		});
+
+		it("should import with custom key 'kind'", () => {
+			const source = { kind: "alert", timestamp: 555, level: 1 };
+			const event = Event.import(source, "event") as Alert;
+			expect(event).toBeInstanceOf(Alert);
+			expect(event.level).toBe(1);
+			expect(event.timestamp).toBe(555);
+		});
+
+		it("should throw if custom key is missing", () => {
+			const source = { $type: "alert", timestamp: 555, level: 1 };
+			// Should fail because it looks for 'kind', not '$type'
+			expect(() => Event.import(source, "event")).toThrow(TypeError);
 		});
 	});
 

@@ -204,102 +204,6 @@ export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (ta
 }
 
 /**
- * Creates a portable wrapper for array types.
- * @param type The portable type of the array elements.
- */
-export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M[], S[]> {
-	return class ArrayWrapper {
-		static [Symbol.hasInstance](instance: any): boolean {
-			return type[Symbol.hasInstance](instance);
-		}
-
-		static get name(): string {
-			return type.name;
-		}
-
-		static import(source: any, name: string): M[] {
-			return Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`));
-		}
-
-		static export(source: M[]): S[] {
-			return source.map(item => type.export(item));
-		}
-	} as unknown as PortableConstructor<M[], S[]>;
-}
-
-/**
- * Creates a portable wrapper for nullable types.
- * @param type The inner portable type.
- */
-export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | null, S | null> {
-	return class NullableWrapper {
-		static [Symbol.hasInstance](instance: any): boolean {
-			return type[Symbol.hasInstance](instance);
-		}
-
-		static get name(): string {
-			return type.name;
-		}
-
-		static import(source: any, name: string): M | null {
-			return Reflect.mapNull(source, source => type.import(source, name));
-		}
-
-		static export(source: M | null): S | null {
-			return Reflect.mapNull(source, source => type.export(source));
-		}
-	} as unknown as PortableConstructor<M | null, S | null>;
-}
-
-/**
- * Creates a portable wrapper for optional types.
- * @param type The inner portable type.
- */
-export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | undefined, S | undefined> {
-	return class OptionalWrapper {
-		static [Symbol.hasInstance](instance: any): boolean {
-			return type[Symbol.hasInstance](instance);
-		}
-
-		static get name(): string {
-			return type.name;
-		}
-
-		static import(source: any, name: string): M | undefined {
-			return Reflect.mapUndefined(source, source => type.import(source, name));
-		}
-
-		static export(source: M | undefined): S | undefined {
-			return Reflect.mapUndefined(source, source => type.export(source));
-		}
-	} as unknown as PortableConstructor<M | undefined, S | undefined>;
-}
-
-/**
- * Creates a wrapper for circular or deferred type references.
- * @param resolver Function that returns the actual type constructor.
- */
-export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S> {
-	return class DeferredWrapper {
-		static [Symbol.hasInstance](instance: any): boolean {
-			return resolver()[Symbol.hasInstance](instance);
-		}
-
-		static get name(): string {
-			return resolver().name;
-		}
-
-		static import(source: any, name: string): M {
-			return resolver().import(source, name);
-		}
-
-		static export(source: M): S {
-			return resolver().export(source);
-		}
-	} as unknown as PortableConstructor<M, S>;
-}
-
-/**
  * Decorator to register a descendant class in the base class's polymorphic registry.
  * @param descendant The subclass constructor to register.
  */
@@ -330,6 +234,126 @@ export function DiscriminatorKey<M extends typeof Model>(key: string): (target: 
 //#endregion
 //#region Adapters
 /**
+ * Creates a wrapper for circular or deferred type references.
+ * @param resolver Function that returns the actual type constructor.
+ */
+export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return resolver()[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return resolver().name;
+		},
+
+		import(source: any, name: string): M {
+			return resolver().import(source, name);
+		},
+
+		export(source: M): S {
+			return resolver().export(source);
+		},
+	} as PortableConstructor<M, S>;
+}
+
+/**
+ * Creates a portable wrapper for optional types.
+ * @param type The inner portable type.
+ */
+export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | undefined, S | undefined> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return instance === undefined || type[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `${type.name} | undefined`;
+		},
+
+		import(source: any, name: string): M | undefined {
+			return Reflect.mapUndefined(source, source => type.import(source, name));
+		},
+
+		export(source: M | undefined): S | undefined {
+			return Reflect.mapUndefined(source, source => type.export(source));
+		},
+	} as PortableConstructor<M | undefined, S | undefined>;
+}
+
+/**
+ * Creates a portable wrapper for nullable types.
+ * @param type The inner portable type.
+ */
+export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | null, S | null> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return instance === null || type[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `${type.name} | null`;
+		},
+
+		import(source: any, name: string): M | null {
+			return Reflect.mapNull(source, source => type.import(source, name));
+		},
+
+		export(source: M | null): S | null {
+			return Reflect.mapNull(source, source => type.export(source));
+		},
+	} as PortableConstructor<M | null, S | null>;
+}
+
+/**
+ * Creates a portable wrapper for array types.
+ * @param type The portable type of the array elements.
+ */
+export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M[], S[]> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return Array[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `${type.name}[]`;
+		},
+
+		import(source: any, name: string): M[] {
+			return Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`));
+		},
+
+		export(source: M[]): S[] {
+			return source.map(item => type.export(item));
+		},
+	} as PortableConstructor<M[], S[]>;
+}
+
+/**
+ * Creates a portable wrapper for set types.
+ * @param type The portable type of the set elements.
+ */
+export function SetOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<Set<M>, S[]> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return Set[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `Set<${type.name}>`;
+		},
+
+		import(source: any, name: string): Set<M> {
+			return new Set(Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`)));
+		},
+
+		export(source: Set<M>): S[] {
+			return Array.from(source, item => type.export(item));
+		},
+	} as PortableConstructor<Set<M>, S[]>;
+}
+
+/**
  * A portable adapter that facilitates the conversion between `Date` instances and millisecond timestamps.
  */
 export const Timestamp = {
@@ -349,7 +373,7 @@ export const Timestamp = {
 	export(source: Date): number {
 		return source.getTime();
 	},
-} as unknown as PortableConstructor<Date, number>;
+} as PortableConstructor<Date, number>;
 
 /**
  * A portable adapter that facilitates the conversion between `Date` instances and Unix second timestamps.
@@ -371,7 +395,7 @@ export const UnixSeconds = {
 	export(source: Date): number {
 		return Math.trunc(source.getTime() / 1000);
 	},
-} as unknown as PortableConstructor<Date, number>;
+} as PortableConstructor<Date, number>;
 
 /**
  * A portable adapter that allows any value to pass through without validation or transformation.
@@ -394,5 +418,5 @@ export const Any = {
 	export(source: any): any {
 		return source;
 	},
-} as unknown as PortableConstructor<any, any>;
+} as PortableConstructor<any, any>;
 //#endregion

@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, DiscriminatorKey, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, DiscriminatorKey, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -238,6 +238,30 @@ describe("Model Tests", () => {
 	});
 
 	describe("Adapters", () => {
+		describe("SetOf", () => {
+			it("should identify as Set and convert elements", () => {
+				expect(SetOf(String)[Symbol.hasInstance](new Set())).toBe(true);
+				const raw = ["a", "b"];
+				const set = SetOf(String).import(raw, "s");
+				expect(set).toBeInstanceOf(Set);
+				expect(Array.from(set)).toEqual(["a", "b"]);
+			});
+
+			it("should export Set to array", () => {
+				const set = new Set(["x", "y"]);
+				const arr = SetOf(String).export(set);
+				expect(arr).toEqual(["x", "y"]);
+			});
+
+			it("should import Set of models", () => {
+				const raw = [{ name: "S1", age_value: 10 }];
+				const set = SetOf(SimpleModel).import(raw, "models");
+				const first = Array.from(set)[0];
+				expect(first).toBeInstanceOf(SimpleModel);
+				expect((first as SimpleModel).name).toBe("S1");
+			});
+		});
+
 		describe("Timestamp", () => {
 			it("should identify as Timestamp", () => {
 				expect(Timestamp.name).toBe("Timestamp");

@@ -1,3 +1,7 @@
+## 0.9.6 (08.02.2026)
+- Improved `Optional`, `Nullable`, and `ArrayOf` adapters.
+- Added the `SetOf` adapter.
+
 ## 0.9.5 (27.01.2026)
 - Added the ability to specify custom keys (via `DiscriminatorKey`) and values (via `Descendant`) for discriminators.
 - Fixed an issue where static fields could be marked for porting.

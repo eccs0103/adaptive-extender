@@ -36,5 +36,19 @@ export class Environment {
 			return text;
 		}
 	}
+
+	/**
+	 * Writes a value to the environment variables.
+	 */
+	writeValue(key: string, value: any): void {
+		const { env } = process;
+		let text: string;
+		try {
+			text = (typeof value === "string") ? value : JSON.stringify(value);
+		} catch {
+			text = String(value);
+		}
+		env[key] = text;
+	}
 }
 //#endregion

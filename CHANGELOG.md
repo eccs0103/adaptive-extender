@@ -1,4 +1,4 @@
-## 0.9.6 (08.02.2026)
+## 0.9.7 (10.03.2026)
 - Improved `Optional`, `Nullable`, and `ArrayOf` adapters.
 - Added the `SetOf` adapter.
 

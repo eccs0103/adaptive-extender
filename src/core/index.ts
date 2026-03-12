@@ -8,6 +8,8 @@ export * from "./boolean.js";
 export * from "./date.js";
 export * from "./math.js";
 export * from "./array.js";
+export * from "./set.js";
+export * from "./map.js";
 export * from "./object.js";
 export * from "./reflect.js";
 export * from "./portable.js";

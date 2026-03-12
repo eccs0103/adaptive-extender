@@ -144,4 +144,31 @@ describe("Array extensions", () => {
 			expect(arr).toEqual([1, 2, 3]);
 		});
 	});
+
+	describe("Array.prototype.remove", () => {
+		it("should remove the first occurrence and return true", () => {
+			const arr = [1, 2, 3];
+			const result = arr.remove(2);
+			expect(result).toBe(true);
+			expect(arr).toEqual([1, 3]);
+		});
+
+		it("should return false when value is not found", () => {
+			const arr = [1, 2, 3];
+			const result = arr.remove(99);
+			expect(result).toBe(false);
+			expect(arr).toEqual([1, 2, 3]);
+		});
+
+		it("should remove only the first occurrence of a duplicate", () => {
+			const arr = [1, 2, 2, 3];
+			arr.remove(2);
+			expect(arr).toEqual([1, 2, 3]);
+		});
+
+		it("should return false on empty array", () => {
+			const arr: number[] = [];
+			expect(arr.remove(1)).toBe(false);
+		});
+	});
 });

@@ -1,3 +1,6 @@
+## 0.9.9 (13.03.2026)
+- Added `map.add`, `set.toggle` and `array.remove` extensions.
+
 ## 0.9.8 (10.03.2026)
 - Improved `Optional`, `Nullable`, and `ArrayOf` adapters.
 - Added the `SetOf` adapter.

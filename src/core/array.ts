@@ -59,6 +59,12 @@ declare global {
 		 * @param $default The value used to fill when the array grows.
 		 */
 		resize(length: number, $default: T): T[];
+		/**
+		 * Removes the first occurrence of the specified value from the array.
+		 * @param value The value to remove.
+		 * @returns `true` if the value was found and removed, otherwise `false`.
+		 */
+		remove(value: T): boolean;
 	}
 }
 
@@ -123,6 +129,11 @@ Array.prototype.resize = function <T>(this: T[], length: number, $default: T): T
 	this.length = length;
 	return this;
 };
-//#endregion
 
-Array.from;
+Array.prototype.remove = function <T>(this: T[], value: T): boolean {
+	const index = this.indexOf(value);
+	if (index < 0) return false;
+	this.splice(index, 1);
+	return true;
+};
+//#endregion

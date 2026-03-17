@@ -357,7 +357,7 @@ export function SetOf<M, S>(type: PortableConstructor<M, S>): PortableConstructo
  * Creates a portable wrapper for maps with string keys, converting them to and from plain objects.
  * @param type The portable type of the map values.
  */
-export function MapRecord<V, S>(type: PortableConstructor<V, S>): PortableConstructor<Map<string, V>, Record<string, S>> {
+export function MapRecord<M, S>(type: PortableConstructor<M, S>): PortableConstructor<Map<string, M>, Record<string, S>> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Map[Symbol.hasInstance](instance);
@@ -367,23 +367,23 @@ export function MapRecord<V, S>(type: PortableConstructor<V, S>): PortableConstr
 			return `Map<string, ${type.name}>`;
 		},
 
-		import(source: any, name: string): Map<string, V> {
+		import(source: any, name: string): Map<string, M> {
 			const record = Object.import(source, name) as Record<string, unknown>;
-			const map = new Map<string, V>();
+			const map = new Map<string, M>();
 			for (const key of Object.keys(record)) {
 				map.set(key, type.import(Reflect.get(record, key), `${name}[${JSON.stringify(key)}]`));
 			}
 			return map;
 		},
 
-		export(source: Map<string, V>): Record<string, S> {
+		export(source: Map<string, M>): Record<string, S> {
 			const record: Record<string, S> = {};
 			for (const [key, value] of source) {
 				Reflect.set(record, key, type.export(value));
 			}
 			return record;
 		},
-	} as PortableConstructor<Map<string, V>, Record<string, S>>;
+	} as PortableConstructor<Map<string, M>, Record<string, S>>;
 }
 
 /**
@@ -391,7 +391,7 @@ export function MapRecord<V, S>(type: PortableConstructor<V, S>): PortableConstr
  * @param typeKey The portable type of the map keys.
  * @param typeValue The portable type of the map values.
  */
-export function MapTuples<K, KS, V, VS>(typeKey: PortableConstructor<K, KS>, typeValue: PortableConstructor<V, VS>): PortableConstructor<Map<K, V>, [KS, VS][]> {
+export function MapTuples<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, typeValue: PortableConstructor<MV, SV>): PortableConstructor<Map<MK, MV>, [SK, SV][]> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Map[Symbol.hasInstance](instance);
@@ -401,19 +401,19 @@ export function MapTuples<K, KS, V, VS>(typeKey: PortableConstructor<K, KS>, typ
 			return `Map<${typeKey.name}, ${typeValue.name}>`;
 		},
 
-		import(source: any, name: string): Map<K, V> {
-			return new Map<K, V>(Array.import(source, name).map((item, index) => {
+		import(source: any, name: string): Map<MK, MV> {
+			return new Map<MK, MV>(Array.import(source, name).map((item, index) => {
 				const tuple = Array.import(item, `${name}[${index}]`);
 				const key = typeKey.import(tuple[0], `${name}[${index}][0]`);
 				const value = typeValue.import(tuple[1], `${name}[${index}][1]`);
-				return [key, value] as [K, V];
+				return [key, value] as [MK, MV];
 			}));
 		},
 
-		export(source: Map<K, V>): [KS, VS][] {
-			return Array.from(source, ([key, value]) => [typeKey.export(key), typeValue.export(value)] as [KS, VS]);
+		export(source: Map<MK, MV>): [SK, SV][] {
+			return Array.from(source, ([k, v]) => [typeKey.export(k), typeValue.export(v)] as [SK, SV]);
 		},
-	} as PortableConstructor<Map<K, V>, [KS, VS][]>;
+	} as PortableConstructor<Map<MK, MV>, [SK, SV][]>;
 }
 
 /**

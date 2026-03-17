@@ -100,6 +100,18 @@ class Alert extends Event {
 	level!: number;
 }
 
+// Map adapter models
+class SettingsModel extends Model {
+	@Field(SetOf(String))
+	tags!: Set<string>;
+
+	@Field(MapRecord(Boolean))
+	preferences!: Map<string, boolean>;
+
+	@Field(MapTuples(Number, String))
+	scores!: Map<number, string>;
+}
+
 describe("Model Tests", () => {
 
 	describe("Basic Field Mapping", () => {
@@ -331,26 +343,26 @@ describe("Model Tests", () => {
 		});
 
 		describe("MapRecord", () => {
-			it("should identify as Map", () => {
-				expect(MapRecord(Number).name).toBe("Map<string, Number>");
-				expect(MapRecord(Number)[Symbol.hasInstance](new Map())).toBe(true);
-				expect(MapRecord(Number)[Symbol.hasInstance]({})).toBe(false);
+			it("should import Record<string, S> as Map<string, M> via @Field decorator", () => {
+				const raw = {
+					tags: [],
+					preferences: { dark: true, notifications: false },
+					scores: []
+				};
+				const model = SettingsModel.import(raw, "settings");
+				expect(model.preferences).toBeInstanceOf(Map);
+				expect(model.preferences.get("dark")).toBe(true);
+				expect(model.preferences.get("notifications")).toBe(false);
 			});
 
-			it("should import a plain object as Map<string, V>", () => {
-				const raw = { a: 1, b: 2, c: 3 };
-				const map = MapRecord(Number).import(raw, "m");
-				expect(map).toBeInstanceOf(Map);
-				expect(map.size).toBe(3);
-				expect(map.get("a")).toBe(1);
-				expect(map.get("b")).toBe(2);
-				expect(map.get("c")).toBe(3);
-			});
+			it("should export Map<string, M> as Record<string, S> via @Field decorator", () => {
+				const model = new SettingsModel();
+				model.tags = new Set();
+				model.preferences = new Map([["dark", true], ["animations", false]]);
+				model.scores = new Map();
 
-			it("should export Map<string, V> as a plain object", () => {
-				const map = new Map([["x", "hello"], ["y", "world"]]);
-				const record = MapRecord(String).export(map);
-				expect(record).toEqual({ x: "hello", y: "world" });
+				const raw: any = SettingsModel.export(model);
+				expect(raw.preferences).toEqual({ dark: true, animations: false });
 			});
 
 			it("should import and export Map of models", () => {
@@ -363,38 +375,38 @@ describe("Model Tests", () => {
 				expect(exported.first).toEqual({ name: "Alice", age_value: 30 });
 			});
 
-			it("should throw when source is not an object", () => {
-				expect(() => MapRecord(Number).import("string", "m")).toThrow(TypeError);
-				expect(() => MapRecord(Number).import(null, "m")).toThrow(TypeError);
-			});
-
 			it("should import an empty object as an empty map", () => {
 				const map = MapRecord(String).import({}, "m");
 				expect(map.size).toBe(0);
 			});
+
+			it("should throw when source is not an object", () => {
+				expect(() => MapRecord(Number).import("string", "m")).toThrow(TypeError);
+				expect(() => MapRecord(Number).import(null, "m")).toThrow(TypeError);
+			});
 		});
 
 		describe("MapTuples", () => {
-			it("should identify as Map", () => {
-				expect(MapTuples(Number, String).name).toBe("Map<Number, String>");
-				expect(MapTuples(Number, String)[Symbol.hasInstance](new Map())).toBe(true);
-				expect(MapTuples(Number, String)[Symbol.hasInstance]([])).toBe(false);
+			it("should import [SK, SV][] as Map<MK, MV> via @Field decorator", () => {
+				const raw = {
+					tags: [],
+					preferences: {},
+					scores: [[1, "gold"], [2, "silver"], [3, "bronze"]]
+				};
+				const model = SettingsModel.import(raw, "settings");
+				expect(model.scores).toBeInstanceOf(Map);
+				expect(model.scores.get(1)).toBe("gold");
+				expect(model.scores.get(3)).toBe("bronze");
 			});
 
-			it("should import an array of tuples as Map<K, V>", () => {
-				const raw = [[1, "one"], [2, "two"], [3, "three"]];
-				const map = MapTuples(Number, String).import(raw, "m");
-				expect(map).toBeInstanceOf(Map);
-				expect(map.size).toBe(3);
-				expect(map.get(1)).toBe("one");
-				expect(map.get(2)).toBe("two");
-				expect(map.get(3)).toBe("three");
-			});
+			it("should export Map<MK, MV> as [SK, SV][] via @Field decorator", () => {
+				const model = new SettingsModel();
+				model.tags = new Set();
+				model.preferences = new Map();
+				model.scores = new Map([[10, "alpha"], [20, "beta"]]);
 
-			it("should export Map<K, V> as an array of tuples", () => {
-				const map = new Map([[1, "a"], [2, "b"]]);
-				const tuples = MapTuples(Number, String).export(map);
-				expect(tuples).toEqual([[1, "a"], [2, "b"]]);
+				const raw: any = SettingsModel.export(model);
+				expect(raw.scores).toEqual([[10, "alpha"], [20, "beta"]]);
 			});
 
 			it("should import and export Map of models as tuples", () => {
@@ -407,14 +419,14 @@ describe("Model Tests", () => {
 				expect(exported).toEqual([["key1", { name: "Bob", age_value: 25 }]]);
 			});
 
-			it("should throw when source is not an array", () => {
-				expect(() => MapTuples(String, Number).import({}, "m")).toThrow(TypeError);
-				expect(() => MapTuples(String, Number).import("bad", "m")).toThrow(TypeError);
-			});
-
 			it("should import an empty array as an empty map", () => {
 				const map = MapTuples(String, Number).import([], "m");
 				expect(map.size).toBe(0);
+			});
+
+			it("should throw when source is not an array", () => {
+				expect(() => MapTuples(String, Number).import({}, "m")).toThrow(TypeError);
+				expect(() => MapTuples(String, Number).import("bad", "m")).toThrow(TypeError);
 			});
 		});
 	});

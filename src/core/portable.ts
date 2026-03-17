@@ -354,6 +354,69 @@ export function SetOf<M, S>(type: PortableConstructor<M, S>): PortableConstructo
 }
 
 /**
+ * Creates a portable wrapper for maps with string keys, converting them to and from plain objects.
+ * @param type The portable type of the map values.
+ */
+export function MapRecord<V, S>(type: PortableConstructor<V, S>): PortableConstructor<Map<string, V>, Record<string, S>> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return Map[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `Map<string, ${type.name}>`;
+		},
+
+		import(source: any, name: string): Map<string, V> {
+			const record = Object.import(source, name) as Record<string, unknown>;
+			const map = new Map<string, V>();
+			for (const key of Object.keys(record)) {
+				map.set(key, type.import(Reflect.get(record, key), `${name}[${JSON.stringify(key)}]`));
+			}
+			return map;
+		},
+
+		export(source: Map<string, V>): Record<string, S> {
+			const record: Record<string, S> = {};
+			for (const [key, value] of source) {
+				Reflect.set(record, key, type.export(value));
+			}
+			return record;
+		},
+	} as PortableConstructor<Map<string, V>, Record<string, S>>;
+}
+
+/**
+ * Creates a portable wrapper for maps with arbitrary key and value types, converting them to and from arrays of `[key, value]` tuples.
+ * @param typeKey The portable type of the map keys.
+ * @param typeValue The portable type of the map values.
+ */
+export function MapTuples<K, KS, V, VS>(typeKey: PortableConstructor<K, KS>, typeValue: PortableConstructor<V, VS>): PortableConstructor<Map<K, V>, [KS, VS][]> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return Map[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `Map<${typeKey.name}, ${typeValue.name}>`;
+		},
+
+		import(source: any, name: string): Map<K, V> {
+			return new Map<K, V>(Array.import(source, name).map((item, index) => {
+				const tuple = Array.import(item, `${name}[${index}]`);
+				const key = typeKey.import(tuple[0], `${name}[${index}][0]`);
+				const value = typeValue.import(tuple[1], `${name}[${index}][1]`);
+				return [key, value] as [K, V];
+			}));
+		},
+
+		export(source: Map<K, V>): [KS, VS][] {
+			return Array.from(source, ([key, value]) => [typeKey.export(key), typeValue.export(value)] as [KS, VS]);
+		},
+	} as PortableConstructor<Map<K, V>, [KS, VS][]>;
+}
+
+/**
  * A portable adapter that facilitates the conversion between `Date` instances and millisecond timestamps.
  */
 export const Timestamp = {

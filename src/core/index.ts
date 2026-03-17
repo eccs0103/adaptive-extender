@@ -24,3 +24,4 @@ export * from "./vector-3.js";
 export * from "./timespan.js";
 export * from "./engine.js";
 export * from "./controller.js";
+export * from "./environment.js";

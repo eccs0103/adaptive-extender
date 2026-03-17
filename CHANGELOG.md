@@ -1,9 +1,7 @@
 ## 0.9.10 (17.03.2026)
-- Added core `environment` module and core-level environment utilities.
-- Introduced `src/core/environment.ts` and added corresponding tests `test/core/environment.test.ts`.
-- Improved porting behavior: updates to `src/core/portable.ts` and related tests.
-- Removed `src/node/environment.ts` and `test/node/environment.test.ts` (environment moved to core).
-- Misc: updated exports and package metadata for the release.
+- Moved `environment` module from [node](./src/node/environment.ts) to [core](./src/core/environment.ts).
+- Added `EnvironmentProvider` class for resolving environment variables.
+- Added `RecordOf` and `MapOf` adapters for portable maps in [portable](./src/core/portable.ts) module.
 
 ## 0.9.9 (13.03.2026)
 - Added `map.add`, `set.toggle` and `array.remove` extensions.

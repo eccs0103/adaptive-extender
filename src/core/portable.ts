@@ -355,9 +355,9 @@ export function SetOf<M, S>(type: PortableConstructor<M, S>): PortableConstructo
 
 /**
  * Creates a portable wrapper for maps with string keys, converting them to and from plain objects.
- * @param type The portable type of the map values.
+ * @param value The portable type of the map values.
  */
-export function MapRecord<M, S>(type: PortableConstructor<M, S>): PortableConstructor<Map<string, M>, Record<string, S>> {
+export function RecordOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<Map<string, M>, Record<string, S>> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Map[Symbol.hasInstance](instance);
@@ -388,10 +388,10 @@ export function MapRecord<M, S>(type: PortableConstructor<M, S>): PortableConstr
 
 /**
  * Creates a portable wrapper for maps with arbitrary key and value types, converting them to and from arrays of `[key, value]` tuples.
- * @param typeKey The portable type of the map keys.
- * @param typeValue The portable type of the map values.
+ * @param key The portable type of the map keys.
+ * @param value The portable type of the map values.
  */
-export function MapTuples<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, typeValue: PortableConstructor<MV, SV>): PortableConstructor<Map<MK, MV>, [SK, SV][]> {
+export function MapOf<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, typeValue: PortableConstructor<MV, SV>): PortableConstructor<Map<MK, MV>, [SK, SV][]> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Map[Symbol.hasInstance](instance);
@@ -411,7 +411,7 @@ export function MapTuples<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, 
 		},
 
 		export(source: Map<MK, MV>): [SK, SV][] {
-			return Array.from(source, ([k, v]) => [typeKey.export(k), typeValue.export(v)] as [SK, SV]);
+			return Array.from(source, ([key, value]) => [typeKey.export(key), typeValue.export(value)] as [SK, SV]);
 		},
 	} as PortableConstructor<Map<MK, MV>, [SK, SV][]>;
 }

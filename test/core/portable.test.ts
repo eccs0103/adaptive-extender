@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, DiscriminatorKey, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapRecord, MapTuples } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, DiscriminatorKey, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapOf, RecordOf } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -105,10 +105,10 @@ class SettingsModel extends Model {
 	@Field(SetOf(String))
 	tags!: Set<string>;
 
-	@Field(MapRecord(Boolean))
+	@Field(RecordOf(Boolean))
 	preferences!: Map<string, boolean>;
 
-	@Field(MapTuples(Number, String))
+	@Field(MapOf(Number, String))
 	scores!: Map<number, string>;
 }
 
@@ -118,7 +118,7 @@ describe("Model Tests", () => {
 		it("should import simple fields", () => {
 			const raw = { name: "John", age_value: 30 };
 			const model = SimpleModel.import(raw, "test");
-			
+
 			expect(model).toBeInstanceOf(SimpleModel);
 			expect(model.name).toBe("John");
 			expect(model.age).toBe(30);
@@ -139,7 +139,7 @@ describe("Model Tests", () => {
 		it("should throw on missing required fields during import", () => {
 			const raw = { name: "John" }; // Missing age_value
 			// Note: The behavior depends on Number.import throwing when undefined is passed
-			expect(() => SimpleModel.import(raw, "test")).toThrow(); 
+			expect(() => SimpleModel.import(raw, "test")).toThrow();
 		});
 	});
 
@@ -219,7 +219,7 @@ describe("Model Tests", () => {
 
 			const shelter = Shelter.import(raw, "shelter");
 			expect(shelter.animals).toHaveLength(2);
-			
+
 			const dog = shelter.animals[0];
 			const cat = shelter.animals[1];
 
@@ -342,7 +342,7 @@ describe("Model Tests", () => {
 			});
 		});
 
-		describe("MapRecord", () => {
+		describe("RecordOf", () => {
 			it("should import Record<string, S> as Map<string, M> via @Field decorator", () => {
 				const raw = {
 					tags: [],
@@ -367,26 +367,26 @@ describe("Model Tests", () => {
 
 			it("should import and export Map of models", () => {
 				const raw = { first: { name: "Alice", age_value: 30 } };
-				const map = MapRecord(SimpleModel).import(raw, "m");
+				const map = RecordOf(SimpleModel).import(raw, "m");
 				expect(map.get("first")).toBeInstanceOf(SimpleModel);
 				expect((map.get("first") as SimpleModel).name).toBe("Alice");
 
-				const exported: any = MapRecord(SimpleModel).export(map);
+				const exported: any = RecordOf(SimpleModel).export(map);
 				expect(exported.first).toEqual({ name: "Alice", age_value: 30 });
 			});
 
 			it("should import an empty object as an empty map", () => {
-				const map = MapRecord(String).import({}, "m");
+				const map = RecordOf(String).import({}, "m");
 				expect(map.size).toBe(0);
 			});
 
 			it("should throw when source is not an object", () => {
-				expect(() => MapRecord(Number).import("string", "m")).toThrow(TypeError);
-				expect(() => MapRecord(Number).import(null, "m")).toThrow(TypeError);
+				expect(() => RecordOf(Number).import("string", "m")).toThrow(TypeError);
+				expect(() => RecordOf(Number).import(null, "m")).toThrow(TypeError);
 			});
 		});
 
-		describe("MapTuples", () => {
+		describe("MapOf", () => {
 			it("should import [SK, SV][] as Map<MK, MV> via @Field decorator", () => {
 				const raw = {
 					tags: [],
@@ -411,22 +411,22 @@ describe("Model Tests", () => {
 
 			it("should import and export Map of models as tuples", () => {
 				const raw = [["key1", { name: "Bob", age_value: 25 }]];
-				const map = MapTuples(String, SimpleModel).import(raw, "m");
+				const map = MapOf(String, SimpleModel).import(raw, "m");
 				expect(map.get("key1")).toBeInstanceOf(SimpleModel);
 				expect((map.get("key1") as SimpleModel).age).toBe(25);
 
-				const exported = MapTuples(String, SimpleModel).export(map);
+				const exported = MapOf(String, SimpleModel).export(map);
 				expect(exported).toEqual([["key1", { name: "Bob", age_value: 25 }]]);
 			});
 
 			it("should import an empty array as an empty map", () => {
-				const map = MapTuples(String, Number).import([], "m");
+				const map = MapOf(String, Number).import([], "m");
 				expect(map.size).toBe(0);
 			});
 
 			it("should throw when source is not an array", () => {
-				expect(() => MapTuples(String, Number).import({}, "m")).toThrow(TypeError);
-				expect(() => MapTuples(String, Number).import("bad", "m")).toThrow(TypeError);
+				expect(() => MapOf(String, Number).import({}, "m")).toThrow(TypeError);
+				expect(() => MapOf(String, Number).import("bad", "m")).toThrow(TypeError);
 			});
 		});
 	});

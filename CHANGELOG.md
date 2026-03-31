@@ -1,4 +1,4 @@
-## 0.9.10 (17.03.2026)
+## 0.9.11 (17.03.2026)
 - Moved `environment` module from [node](./src/node/environment.ts) to [core](./src/core/environment.ts).
 - Added `EnvironmentProvider` class for resolving environment variables.
 - Added `RecordOf` and `MapOf` adapters for portable maps in [portable](./src/core/portable.ts) module.

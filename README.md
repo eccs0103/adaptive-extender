@@ -9,8 +9,6 @@ Extends native prototypes and provides missing standard utilities — with a foc
 
 [Change log](./CHANGELOG.md)
 
----
-
 ## Installation
 
 ```bash
@@ -25,13 +23,13 @@ npm install adaptive-extender
 | `adaptive-extender/node` | Node.js (includes core) |
 | `adaptive-extender/web`  | Browser (includes core) |
 
+- - -
+
 ```typescript
 // Import once — extensions are active everywhere
 import "adaptive-extender/core";
 import "adaptive-extender/web"; // Browser only
 ```
-
----
 
 ## Native Extensions
 
@@ -42,7 +40,7 @@ volume = volume.clamp(0, 1);
 
 // Normalize into [0, 1] or remap between ranges
 const normalized = currentValue.lerp(sourceMin, sourceMax);
-const pixelX     = angle.lerp(0, 360, 0, canvasWidth);
+const pixelX = angle.lerp(0, 360, 0, canvasWidth);
 
 // True mathematical modulo — works correctly with negative numbers
 const wrappedIndex = (-1).mod(items.length); // → items.length - 1
@@ -58,7 +56,7 @@ if (String.isWhitespace(userInput)) return;
 
 const displayName = username.insteadEmpty("Anonymous");
 
-"hello world".toTitleCase();            // → "Hello World"
+"hello world".toTitleCase(); // → "Hello World"
 "île-de-france".toLocalTitleCase("fr"); // → "Île-De-France"
 ```
 
@@ -68,7 +66,7 @@ const displayName = username.insteadEmpty("Anonymous");
 for (const index of Array.range(0, 10)) { ... }
 
 for (const [user, role] of Array.zip(users, roles)) {
-    console.log(`${user.name}: ${role}`);
+	console.log(`${user.name}: ${role}`);
 }
 
 // Collect an async iterable into an array
@@ -83,9 +81,9 @@ const wasRemoved = items.remove(targetItem);
 
 ```typescript
 const [integer, fractional] = Math.split(3.75); // → [3, 0.75]
-Math.sqpw(sideLength);                           // sideLength²
-Math.toRadians(90);                              // → Math.PI / 2
-Math.toDegrees(Math.PI);                         // → 180
+Math.sqpw(sideLength); // sideLength²
+Math.toRadians(90); // → Math.PI / 2
+Math.toDegrees(Math.PI); // → 180
 
 Math.meanArithmetic(1, 2, 3, 4); // → 2.5
 Math.meanGeometric(4, 16);
@@ -96,8 +94,8 @@ Math.meanHarmonic(1, 2, 4);
 
 ```typescript
 // Like classList.toggle
-selected.toggle(item);        // add if absent, remove if present
-selected.toggle(item, true);  // force add
+selected.toggle(item); // add if absent, remove if present
+selected.toggle(item, true); // force add
 selected.toggle(item, false); // force remove
 
 // Add only if key is not already present
@@ -112,11 +110,11 @@ const safeDate = new Date("invalid").insteadInvalid(new Date());
 ```typescript
 const request = fetch("/api/data");
 
-if (await request.isSettled)  { ... }
+if (await request.isSettled) { ... }
 if (await request.isResolved) { ... }
 if (await request.isRejected) { ... }
 
-const responseData = await request.value;  // throws if rejected
+const responseData = await request.value; // throws if rejected
 const rejectReason = await request.reason; // throws if resolved
 ```
 
@@ -135,8 +133,6 @@ throw new ImplementationError(); // sealed, cannot be subclassed
 typename(value); // → "String", "Null", "User", ...
 ```
 
----
-
 ## Classes
 
 ### Timespan
@@ -147,15 +143,15 @@ Value object for time intervals. Eliminates raw millisecond arithmetic.
 import { Timespan } from "adaptive-extender/core";
 
 const sessionDuration = Timespan.fromComponents(0, 30, 0); // 30 minutes
-const uptime          = Timespan.fromValue(process.uptime() * 1000);
-const parsed          = Timespan.parse("1.02:30:00.500");  // 1d 2h 30m 0.5s
+const uptime = Timespan.fromValue(process.uptime() * 1000);
+const parsed = Timespan.parse("1.02:30:00.500"); // 1d 2h 30m 0.5s
 
 console.log(uptime.toString()); // "0.00:12:45.123"
 
 uptime.minutes = 0; // other components recalculate automatically
 
 if (uptime.valueOf() > sessionDuration.valueOf()) {
-    console.log("Session expired");
+	console.log("Session expired");
 }
 ```
 
@@ -169,7 +165,7 @@ import { Color, ColorFormats } from "adaptive-extender/core";
 const orange = Color.fromRGB(255, 128, 0);
 const parsed = Color.parse("#ff8800");
 
-orange.hue   = 200; // RGB recalculates automatically
+orange.hue = 200; // RGB recalculates automatically
 orange.alpha = 0.8;
 
 console.log(orange.toString({ format: ColorFormats.hsl, deep: true }));
@@ -181,20 +177,20 @@ console.log(orange.toString({ format: ColorFormats.hsl, deep: true }));
 ```typescript
 import { Random } from "adaptive-extender/core";
 
-const rng = Random.global;
+const random = Random.global;
 
-rng.boolean(0.9);        // true with 90% probability
-rng.number(0, 1);        // float [0, 1)
-rng.integer(1, 6);       // int [1, 6]
-rng.item(options);       // random element from array
-rng.subarray(items, 3);  // 3 random elements
-rng.shuffle(array);      // shuffle in place
+random.boolean(0.9); // true with 90% probability
+random.number(0, 1); // float [0, 1)
+random.integer(1, 6); // int [1, 6]
+random.item(options); // random element from array
+random.subarray(items, 3); // 3 random elements
+random.shuffle(array); // shuffle in place
 
 // Weighted selection
-const loot = rng.case(new Map([
-    ["common",    70],
-    ["rare",      25],
-    ["legendary",  5],
+const loot = random.case(new Map([
+	["common", 70],
+	["rare", 25],
+	["legendary", 5],
 ]));
 ```
 
@@ -205,17 +201,15 @@ Mathematical vectors with a LINQ-style iteration API.
 ```typescript
 import { Vector, Vector2D, Vector3D } from "adaptive-extender/core";
 
-const position  = new Vector2D(3, 4);
+const position = new Vector2D(3, 4);
 const direction = Vector3D.fromScalar(1); // (1, 1, 1)
 
 // LINQ-like methods over components
-const normalized = Vector3D.fromVector(
-    direction.map(component => component / Math.sqrt(3))
-);
+const normalized = Vector3D.fromVector(direction.map(component => component / Math.sqrt(3)));
 
 Vector.isFinite(position);
 const safePosition = position.insteadNaN(Vector2D.newZero);
-const point        = Vector2D.parse("(10, 20)"); // → Vector2D { x: 10, y: 20 }
+const point = Vector2D.parse("(10, 20)"); // → Vector2D { x: 10, y: 20 }
 ```
 
 ### Controller
@@ -226,14 +220,14 @@ Abstract base class for async tasks with centralized error handling.
 import { Controller } from "adaptive-extender/core";
 
 class InitTask extends Controller {
-    async run(): Promise<void> {
-        const response = await fetch("/api/init");
-        // ...
-    }
+	async run(): Promise<void> {
+		const response = await fetch("/api/init");
+		// ...
+	}
 
-    async catch(error: Error): Promise<void> {
-        console.error("Init failed:", error.message);
-    }
+	async catch(error: Error): Promise<void> {
+		console.error("Init failed:", error.message);
+	}
 }
 
 // Creates an instance and runs it — errors are routed to catch()
@@ -248,17 +242,20 @@ Deserializes environment variables into a strictly typed model. JSON values are 
 import { EnvironmentProvider, Model, Field, Optional } from "adaptive-extender/core";
 
 class AppConfig extends Model {
-    @Field(String)           DB_HOST: string  = "localhost";
-    @Field(Number)           DB_PORT: number  = 5432;
-    @Field(Optional(String)) LOG_LEVEL?: string;
+	@Field(String)
+	DB_HOST: string = "localhost";
+	
+	@Field(Number)
+	DB_PORT: number = 5432;
+	
+	@Field(Optional(String))
+	LOG_LEVEL?: string;
 }
 
 const config = EnvironmentProvider.resolve(process.env, AppConfig);
 // config.DB_PORT is a number, not a string
 // Throws TypeError if a required variable is missing or has the wrong type
 ```
-
----
 
 ## Portable Data System
 
@@ -270,15 +267,25 @@ Binds classes to their schema via decorators. Importing from JSON validates type
 import { Model, Field, ArrayOf, Optional, Nullable } from "adaptive-extender/core";
 
 class Tag extends Model {
-    @Field(String) name: string = "";
+	@Field(String)
+	name: string = "";
 }
 
 class Article extends Model {
-    @Field(String)           title: string      = "";
-    @Field(Number)           views: number      = 0;
-    @Field(ArrayOf(Tag))     tags: Tag[]        = [];
-    @Field(Optional(String)) subtitle?: string;
-    @Field(Nullable(String)) draft: string | null = null;
+	@Field(String)
+	title: string = "";
+	
+	@Field(Number)
+	views: number = 0;
+	
+	@Field(ArrayOf(Tag))
+	tags: Tag[] = [];
+	
+	@Field(Optional(String))
+	subtitle?: string;
+	
+	@Field(Nullable(String))
+	draft: string | null = null;
 }
 
 const article = Article.import(json, "api.article");
@@ -293,32 +300,38 @@ const raw = Article.export(article); // → plain object, ready for JSON.stringi
 ```typescript
 import { Model, Field, Descendant, DiscriminatorKey } from "adaptive-extender/core";
 
-class Dog extends Model { @Field(String)  breed: string   = ""; }
-class Cat extends Model { @Field(Boolean) indoor: boolean = true; }
-
 @DiscriminatorKey("kind")
 @Descendant(Dog, "dog")
 @Descendant(Cat, "cat")
-abstract class Animal extends Model {}
+abstract class Animal extends Model {
+}
+
+class Dog extends Animal {
+	@Field(String)
+	breed: string = "";
+}
+
+class Cat extends Animal {
+	@Field(Boolean)
+	indoor: boolean = true;
+}
 
 // { kind: "dog", breed: "Husky" } → Dog instance
-// { kind: "cat", indoor: true }   → Cat instance
+// { kind: "cat", indoor: true } → Cat instance
 const animal = Animal.import(json, "api.animal");
 ```
 
 ### Adapters
 
-| Adapter        | Type                                   |
-| :------------- | :------------------------------------- |
-| `ArrayOf(T)`   | `T[]`                                  |
-| `SetOf(T)`     | `Set<T>` ↔ `T[]`                       |
-| `RecordOf(T)`  | `Map<string, T>` ↔ `Record<string, T>` |
-| `MapOf(K, V)`  | `Map<K, V>` ↔ `[K, V][]`               |
-| `Optional(T)`  | `T \| undefined`                       |
-| `Nullable(T)`  | `T \| null`                            |
-| `Deferred(fn)` | Circular references                    |
-
----
+| Adapter            | Type                                   |
+| :----------------- | :------------------------------------- |
+| `ArrayOf(T)`       | `T[]`                                  |
+| `SetOf(T)`         | `Set<T>` ↔ `T[]`                       |
+| `RecordOf(T)`      | `Map<string, T>` ↔ `Record<string, T>` |
+| `MapOf(K, V)`      | `Map<K, V>` ↔ `[K, V][]`               |
+| `Optional(T)`      | `T \| undefined`                       |
+| `Nullable(T)`      | `T \| null`                            |
+| `Deferred(_ => T)` | Circular references                    |
 
 ## Web
 
@@ -329,9 +342,9 @@ Type-safe wrappers over `querySelector` — throw instead of returning `null`.
 ```typescript
 import "adaptive-extender/web";
 
-const loginForm      = document.getElement(HTMLFormElement, "#login-form");
+const loginForm = document.getElement(HTMLFormElement, "#login-form");
 const requiredInputs = loginForm.getElements(HTMLInputElement, "input[required]");
-const container      = loginForm.getClosest(HTMLDivElement, ".wrapper");
+const container = loginForm.getClosest(HTMLDivElement, ".wrapper");
 
 // Async variants — useful with Shadow DOM
 const canvas = await document.getElementAsync(HTMLCanvasElement, "#scene");
@@ -349,8 +362,8 @@ const engine = new FastEngine({ launch: true });
 engine.limit = 60;
 
 engine.addEventListener("trigger", () => {
-    const deltaTime = engine.delta; // seconds since last frame
-    // update scene...
+	const deltaTime = engine.delta; // seconds since last frame
+	// update scene...
 });
 
 // Static — fixed fps via setTimeout
@@ -366,8 +379,11 @@ Type-safe localStorage with buffered access and auto-save.
 import { ArchiveRepository, Model, Field } from "adaptive-extender/web";
 
 class Settings extends Model {
-    @Field(Boolean) darkMode: boolean = false;
-    @Field(Number)  volume: number    = 1;
+	@Field(Boolean)
+	darkMode: boolean = false;
+	
+	@Field(Number)
+	volume: number = 1;
 }
 
 const repository = new ArchiveRepository("settings", Settings, new Settings());
@@ -375,9 +391,9 @@ const repository = new ArchiveRepository("settings", Settings, new Settings());
 const settings = repository.content;
 settings.volume = 0.5;
 
-repository.save();       // persist immediately
-repository.save(3000);   // debounced — persist after 3 seconds
-repository.reset();      // revert to initial state
+repository.save(); // persist immediately
+repository.save(3000); // debounced — persist after 3 seconds
+repository.reset(); // revert to initial state
 ```
 
 ### Promise Utilities
@@ -387,22 +403,18 @@ await Promise.asTimeout(1000);
 
 // AbortController is created and aborted automatically on completion
 const result = await Promise.withSignal((signal, resolve, reject) => {
-    fetch("/api/data", { signal }).then(resolve).catch(reject);
+	fetch("/api/data", { signal }).then(resolve).catch(reject);
 });
 ```
-
----
 
 ## Reflect Utilities
 
 ```typescript
 // Apply a function only if the value is not null / undefined
-const upper   = Reflect.mapNull(maybeNull, text => text.toUpperCase());
+const upper = Reflect.mapNull(maybeNull, text => text.toUpperCase());
 const trimmed = Reflect.mapUndefined(maybeUndefined, text => text.trim());
-const parsed  = Reflect.mapNullable(maybeNullable, text => parseInt(text));
+const parsed = Reflect.mapNullable(maybeNullable, text => Number.parseInt(text));
 ```
-
----
 
 ## License
 

@@ -1,3 +1,8 @@
+## 0.9.12 (03.04.2026)
+- `Controller` now accepts typed arguments via the generic parameter `A`; arguments are forwarded from `launch()` to `run()`.
+- Added `finally()` lifecycle hook to `Controller`, called unconditionally after `run()` and `catch()`.
+- Added `Enum` adapter for portable enum fields, supporting both TypeScript `enum` declarations and plain const-object enums.
+
 ## 0.9.11 (17.03.2026)
 - Moved `environment` module from [node](./src/node/environment.ts) to [core](./src/core/environment.ts).
 - Added `EnvironmentProvider` class for resolving environment variables.

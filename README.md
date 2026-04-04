@@ -219,19 +219,23 @@ Abstract base class for async tasks with centralized error handling.
 ```typescript
 import { Controller } from "adaptive-extender/core";
 
-class InitTask extends Controller {
-	async run(): Promise<void> {
-		const response = await fetch("/api/init");
+class InitTask extends Controller<[port: number]> {
+	async run(port: number): Promise<void> {
+		const response = await fetch(`/api/init?port=${port}`);
 		// ...
 	}
 
 	async catch(error: Error): Promise<void> {
 		console.error("Init failed:", error.message);
 	}
+
+	async finally(): Promise<void> {
+		console.log("Done.");
+	}
 }
 
-// Creates an instance and runs it — errors are routed to catch()
-await InitTask.launch();
+// Creates an instance and runs it — errors are routed to catch(), finally() always runs
+await InitTask.launch(8080);
 ```
 
 ### EnvironmentProvider
@@ -332,6 +336,7 @@ const animal = Animal.import(json, "api.animal");
 | `Optional(T)`      | `T \| undefined`                       |
 | `Nullable(T)`      | `T \| null`                            |
 | `Deferred(_ => T)` | Circular references                    |
+| `Enum(E)`          | TypeScript `enum` or const-object enum |
 
 ## Web
 

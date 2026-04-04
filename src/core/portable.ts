@@ -437,12 +437,12 @@ export function EnumFrom<T extends Readonly<Record<string, unknown>>>(reference:
 		},
 
 		import(source: unknown, name: string): T[keyof T] {
-			if (values.has(source as T[keyof T])) return source as T[keyof T];
-			throw new TypeError(`Unable to import enum from ${name} due to invalid value`);
+			if (!values.has(source as T[keyof T])) throw new TypeError(`Unable to import enum from ${name} due to invalid value`);
+			return source as T[keyof T];
 		},
 
 		export(source: T[keyof T]): T[keyof T] {
-			if (values.has(source) === false) throw new TypeError(`Unable to export enum due to invalid value`);
+			if (!values.has(source)) throw new TypeError(`Unable to export enum due to invalid value`);
 			return source;
 		},
 	} as PortableConstructor<T[keyof T], T[keyof T]>;

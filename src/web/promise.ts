@@ -15,7 +15,7 @@ declare global {
 		 * Creates a promise that can be controlled with an abort signal.
 		 * @param callback The callback to execute with an abort signal, resolve, and reject functions.
 		 */
-		withSignal<T>(callback: (signal: AbortSignal, resolve: (value: Promisable<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
+		withSignal<T = void>(callback: (signal: AbortSignal, resolve: (value: Promisable<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
 	}
 }
 
@@ -30,7 +30,7 @@ Promise.asTimeout = async function (timeout: number): Promise<void> {
 	}
 };
 
-Promise.withSignal = async function <T>(callback: (signal: AbortSignal, resolve: (value: Promisable<T>) => void, reject: (reason?: any) => void) => void): Promise<T> {
+Promise.withSignal = async function <T = void>(callback: (signal: AbortSignal, resolve: (value: Promisable<T>) => void, reject: (reason?: any) => void) => void): Promise<T> {
 	const controller = new AbortController();
 	try {
 		return await new Promise((resolve, reject) => callback(controller.signal, resolve, reject));

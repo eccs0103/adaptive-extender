@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, DiscriminatorKey, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapOf, RecordOf } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, DiscriminatorKey, EnumFrom, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapOf, RecordOf } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -110,6 +110,28 @@ class SettingsModel extends Model {
 
 	@Field(MapOf(Number, String))
 	scores!: Map<number, string>;
+}
+
+// EnumFrom adapter models
+enum TaskStatus { Pending, Active, Closed }
+enum Direction { Up = "UP", Down = "DOWN", Left = "LEFT" }
+const Role = { admin: "admin", user: "user", guest: "guest" } as const;
+const Priority = Object.freeze({ low: 1, medium: 2, high: 3 });
+
+class TaskModel extends Model {
+	@Field(EnumFrom(TaskStatus))
+	status!: TaskStatus;
+
+	@Field(EnumFrom(Direction))
+	direction!: Direction;
+}
+
+class AccessModel extends Model {
+	@Field(EnumFrom(Role))
+	role!: "admin" | "user" | "guest";
+
+	@Field(Optional(EnumFrom(Priority)))
+	priority?: 1 | 2 | 3;
 }
 
 describe("Model Tests", () => {
@@ -427,6 +449,96 @@ describe("Model Tests", () => {
 			it("should throw when source is not an array", () => {
 				expect(() => MapOf(String, Number).import({}, "m")).toThrow(TypeError);
 				expect(() => MapOf(String, Number).import("bad", "m")).toThrow(TypeError);
+			});
+		});
+	});
+
+	describe("EnumFrom", () => {
+		describe("TS numeric enum (TaskStatus)", () => {
+			it("should import valid numeric members via @Field", () => {
+				const model = TaskModel.import({ status: TaskStatus.Active, direction: Direction.Up }, "task");
+				expect(model.status).toBe(TaskStatus.Active);
+			});
+
+			it("should reject reverse-mapping string keys as values", () => {
+				expect(() => TaskModel.import({ status: "Active", direction: Direction.Up }, "task")).toThrow(TypeError);
+			});
+
+			it("should reject out-of-range numeric values", () => {
+				expect(() => TaskModel.import({ status: 99, direction: Direction.Up }, "task")).toThrow(TypeError);
+			});
+
+			it("should export the numeric value unchanged", () => {
+				const model = new TaskModel();
+				model.status = TaskStatus.Closed;
+				model.direction = Direction.Down;
+				const raw: any = TaskModel.export(model);
+				expect(raw.status).toBe(TaskStatus.Closed);
+			});
+		});
+
+		describe("TS string enum (Direction)", () => {
+			it("should import valid string members via @Field", () => {
+				const model = TaskModel.import({ status: TaskStatus.Pending, direction: "LEFT" }, "task");
+				expect(model.direction).toBe(Direction.Left);
+			});
+
+			it("should reject unknown string values", () => {
+				expect(() => TaskModel.import({ status: TaskStatus.Pending, direction: "RIGHT" }, "task")).toThrow(TypeError);
+			});
+
+			it("should reject enum key names as values", () => {
+				expect(() => TaskModel.import({ status: TaskStatus.Pending, direction: "Up" }, "task")).toThrow(TypeError);
+			});
+
+			it("should export the string value unchanged", () => {
+				const model = new TaskModel();
+				model.status = TaskStatus.Pending;
+				model.direction = Direction.Up;
+				const raw: any = TaskModel.export(model);
+				expect(raw.direction).toBe("UP");
+			});
+		});
+
+		describe("JS const-object with string values (Role)", () => {
+			it("should import valid role string via @Field", () => {
+				const model = AccessModel.import({ role: "admin", priority: undefined }, "access");
+				expect(model.role).toBe("admin");
+			});
+
+			it("should reject key names as values", () => {
+				expect(() => AccessModel.import({ role: "moderator" }, "access")).toThrow(TypeError);
+			});
+
+			it("should export the string value unchanged", () => {
+				const model = new AccessModel();
+				model.role = "guest";
+				const raw: any = AccessModel.export(model);
+				expect(raw.role).toBe("guest");
+			});
+		});
+
+		describe("JS const-object with numeric values (Priority) wrapped in Optional", () => {
+			it("should import valid numeric priority", () => {
+				const model = AccessModel.import({ role: "user", priority: 2 }, "access");
+				expect(model.priority).toBe(2);
+			});
+
+			it("should pass through undefined when priority is absent", () => {
+				const model = AccessModel.import({ role: "user" }, "access");
+				expect(model.priority).toBeUndefined();
+			});
+
+			it("should reject values not in the const object", () => {
+				expect(() => AccessModel.import({ role: "user", priority: 99 }, "access")).toThrow(TypeError);
+			});
+
+			it("should export the numeric value unchanged", () => {
+				const model = new AccessModel();
+				model.role = "user";
+				model.priority = 3;
+				const raw: any = AccessModel.export(model);
+				expect(raw.priority).toBe(3);
 			});
 		});
 	});

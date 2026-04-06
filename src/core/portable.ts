@@ -442,7 +442,6 @@ export function EnumAs<T extends Readonly<Record<string, unknown>>>(reference: T
 		},
 
 		export(source: T[keyof T]): T[keyof T] {
-			if (!values.has(source)) throw new TypeError(`Unable to export enum due to invalid value`);
 			return source;
 		},
 	} as PortableConstructor<T[keyof T], T[keyof T]>;

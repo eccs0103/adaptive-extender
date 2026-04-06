@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, DiscriminatorKey, EnumFrom, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapOf, RecordOf } from "adaptive-extender/core";
+import { ArrayOf, Deferred, Descendant, DiscriminatorKey, EnumAs, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapOf, RecordOf } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -112,25 +112,25 @@ class SettingsModel extends Model {
 	scores!: Map<number, string>;
 }
 
-// EnumFrom adapter models
+// Enum adapter models
 enum TaskStatus { Pending, Active, Closed }
 enum Direction { Up = "UP", Down = "DOWN", Left = "LEFT" }
 const Role = { admin: "admin", user: "user", guest: "guest" } as const;
 const Priority = Object.freeze({ low: 1, medium: 2, high: 3 });
 
 class TaskModel extends Model {
-	@Field(EnumFrom(TaskStatus))
+	@Field(EnumAs(TaskStatus))
 	status!: TaskStatus;
 
-	@Field(EnumFrom(Direction))
+	@Field(EnumAs(Direction))
 	direction!: Direction;
 }
 
 class AccessModel extends Model {
-	@Field(EnumFrom(Role))
+	@Field(EnumAs(Role))
 	role!: "admin" | "user" | "guest";
 
-	@Field(Optional(EnumFrom(Priority)))
+	@Field(Optional(EnumAs(Priority)))
 	priority?: 1 | 2 | 3;
 }
 
@@ -453,7 +453,7 @@ describe("Model Tests", () => {
 		});
 	});
 
-	describe("EnumFrom", () => {
+	describe("EnumAs", () => {
 		describe("TS numeric enum (TaskStatus)", () => {
 			it("should import valid numeric members via @Field", () => {
 				const model = TaskModel.import({ status: TaskStatus.Active, direction: Direction.Up }, "task");

@@ -420,7 +420,7 @@ export function MapOf<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, type
  * Creates a portable wrapper for enum types, strictly operating only on enum values.
  * @param reference The enum object reference.
  */
-export function EnumFrom<T extends Readonly<Record<string, unknown>>>(reference: T): PortableConstructor<T[keyof T], T[keyof T]> {
+export function EnumAs<T extends Readonly<Record<string, unknown>>>(reference: T): PortableConstructor<T[keyof T], T[keyof T]> {
 	const values: Set<T[keyof T]> = new Set();
 	for (const [key, value] of Object.entries(reference)) {
 		const index = Number(key);
@@ -428,7 +428,7 @@ export function EnumFrom<T extends Readonly<Record<string, unknown>>>(reference:
 		values.add(value as T[keyof T]);
 	}
 	return {
-		[Symbol.hasInstance](instance: unknown): boolean {
+		[Symbol.hasInstance](instance: any): boolean {
 			return values.has(instance as T[keyof T]);
 		},
 
@@ -436,7 +436,7 @@ export function EnumFrom<T extends Readonly<Record<string, unknown>>>(reference:
 			return "Enum";
 		},
 
-		import(source: unknown, name: string): T[keyof T] {
+		import(source: any, name: string): T[keyof T] {
 			if (!values.has(source as T[keyof T])) throw new TypeError(`Unable to import enum from ${name} due to invalid value`);
 			return source as T[keyof T];
 		},

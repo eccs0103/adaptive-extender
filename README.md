@@ -336,7 +336,7 @@ const animal = Animal.import(json, "api.animal");
 | `Optional(T)`      | `T \| undefined`                       |
 | `Nullable(T)`      | `T \| null`                            |
 | `Deferred(_ => T)` | Circular references                    |
-| `EnumFrom(E)`      | TypeScript `enum` or const-object enum |
+| `EnumAs(E)`        | TypeScript `enum` or const-object enum |
 
 ## Web
 

@@ -181,15 +181,15 @@ export abstract class Model {
  * Decorator to register a class field as part of the portable schema.
  * @param type The portable constructor to use for import/export.
  */
-export function Field<M, S>(type: PortableConstructor<M, S>): (target: void, context: ClassFieldDecoratorContext<Model, M>) => void;
+export function Field<I, S>(type: PortableConstructor<I, S>): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void;
 /**
  * Decorator to register a class field as part of the portable schema.
  * @param type The portable constructor to use for import/export.
  * @param name Alias for the field in the external source.
  */
-export function Field<M, S>(type: PortableConstructor<M, S>, name: string): (target: void, context: ClassFieldDecoratorContext<Model, M>) => void;
-export function Field<M, S>(type: PortableConstructor<M, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<Model, M>) => void {
-	return function (_: void, context: ClassFieldDecoratorContext<Model, M>): void {
+export function Field<I, S>(type: PortableConstructor<I, S>, name: string): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void;
+export function Field<I, S>(type: PortableConstructor<I, S>, name?: string): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void {
+	return function (_: void, context: ClassFieldDecoratorContext<Model, I>): void {
 		if (context.static) throw new TypeError("Portable fields cannot be static");
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
@@ -237,7 +237,7 @@ export function DiscriminatorKey<M extends typeof Model>(key: string): (target: 
  * Creates a wrapper for circular or deferred type references.
  * @param resolver Function that returns the actual type constructor.
  */
-export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>): PortableConstructor<M, S> {
+export function Deferred<I, S>(resolver: (_: void) => PortableConstructor<I, S>): PortableConstructor<I, S> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return resolver()[Symbol.hasInstance](instance);
@@ -247,21 +247,21 @@ export function Deferred<M, S>(resolver: (_: void) => PortableConstructor<M, S>)
 			return resolver().name;
 		},
 
-		import(source: any, name: string): M {
+		import(source: any, name: string): I {
 			return resolver().import(source, name);
 		},
 
-		export(source: M): S {
+		export(source: I): S {
 			return resolver().export(source);
 		},
-	} as PortableConstructor<M, S>;
+	} as PortableConstructor<I, S>;
 }
 
 /**
  * Creates a portable wrapper for optional types.
  * @param type The inner portable type.
  */
-export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | undefined, S | undefined> {
+export function Optional<I, S>(type: PortableConstructor<I, S>): PortableConstructor<I | undefined, S | undefined> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return instance === undefined || type[Symbol.hasInstance](instance);
@@ -271,21 +271,21 @@ export function Optional<M, S>(type: PortableConstructor<M, S>): PortableConstru
 			return `${type.name} | undefined`;
 		},
 
-		import(source: any, name: string): M | undefined {
+		import(source: any, name: string): I | undefined {
 			return Reflect.mapUndefined(source, source => type.import(source, name));
 		},
 
-		export(source: M | undefined): S | undefined {
+		export(source: I | undefined): S | undefined {
 			return Reflect.mapUndefined(source, source => type.export(source));
 		},
-	} as PortableConstructor<M | undefined, S | undefined>;
+	} as PortableConstructor<I | undefined, S | undefined>;
 }
 
 /**
  * Creates a portable wrapper for nullable types.
  * @param type The inner portable type.
  */
-export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M | null, S | null> {
+export function Nullable<I, S>(type: PortableConstructor<I, S>): PortableConstructor<I | null, S | null> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return instance === null || type[Symbol.hasInstance](instance);
@@ -295,21 +295,21 @@ export function Nullable<M, S>(type: PortableConstructor<M, S>): PortableConstru
 			return `${type.name} | null`;
 		},
 
-		import(source: any, name: string): M | null {
+		import(source: any, name: string): I | null {
 			return Reflect.mapNull(source, source => type.import(source, name));
 		},
 
-		export(source: M | null): S | null {
+		export(source: I | null): S | null {
 			return Reflect.mapNull(source, source => type.export(source));
 		},
-	} as PortableConstructor<M | null, S | null>;
+	} as PortableConstructor<I | null, S | null>;
 }
 
 /**
  * Creates a portable wrapper for array types.
  * @param type The portable type of the array elements.
  */
-export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<M[], S[]> {
+export function ArrayOf<I, S>(type: PortableConstructor<I, S>): PortableConstructor<I[], S[]> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Array[Symbol.hasInstance](instance);
@@ -319,21 +319,21 @@ export function ArrayOf<M, S>(type: PortableConstructor<M, S>): PortableConstruc
 			return `${type.name}[]`;
 		},
 
-		import(source: any, name: string): M[] {
+		import(source: any, name: string): I[] {
 			return Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`));
 		},
 
-		export(source: M[]): S[] {
+		export(source: I[]): S[] {
 			return source.map(item => type.export(item));
 		},
-	} as PortableConstructor<M[], S[]>;
+	} as PortableConstructor<I[], S[]>;
 }
 
 /**
  * Creates a portable wrapper for set types.
  * @param type The portable type of the set elements.
  */
-export function SetOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<Set<M>, S[]> {
+export function SetOf<I, S>(type: PortableConstructor<I, S>): PortableConstructor<Set<I>, S[]> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Set[Symbol.hasInstance](instance);
@@ -343,21 +343,21 @@ export function SetOf<M, S>(type: PortableConstructor<M, S>): PortableConstructo
 			return `Set<${type.name}>`;
 		},
 
-		import(source: any, name: string): Set<M> {
+		import(source: any, name: string): Set<I> {
 			return new Set(Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`)));
 		},
 
-		export(source: Set<M>): S[] {
+		export(source: Set<I>): S[] {
 			return Array.from(source, item => type.export(item));
 		},
-	} as PortableConstructor<Set<M>, S[]>;
+	} as PortableConstructor<Set<I>, S[]>;
 }
 
 /**
  * Creates a portable wrapper for maps with string keys, converting them to and from plain objects.
  * @param value The portable type of the map values.
  */
-export function RecordOf<M, S>(type: PortableConstructor<M, S>): PortableConstructor<Map<string, M>, Record<string, S>> {
+export function RecordOf<I, S>(type: PortableConstructor<I, S>): PortableConstructor<Map<string, I>, Record<string, S>> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Map[Symbol.hasInstance](instance);
@@ -367,23 +367,23 @@ export function RecordOf<M, S>(type: PortableConstructor<M, S>): PortableConstru
 			return `Map<string, ${type.name}>`;
 		},
 
-		import(source: any, name: string): Map<string, M> {
+		import(source: any, name: string): Map<string, I> {
 			const record = Object.import(source, name) as Record<string, unknown>;
-			const map = new Map<string, M>();
+			const map = new Map<string, I>();
 			for (const key of Object.keys(record)) {
 				map.set(key, type.import(Reflect.get(record, key), `${name}[${JSON.stringify(key)}]`));
 			}
 			return map;
 		},
 
-		export(source: Map<string, M>): Record<string, S> {
+		export(source: Map<string, I>): Record<string, S> {
 			const record: Record<string, S> = {};
 			for (const [key, value] of source) {
 				Reflect.set(record, key, type.export(value));
 			}
 			return record;
 		},
-	} as PortableConstructor<Map<string, M>, Record<string, S>>;
+	} as PortableConstructor<Map<string, I>, Record<string, S>>;
 }
 
 /**
@@ -391,7 +391,7 @@ export function RecordOf<M, S>(type: PortableConstructor<M, S>): PortableConstru
  * @param key The portable type of the map keys.
  * @param value The portable type of the map values.
  */
-export function MapOf<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, typeValue: PortableConstructor<MV, SV>): PortableConstructor<Map<MK, MV>, [SK, SV][]> {
+export function MapOf<IK, SK, IV, SV>(typeKey: PortableConstructor<IK, SK>, typeValue: PortableConstructor<IV, SV>): PortableConstructor<Map<IK, IV>, [SK, SV][]> {
 	return {
 		[Symbol.hasInstance](instance: any): boolean {
 			return Map[Symbol.hasInstance](instance);
@@ -401,19 +401,19 @@ export function MapOf<MK, SK, MV, SV>(typeKey: PortableConstructor<MK, SK>, type
 			return `Map<${typeKey.name}, ${typeValue.name}>`;
 		},
 
-		import(source: any, name: string): Map<MK, MV> {
-			return new Map<MK, MV>(Array.import(source, name).map((item, index) => {
+		import(source: any, name: string): Map<IK, IV> {
+			return new Map<IK, IV>(Array.import(source, name).map((item, index) => {
 				const tuple = Array.import(item, `${name}[${index}]`);
 				const key = typeKey.import(tuple[0], `${name}[${index}][0]`);
 				const value = typeValue.import(tuple[1], `${name}[${index}][1]`);
-				return [key, value] as [MK, MV];
+				return [key, value] as [IK, IV];
 			}));
 		},
 
-		export(source: Map<MK, MV>): [SK, SV][] {
+		export(source: Map<IK, IV>): [SK, SV][] {
 			return Array.from(source, ([key, value]) => [typeKey.export(key), typeValue.export(value)] as [SK, SV]);
 		},
-	} as PortableConstructor<Map<MK, MV>, [SK, SV][]>;
+	} as PortableConstructor<Map<IK, IV>, [SK, SV][]>;
 }
 
 /**

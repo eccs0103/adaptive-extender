@@ -408,7 +408,8 @@ await Promise.asTimeout(1000);
 
 // AbortController is created and aborted automatically on completion
 const result = await Promise.withSignal((signal, resolve, reject) => {
-	fetch("/api/data", { signal }).then(resolve).catch(reject);
+	buttonAccept.addEventListener("click", event => resolve(event.result), { signal });
+	buttonDecline.addEventListener("click", event => reject(event.error), { signal });
 });
 ```
 

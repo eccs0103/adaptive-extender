@@ -1,7 +1,7 @@
 "use strict";
 
 import "../core/index.js";
-import { type PortableConstructor } from "../core/index.js";
+import { type PortableConstructor, type Promisable } from "../core/index.js";
 
 //#region Archive
 /**
@@ -142,13 +142,39 @@ export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
 }
 //#endregion
 //#region Archive repository
+class SaveTransaction<T> {
+	#idTimeout: number;
+	#resolve: (value: Promisable<T>) => void;
+	#reject: (reason?: any) => void;
+
+	constructor(handler: TimerHandler, delay: number | undefined, resolve: (value: Promisable<T>) => void, reject: (reason: unknown) => void) {
+		this.#idTimeout = setTimeout(handler, delay);
+		this.#resolve = resolve;
+		this.#reject = reject;
+	}
+
+	cancel(reason?: any): void {
+		clearTimeout(this.#idTimeout);
+		this.#reject(new DOMException(reason, "AbortError"));
+	}
+
+	settle(callback: () => Promisable<T>): void {
+		try {
+			const result = callback();
+			this.#resolve(result);
+		} catch (reason) {
+			this.#reject(Error.from(reason));
+		}
+	}
+}
+
 /**
  * A high-level repository providing buffered access to persistent data with auto-save management.
  */
 export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 	#manager: ArchiveManager<M>;
 	#content: InstanceType<M>;
-	#idSaveTimeout: number = NaN;
+	#transaction: SaveTransaction<void> | null = null;
 
 	/**
 	 * @param key Unique storage identifier.
@@ -163,7 +189,7 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 
 	#initializeUnloadHandler(): void {
 		window.addEventListener("beforeunload", (event) => {
-			if (Number.isNaN(this.#idSaveTimeout)) return;
+			if (this.#transaction === null) return;
 			event.returnValue = "Pending changes are being saved.";
 			event.preventDefault();
 		});
@@ -185,36 +211,41 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 	}
 
 	#handler(): void {
-		try {
+		const transaction = this.#transaction;
+		this.#transaction = null;
+		transaction?.settle(() => {
 			this.#manager.content = this.#content;
-		} finally {
-			this.#idSaveTimeout = NaN;
-		}
+		});
 	}
 
 	/**
 	 * Schedules an immediate save operation for the current content.
 	 * Any pending delayed saves are overridden.
+	 * @returns A promise that resolves when the save completes, or rejects if it fails.
 	 */
-	save(): void;
+	async save(): Promise<void>;
 	/**
 	 * Schedules a save operation to be executed after the specified delay.
 	 * Useful for debouncing frequent updates.
 	 * @param delay The delay in milliseconds before saving.
+	 * @returns A promise that resolves when the save completes, or rejects if it fails.
 	 */
-	save(delay: number): void;
-	save(delay?: number): void {
-		if (!Number.isNaN(this.#idSaveTimeout)) clearTimeout(this.#idSaveTimeout);
-		this.#idSaveTimeout = setTimeout(this.#handler.bind(this), delay);
+	async save(delay: number): Promise<void>;
+	async save(delay?: number): Promise<void> {
+		const transaction = this.#transaction;
+		transaction?.cancel("Save superseded by a subsequent call.");
+		return await new Promise((resolve, reject) => {
+			this.#transaction = new SaveTransaction(this.#handler.bind(this), delay, resolve, reject);
+		});
 	}
 
 	/**
 	 * Cancels any scheduled save operations.
 	 */
 	abort(): void {
-		if (Number.isNaN(this.#idSaveTimeout)) return;
-		clearTimeout(this.#idSaveTimeout);
-		this.#idSaveTimeout = NaN;
+		const transaction = this.#transaction;
+		transaction?.cancel("Save operation explicitly aborted.");
+		this.#transaction = null;
 	}
 
 	/**
@@ -222,8 +253,9 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 	 */
 	reset(): void {
 		this.abort();
-		this.#manager.reset();
-		this.#content = this.#manager.content;
+		const manager = this.#manager;
+		manager.reset();
+		this.#content = manager.content;
 	}
 }
 //#endregion

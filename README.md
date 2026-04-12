@@ -212,6 +212,20 @@ const safePosition = position.insteadNaN(Vector2D.newZero);
 const point = Vector2D.parse("(10, 20)"); // → Vector2D { x: 10, y: 20 }
 ```
 
+### Version
+
+Immutable semantic version with `major.minor.patch` format.
+
+```typescript
+import { Version } from "adaptive-extender/core";
+
+const v = new Version(1, 2, 3);
+console.log(v.toString()); // → "1.2.3"
+
+const parsed = Version.parse("2.0.0");
+const safe = Version.tryParse(userInput); // → Version | null
+```
+
 ### Controller
 
 Abstract base class for async tasks with centralized error handling.
@@ -396,9 +410,11 @@ const repository = new ArchiveRepository("settings", Settings, new Settings());
 const settings = repository.content;
 settings.volume = 0.5;
 
-repository.save(); // persist immediately
-repository.save(3000); // debounced — persist after 3 seconds
-repository.reset(); // revert to initial state
+// save() is async — resolves when the write completes, rejects on failure
+await repository.save(); // save immediately
+await repository.save(3000); // debounced — save after 3 seconds
+// A pending save is cancelled (AbortError) when superseded by a new call
+repository.reset(); // abort pending save and revert to initial state
 ```
 
 ### Promise Utilities

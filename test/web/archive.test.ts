@@ -136,12 +136,13 @@ describe("ArchiveRepository", () => {
 		expect(stored.value).toBe(500);
 	});
 
-	it("should abort pending save", () => {
+	it("should abort pending save", async () => {
 		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
 		repo.content.value = 500;
-		repo.save(1000);
-		
+		const savePromise = repo.save(1000);
+
 		repo.abort();
+		await expect(savePromise).rejects.toThrow("Save operation explicitly aborted.");
 		vi.advanceTimersByTime(1000);
 
 		// Should still be initial value in storage

@@ -1,3 +1,6 @@
+## 0.10.0 (20.05.2026)
+- Added `adaptive-extender/worker` package for Web Worker environments. Includes [promise](./src/worker/promise.ts) and [engine](./src/worker/engine.ts) modules.
+
 ## 0.9.13 (06.04.2026)
 - Added `Version` class for semantic versioning with `parse()`, `tryParse()` support.
 - Added `BigInt` portable support via `BigInt.import()` and `BigInt.export()`.

@@ -1,4 +1,4 @@
-import "adaptive-extender/web";
+import "adaptive-extender/worker";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 describe("Promise extensions", () => {

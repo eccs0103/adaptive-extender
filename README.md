@@ -17,18 +17,20 @@ npm install adaptive-extender
 
 ## Packages
 
-| Package                  | Environment             |
-| :----------------------- | :---------------------- |
-| `adaptive-extender/core` | Browser, Node.js, Deno  |
-| `adaptive-extender/node` | Node.js (includes core) |
-| `adaptive-extender/web`  | Browser (includes core) |
+| Package                    | Environment                |
+| :------------------------- | :------------------------- |
+| `adaptive-extender/core`   | Browser, Node.js, Deno     |
+| `adaptive-extender/node`   | Node.js (includes core)    |
+| `adaptive-extender/web`    | Browser (includes core)    |
+| `adaptive-extender/worker` | Web Worker (includes core) |
 
 - - -
 
 ```typescript
 // Import once — extensions are active everywhere
 import "adaptive-extender/core";
-import "adaptive-extender/web"; // Browser only
+import "adaptive-extender/web";    // Browser only
+import "adaptive-extender/worker"; // Web Worker only
 ```
 
 ## Native Extensions

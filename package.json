@@ -9,29 +9,35 @@
 		"*": {
 			"core": [ "dist/core/index.d.ts" ],
 			"node": [ "dist/node/index.d.ts" ],
-			"web": [ "dist/web/index.d.ts" ]
+			"web": [ "dist/web/index.d.ts" ],
+			"worker": [ "dist/worker/index.d.ts" ]
 		}
 	},
 	"exports": {
 		".": {
+			"types": "./dist/core/index.d.ts",
 			"import": "./dist/core/index.js",
-			"require": "./dist/core/index.js",
-			"types": "./dist/core/index.d.ts"
+			"require": "./dist/core/index.js"
 		},
 		"./core": {
+			"types": "./dist/core/index.d.ts",
 			"import": "./dist/core/index.js",
-			"require": "./dist/core/index.js",
-			"types": "./dist/core/index.d.ts"
+			"require": "./dist/core/index.js"
 		},
 		"./node": {
+			"types": "./dist/node/index.d.ts",
 			"import": "./dist/node/index.js",
-			"require": "./dist/node/index.js",
-			"types": "./dist/node/index.d.ts"
+			"require": "./dist/node/index.js"
 		},
 		"./web": {
+			"types": "./dist/web/index.d.ts",
 			"import": "./dist/web/index.js",
-			"require": "./dist/web/index.js",
-			"types": "./dist/web/index.d.ts"
+			"require": "./dist/web/index.js"
+		},
+		"./worker": {
+			"types": "./dist/worker/index.d.ts",
+			"import": "./dist/worker/index.js",
+			"require": "./dist/worker/index.js"
 		}
 	},
 	"repository": {
@@ -49,7 +55,8 @@
 		"build:core": "tsc -p ./src/core/tsconfig.json",
 		"build:node": "tsc -p ./src/node/tsconfig.json",
 		"build:web": "tsc -p ./src/web/tsconfig.json",
-		"build": "npm run build:core && npm run build:node && npm run build:web",
+		"build:worker": "tsc -p ./src/worker/tsconfig.json",
+		"build": "npm run build:core && npm run build:node && npm run build:web && npm run build:worker",
 
 		"test": "vitest run",
 		"coverage": "vitest run --coverage"

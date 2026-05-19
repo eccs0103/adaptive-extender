@@ -18,6 +18,13 @@ export default defineConfig({
 					include: ["test/web/**/*.test.ts"],
 				},
 			},
+			{
+				test: {
+					name: "worker",
+					environment: "node",
+					include: ["test/worker/**/*.test.ts"],
+				},
+			},
 		],
 	},
 });

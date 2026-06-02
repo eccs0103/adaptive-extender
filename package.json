@@ -1,16 +1,24 @@
 {
 	"name": "adaptive-extender",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"description": "Adaptive library for JS/TS development environments",
 	"type": "module",
 	"main": "./dist/core/index.js",
 	"types": "./dist/core/index.d.ts",
 	"typesVersions": {
 		"*": {
-			"core": [ "dist/core/index.d.ts" ],
-			"node": [ "dist/node/index.d.ts" ],
-			"web": [ "dist/web/index.d.ts" ],
-			"worker": [ "dist/worker/index.d.ts" ]
+			"core": [
+				"dist/core/index.d.ts"
+			],
+			"node": [
+				"dist/node/index.d.ts"
+			],
+			"web": [
+				"dist/web/index.d.ts"
+			],
+			"worker": [
+				"dist/worker/index.d.ts"
+			]
 		}
 	},
 	"exports": {
@@ -44,7 +52,14 @@
 		"type": "git",
 		"url": "git+https://github.com/eccs0103/adaptive-extender.git"
 	},
-	"keywords": [ "javascript", "typescript", "extensions", "core", "dom", "node" ],
+	"keywords": [
+		"javascript",
+		"typescript",
+		"extensions",
+		"core",
+		"dom",
+		"node"
+	],
 	"author": "eccs0103",
 	"license": "Apache-2.0",
 	"bugs": {
@@ -57,14 +72,16 @@
 		"build:web": "tsc -p ./src/web/tsconfig.json",
 		"build:worker": "tsc -p ./src/worker/tsconfig.json",
 		"build": "npm run build:core && npm run build:node && npm run build:web && npm run build:worker",
-
 		"test": "vitest run",
 		"coverage": "vitest run --coverage"
 	},
 	"devDependencies": {
+		"@babel/plugin-proposal-decorators": "^7.29.7",
+		"@rolldown/plugin-babel": "^0.2.3",
 		"@types/jsdom": "^21.1.7",
+		"esbuild": "^0.28.0",
 		"jsdom": "^27.0.0",
-		"typescript": "^5.9.2",
-		"vitest": "^3.2.4"
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.8"
 	}
 }

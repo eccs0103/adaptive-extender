@@ -1,3 +1,6 @@
+## 0.10.1 (02.06.2026)
+- Vitest vulnerability fixed.
+
 ## 0.10.0 (20.05.2026)
 - Added `adaptive-extender/worker` package for Web Worker environments. Includes [promise](./src/worker/promise.ts) and [engine](./src/worker/engine.ts) modules.
 

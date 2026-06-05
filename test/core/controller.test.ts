@@ -1,10 +1,11 @@
 "use strict";
 
 import { Controller } from "adaptive-extender/core";
-import { assert, describe, it } from "vitest";
+import { assert, describe, it, expect } from "vitest";
 
 describe("Controller", () => {
 	it("should throw an error when trying to create an instance of an abstract class", () => {
+		//@ts-ignore
 		assert.throws(() => new Controller(), TypeError, "Unable to create an instance of an abstract class");
 	});
 
@@ -68,6 +69,18 @@ describe("Controller", () => {
 
 		await TestController.launch();
 		assert.deepEqual(order, ["run", "finally"]);
+	});
+
+	it("should re-throw errors by default when catch is not overridden", async () => {
+		const testError = new Error("uncaught");
+
+		class TestController extends Controller {
+			async run() {
+				throw testError;
+			}
+		}
+
+		await expect(TestController.launch()).rejects.toThrow("uncaught");
 	});
 
 	it("should call finally even when run throws", async () => {

@@ -1,3 +1,9 @@
+## 0.10.3 (05.06.2026)
+- Added `Function.empty` constant — a shared no-op function available via `Function.empty`.
+- Added [function](./src/core/function.ts) module to the core package.
+- Added [metadata-injector](./src/web/metadata-injector.ts) module to the web package. Provides `MetadataInjector.inject()` for one-shot injection of structured JSON-LD metadata, Open Graph meta tags, and `rel=me` links into the document head. Supports `Person`, `Application`, and `Organization` entity types.
+- `Controller.catch()` now re-throws the error by default instead of silently ignoring it.
+
 ## 0.10.1 (02.06.2026)
 - Vitest vulnerability fixed.
 

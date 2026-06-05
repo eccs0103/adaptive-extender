@@ -1,24 +1,16 @@
 {
 	"name": "adaptive-extender",
-	"version": "0.10.1",
+	"version": "0.10.3",
 	"description": "Adaptive library for JS/TS development environments",
 	"type": "module",
 	"main": "./dist/core/index.js",
 	"types": "./dist/core/index.d.ts",
 	"typesVersions": {
 		"*": {
-			"core": [
-				"dist/core/index.d.ts"
-			],
-			"node": [
-				"dist/node/index.d.ts"
-			],
-			"web": [
-				"dist/web/index.d.ts"
-			],
-			"worker": [
-				"dist/worker/index.d.ts"
-			]
+			"core": [ "dist/core/index.d.ts" ],
+			"node": [ "dist/node/index.d.ts" ],
+			"web": [ "dist/web/index.d.ts" ],
+			"worker": [ "dist/worker/index.d.ts" ]
 		}
 	},
 	"exports": {
@@ -52,14 +44,7 @@
 		"type": "git",
 		"url": "git+https://github.com/eccs0103/adaptive-extender.git"
 	},
-	"keywords": [
-		"javascript",
-		"typescript",
-		"extensions",
-		"core",
-		"dom",
-		"node"
-	],
+	"keywords": [ "javascript", "typescript", "extensions", "core", "dom", "node" ],
 	"author": "eccs0103",
 	"license": "Apache-2.0",
 	"bugs": {

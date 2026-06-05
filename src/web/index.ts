@@ -6,3 +6,4 @@ export * from "./engine.js";
 export * from "./parent-node.js";
 export * from "./element.js";
 export * from "./archive.js";
+export * from "./metadata-injector.js";

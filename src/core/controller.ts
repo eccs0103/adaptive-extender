@@ -25,7 +25,7 @@ export abstract class Controller<A extends readonly any[] = []> {
 	 * When overridden in a derived class, handles an error that occurred during the controller's execution.
 	 */
 	async catch(error: Error): Promise<void> {
-		void error;
+		throw error;
 	}
 	/**
 	 * When overridden in a derived class, runs unconditionally after {@link run} and {@link catch}.

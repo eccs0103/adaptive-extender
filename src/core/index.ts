@@ -26,4 +26,5 @@ export * from "./timespan.js";
 export * from "./version.js";
 export * from "./engine.js";
 export * from "./controller.js";
+export * from "./function.js";
 export * from "./environment.js";

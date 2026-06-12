@@ -104,6 +104,13 @@ class PortabilityMetadata {
 		return metadata;
 	}
 
+	static descendantsOf(model: typeof Model): DescendantDescriptor[] {
+		if (!Object.hasOwn(model, Symbol.metadata)) return [];
+		const object = model[Symbol.metadata];
+		if (object === null || object === undefined) return [];
+		return PortabilityMetadata.for(object).#descendants;
+	}
+
 	get fields(): Map<string, FieldDescriptor> {
 		return this.#fields;
 	}
@@ -135,8 +142,9 @@ export abstract class Model {
 	 */
 	static import<I extends Model>(this: Constructor<I>, source: any, name: string): I {
 		const model = this as unknown as typeof Model;
-		const { descendants, discriminator: key } = PortabilityMetadata.read(model);
+		const descendants = PortabilityMetadata.descendantsOf(model);
 		if (descendants.length > 0) {
+			const { discriminator: key } = PortabilityMetadata.read(model);
 			const object = Object.import(source, name);
 			const value = Reflect.get(object, key);
 			if (value === undefined) throw new TypeError(`Missing '${key}' discriminator in ${name}`);
@@ -163,8 +171,9 @@ export abstract class Model {
 	 */
 	static export<I extends Model, S extends object>(this: Constructor<I>, source: I): S {
 		const model = this as unknown as typeof Model;
-		const { descendants, discriminator: key } = PortabilityMetadata.read(model);
+		const descendants = PortabilityMetadata.descendantsOf(model);
 		if (descendants.length > 0) {
+			const { discriminator: key } = PortabilityMetadata.read(model);
 			const descriptor = descendants.find(descriptor => source instanceof descriptor.type);
 			if (descriptor === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
 			const descendant = descriptor.type as PortableConstructor<I, S>;

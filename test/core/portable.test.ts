@@ -100,6 +100,52 @@ class Alert extends Event {
 	level!: number;
 }
 
+// Three-level hierarchy with decorator-less concrete leaves (regression test for
+// metadata-inheritance infinite recursion — leaves without own @Field/@Descendant
+// share the parent's Symbol.metadata object; descendant dispatch must not recurse).
+@Descendant(Deferred(_ => RedShape))
+@Descendant(Deferred(_ => BlueShape))
+abstract class Shape extends Model {
+	@Field(String)
+	id!: string;
+}
+
+// LabeledShape is an abstract mid-class with its own @Field — owns metadata.
+@Descendant(Deferred(_ => RedShape))
+@Descendant(Deferred(_ => BlueShape))
+abstract class LabeledShape extends Shape {
+	@Field(String)
+	label!: string;
+}
+
+// Concrete leaves have NO decorators; they inherit LabeledShape's Symbol.metadata.
+class RedShape extends LabeledShape {
+	constructor();
+	constructor(id: string, label: string);
+	constructor(id?: string, label?: string) {
+		if (id === undefined || label === undefined) { super(); return; }
+		super();
+		this.id = id;
+		this.label = label;
+	}
+}
+
+class BlueShape extends LabeledShape {
+	constructor();
+	constructor(id: string, label: string);
+	constructor(id?: string, label?: string) {
+		if (id === undefined || label === undefined) { super(); return; }
+		super();
+		this.id = id;
+		this.label = label;
+	}
+}
+
+class Canvas extends Model {
+	@Field(ArrayOf(Deferred<Shape, object>(_ => Shape)))
+	shapes!: Shape[];
+}
+
 // Map adapter models
 class SettingsModel extends Model {
 	@Field(SetOf(String))
@@ -309,6 +355,38 @@ describe("Model Tests", () => {
 			const raw: any = Animal.export(dog);
 			expect(raw.$type).toBe("Dog");
 			expect(raw.breed).toBe("Pug");
+		});
+	});
+
+	describe("Polymorphism — decorator-less concrete leaves (metadata-inheritance regression)", () => {
+		it("should export a decorator-less leaf without infinite recursion", () => {
+			const red = new RedShape("r1", "Red");
+			const raw: any = Shape.export(red);
+			expect(raw.$type).toBe("RedShape");
+			expect(raw.id).toBe("r1");
+			expect(raw.label).toBe("Red");
+		});
+
+		it("should import a decorator-less leaf without infinite recursion", () => {
+			const raw = { $type: "BlueShape", id: "b1", label: "Blue" };
+			const shape = Shape.import(raw, "canvas.shapes[0]");
+			expect(shape).toBeInstanceOf(BlueShape);
+			expect(shape.id).toBe("b1");
+			expect((shape as BlueShape).label).toBe("Blue");
+		});
+
+		it("should round-trip decorator-less leaves inside an ArrayOf container", () => {
+			const canvas = new Canvas();
+			canvas.shapes = [new RedShape("r1", "Red"), new BlueShape("b2", "Blue")];
+			const raw: any = Canvas.export(canvas);
+			expect(raw.shapes).toHaveLength(2);
+			expect(raw.shapes[0].$type).toBe("RedShape");
+			expect(raw.shapes[1].$type).toBe("BlueShape");
+
+			const imported = Canvas.import(raw, "canvas");
+			expect(imported.shapes[0]).toBeInstanceOf(RedShape);
+			expect(imported.shapes[1]).toBeInstanceOf(BlueShape);
+			expect((imported.shapes[1] as BlueShape).label).toBe("Blue");
 		});
 	});
 

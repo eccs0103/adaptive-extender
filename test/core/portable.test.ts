@@ -134,7 +134,48 @@ class AccessModel extends Model {
 	priority?: 1 | 2 | 3;
 }
 
+// Early-return constructor model — no field initializers, matches the pattern
+// where constructor args are optional and the no-arg path returns early after super().
+class EarlyReturnModel extends Model {
+	@Field(String)
+	label!: string;
+
+	@Field(ArrayOf(Number), "nums")
+	values!: number[];
+
+	constructor();
+	constructor(label: string, values: number[]);
+	constructor(label?: string, values?: number[]) {
+		if (label === undefined || values === undefined) { super(); return; }
+		super();
+		this.label = label;
+		this.values = values;
+	}
+}
+
 describe("Model Tests", () => {
+
+	describe("Constructor Patterns", () => {
+		it("should import a model with an early-return constructor (cold — no prior construction with args)", () => {
+			const m = EarlyReturnModel.import({ label: "x", nums: [1, 2, 3] }, "early");
+			expect(m).toBeInstanceOf(EarlyReturnModel);
+			expect(m.label).toBe("x");
+			expect(m.values).toEqual([1, 2, 3]);
+		});
+
+		it("should export a model constructed with args", () => {
+			const m = new EarlyReturnModel("hello", [10, 20]);
+			const raw: any = EarlyReturnModel.export(m);
+			expect(raw.label).toBe("hello");
+			expect(raw.nums).toEqual([10, 20]);
+		});
+
+		it("should round-trip through import then export", () => {
+			const m = EarlyReturnModel.import({ label: "round", nums: [7] }, "rt");
+			const raw: any = EarlyReturnModel.export(m);
+			expect(raw).toEqual({ label: "round", nums: [7] });
+		});
+	});
 
 	describe("Basic Field Mapping", () => {
 		it("should import simple fields", () => {

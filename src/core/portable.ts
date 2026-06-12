@@ -194,11 +194,10 @@ export function Field<I, S>(type: PortableConstructor<I, S>, name?: string): (ta
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;
-		context.addInitializer(function () {
+		context.addInitializer(function (): void {
 			const model = constructor(this) as typeof Model;
 			const { fields } = PortabilityMetadata.read(model);
-			if (fields.has(key)) return;
-			fields.set(key, new FieldDescriptor(key, association, type));
+			if (!fields.has(key)) fields.set(key, new FieldDescriptor(key, association, type));
 		});
 	};
 }

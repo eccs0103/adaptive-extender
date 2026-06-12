@@ -5,7 +5,9 @@ import "./string.js";
 import "./boolean.js";
 import "./array.js";
 import "./object.js";
+import "./map.js";
 import "./reflect.js";
+import "./error.js";
 import { type Constructor } from "./global.js";
 
 //#region Constructor
@@ -87,23 +89,18 @@ class PortabilityMetadata {
 		return entry;
 	}
 
-	static #collectFields(object: DecoratorMetadataObject): Map<string, FieldDescriptor> {
-		const merged = new Map<string, FieldDescriptor>();
-		let current: DecoratorMetadataObject | null = object;
-		while (current !== null) {
-			const metadata = PortabilityMetadata.for(current);
-			for (const [key, descriptor] of metadata.#fields) {
-				if (!merged.has(key)) merged.set(key, descriptor);
-			}
-			current = Object.getPrototypeOf(current) as DecoratorMetadataObject | null;
-		}
-		return merged;
-	}
-
 	static read(model: typeof Model): PortabilityMetadata {
-		const object = model[Symbol.metadata]!;
-		const metadata = PortabilityMetadata.for(object);
-		metadata.#fields = PortabilityMetadata.#collectFields(object);
+		const object: DecoratorMetadataObject = ReferenceError.suppress(model[Symbol.metadata], `Required an implementation of Symbol.metadata in '${model.name}' to use portability`);
+		const metadata: PortabilityMetadata = PortabilityMetadata.for(object);
+
+		const fields: Map<string, FieldDescriptor> = metadata.#fields;
+		let current: DecoratorMetadataObject | null = object;
+		while (true) {
+			if (current === null) break;
+			for (const [key, descriptor] of PortabilityMetadata.for(current).#fields) fields.add(key, descriptor);
+			current = Object.getPrototypeOf(current);
+		}
+
 		return metadata;
 	}
 

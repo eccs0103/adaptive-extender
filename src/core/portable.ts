@@ -73,27 +73,38 @@ class DescendantDescriptor {
 //#endregion
 //#region Portability metadata
 class PortabilityMetadata {
-	static #registry: WeakMap<typeof Model, PortabilityMetadata> = new WeakMap();
-	#model: typeof Model;
+	static #registry: WeakMap<DecoratorMetadataObject, PortabilityMetadata> = new WeakMap();
 	#fields: Map<string, FieldDescriptor> = new Map();
 	#descendants: DescendantDescriptor[] = [];
 	#discriminator: string = "$type";
 
-	constructor(model: typeof Model) {
-		this.#model = model;
+	static for(metadata: DecoratorMetadataObject): PortabilityMetadata {
+		const registry = PortabilityMetadata.#registry;
+		let entry = registry.get(metadata);
+		if (entry !== undefined) return entry;
+		entry = new PortabilityMetadata();
+		registry.set(metadata, entry);
+		return entry;
+	}
+
+	static #collectFields(object: DecoratorMetadataObject): Map<string, FieldDescriptor> {
+		const merged = new Map<string, FieldDescriptor>();
+		let current: DecoratorMetadataObject | null = object;
+		while (current !== null) {
+			const metadata = PortabilityMetadata.for(current);
+			for (const [key, descriptor] of metadata.#fields) {
+				if (!merged.has(key)) merged.set(key, descriptor);
+			}
+			current = Object.getPrototypeOf(current) as DecoratorMetadataObject | null;
+		}
+		return merged;
 	}
 
 	static read(model: typeof Model): PortabilityMetadata {
-		const registry = PortabilityMetadata.#registry;
-		let metadata = registry.get(model);
-		if (metadata !== undefined) return metadata;
-		metadata = new PortabilityMetadata(model);
-		registry.set(model, metadata);
+		const object = model[Symbol.metadata]!;
+		const metadata = PortabilityMetadata.for(object);
+		metadata.#fields = PortabilityMetadata.#collectFields(object);
 		return metadata;
-	}
-
-	get model(): typeof Model {
-		return this.#model;
 	}
 
 	get fields(): Map<string, FieldDescriptor> {
@@ -194,11 +205,8 @@ export function Field<I, S>(type: PortableConstructor<I, S>, name?: string): (ta
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");
 		const association = name ?? key;
-		context.addInitializer(function (): void {
-			const model = constructor(this) as typeof Model;
-			const { fields } = PortabilityMetadata.read(model);
-			if (!fields.has(key)) fields.set(key, new FieldDescriptor(key, association, type));
-		});
+		const { fields } = PortabilityMetadata.for(context.metadata);
+		if (!fields.has(key)) fields.set(key, new FieldDescriptor(key, association, type));
 	};
 }
 
@@ -214,8 +222,9 @@ export function Descendant<M extends typeof Model>(descendant: PortableConstruct
  */
 export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>, discriminator: string): (target: M, context: ClassDecoratorContext) => void;
 export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>, discriminator?: string): (target: M, context: ClassDecoratorContext) => void {
-	return function (model: M): void {
-		const { descendants } = PortabilityMetadata.read(model);
+	return function (model: M, context: ClassDecoratorContext): void {
+		void model;
+		const { descendants } = PortabilityMetadata.for(context.metadata);
 		descendants.push(new DescendantDescriptor(descendant, discriminator));
 	};
 }
@@ -225,9 +234,9 @@ export function Descendant<M extends typeof Model>(descendant: PortableConstruct
  * @param key The property key to use for the discriminator.
  */
 export function DiscriminatorKey<M extends typeof Model>(key: string): (target: M, context: ClassDecoratorContext) => void {
-	return function (model: M): void {
-		const metadata = PortabilityMetadata.read(model);
-		metadata.discriminator = key;
+	return function (model: M, context: ClassDecoratorContext): void {
+		void model;
+		PortabilityMetadata.for(context.metadata).discriminator = key;
 	};
 }
 //#endregion

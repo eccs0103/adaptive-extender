@@ -18,8 +18,6 @@ declare global {
 	export function typename(value: any): string;
 }
 
-Reflect.set(Symbol, "metadata", Reflect.get(Symbol, "metadata") ?? Symbol.for("Symbol.metadata"));
-
 globalThis.constructor = function <T>(value: NonNullable<T>): Constructor<T> {
 	return value.constructor as Constructor<T>;
 };

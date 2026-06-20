@@ -29,7 +29,9 @@ export interface PortableConstructor<I = any, S = unknown> extends Constructor<I
 	export(source: I): S;
 }
 //#endregion
-//#region Field descriptor
+//#region Descriptors
+Reflect.set(Symbol, "metadata", Reflect.get(Symbol, "metadata") ?? Symbol.for("Symbol.metadata"));
+
 /**
  * Options for the {@link Field} decorator.
  */
@@ -39,35 +41,34 @@ export interface FieldOptions<I> {
 	 */
 	name: string;
 	/**
-	 * Default value used when the source key is absent during import.
+	 * Fallback value used when the source key is absent during import.
 	 */
-	default: I;
+	fallback: I;
 }
 
 class FieldDescriptor {
 	#key: string;
 	#association: string;
 	#type: PortableConstructor;
-	#hasDefault: boolean = false;
-	#default: unknown;
+	#hasFallback: boolean = false;
+	#fallback: unknown;
 
 	constructor(key: string, association: string, type: PortableConstructor, options: Partial<FieldOptions<unknown>> = {}) {
 		this.#key = key;
 		this.#association = association;
 		this.#type = type;
-		if (!("default" in options)) return;
-		this.#hasDefault = true;
-		this.#default = type.export(options.default);
+		if (!("fallback" in options)) return;
+		this.#hasFallback = true;
+		this.#fallback = type.export(options.fallback);
 	}
 
 	get key(): string { return this.#key; }
 	get association(): string { return this.#association; }
 	get type(): PortableConstructor { return this.#type; }
-	get hasDefault(): boolean { return this.#hasDefault; }
-	get default(): unknown { return this.#default; }
+	get hasFallback(): boolean { return this.#hasFallback; }
+	get fallback(): unknown { return this.#fallback; }
 }
-//#endregion
-//#region Descendant descriptor
+
 class DescendantDescriptor {
 	#type: PortableConstructor<Model, object>;
 	#discriminator: string | undefined;
@@ -80,10 +81,26 @@ class DescendantDescriptor {
 	get type(): PortableConstructor<Model, object> { return this.#type; }
 	get discriminator(): string { return this.#discriminator ?? this.#type.name; }
 }
-//#endregion
-//#region Portability metadata
+
+class ModelSchema {
+	#fields: Map<string, FieldDescriptor>;
+	#discriminator: string;
+	#descendants: DescendantDescriptor[];
+
+	constructor(fields: Map<string, FieldDescriptor>, discriminator: string, descendants: DescendantDescriptor[]) {
+		this.#fields = fields;
+		this.#discriminator = discriminator;
+		this.#descendants = descendants;
+	}
+
+	get fields(): Map<string, FieldDescriptor> { return this.#fields; }
+	get discriminator(): string { return this.#discriminator; }
+	get descendants(): DescendantDescriptor[] { return this.#descendants; }
+}
+
 class PortabilityMetadata {
 	static #registry: WeakMap<DecoratorMetadataObject, PortabilityMetadata> = new WeakMap();
+	static #schemas: WeakMap<typeof Model, ModelSchema> = new WeakMap();
 	#fields: Map<string, FieldDescriptor> = new Map();
 	#descendants: DescendantDescriptor[] = [];
 	#discriminator: string = "$type";
@@ -97,43 +114,27 @@ class PortabilityMetadata {
 		return entry;
 	}
 
-	static read(model: typeof Model): PortabilityMetadata {
+	static read(model: typeof Model): ModelSchema {
+		const schemas = PortabilityMetadata.#schemas;
+		let schema = schemas.get(model);
+		if (schema !== undefined) return schema;
 		const object: DecoratorMetadataObject = ReferenceError.suppress(model[Symbol.metadata], `Required an implementation of Symbol.metadata in '${model.name}' to use portability`);
-		const metadata: PortabilityMetadata = PortabilityMetadata.for(object);
-
-		const fields: Map<string, FieldDescriptor> = metadata.#fields;
+		const fields = new Map<string, FieldDescriptor>();
 		let current: DecoratorMetadataObject | null = object;
-		while (true) {
-			if (current === null) break;
+		while (current !== null) {
 			for (const [key, descriptor] of PortabilityMetadata.for(current).#fields) fields.add(key, descriptor);
 			current = Object.getPrototypeOf(current);
 		}
-
-		return metadata;
+		const own = Object.hasOwn(model, Symbol.metadata) ? PortabilityMetadata.for(object) : null;
+		schema = new ModelSchema(fields, own !== null ? own.#discriminator : "$type", own !== null ? own.#descendants : []);
+		schemas.set(model, schema);
+		return schema;
 	}
 
-	static descendantsOf(model: typeof Model): DescendantDescriptor[] {
-		if (!Object.hasOwn(model, Symbol.metadata)) return [];
-		const object = model[Symbol.metadata];
-		if (object === null || object === undefined) return [];
-		return PortabilityMetadata.for(object).#descendants;
-	}
-
-	get fields(): Map<string, FieldDescriptor> {
-		return this.#fields;
-	}
-
-	get descendants(): DescendantDescriptor[] {
-		return this.#descendants;
-	}
-
-	get discriminator(): string {
-		return this.#discriminator;
-	}
-
-	set discriminator(value: string) {
-		this.#discriminator = value;
-	}
+	get fields(): Map<string, FieldDescriptor> { return this.#fields; }
+	get descendants(): DescendantDescriptor[] { return this.#descendants; }
+	get discriminator(): string { return this.#discriminator; }
+	set discriminator(value: string) { this.#discriminator = value; }
 }
 //#endregion
 //#region Model
@@ -150,9 +151,9 @@ export abstract class Model {
 	 */
 	static import<I extends Model>(this: Constructor<I>, source: any, name: string): I {
 		const model = this as unknown as typeof Model;
-		const descendants = PortabilityMetadata.descendantsOf(model);
+		const { descendants, discriminator: key, fields } = PortabilityMetadata.read(model);
+
 		if (descendants.length > 0) {
-			const { discriminator: key } = PortabilityMetadata.read(model);
 			const object = Object.import(source, name);
 			const value = Reflect.get(object, key);
 			if (value === undefined) throw new TypeError(`Missing '${key}' discriminator in ${name}`);
@@ -164,10 +165,13 @@ export abstract class Model {
 
 		const object = Object.import(source, name);
 		const instance = Reflect.construct(this, []) as I;
-		const { fields } = PortabilityMetadata.read(model);
-		for (const { key, association, type } of fields.values()) {
+		for (const descriptor of fields.values()) {
+			const { key, association, type } = descriptor;
 			const raw = Reflect.get(object, association);
-			const value = type.import(raw, `${name}.${association}`);
+			const source = raw === undefined && descriptor.hasFallback
+				? descriptor.fallback
+				: raw;
+			const value = type.import(source, `${name}.${association}`);
 			Reflect.set(instance, key, value);
 		}
 		return instance;
@@ -179,9 +183,9 @@ export abstract class Model {
 	 */
 	static export<I extends Model, S extends object>(this: Constructor<I>, source: I): S {
 		const model = this as unknown as typeof Model;
-		const descendants = PortabilityMetadata.descendantsOf(model);
+		const { descendants, discriminator: key, fields } = PortabilityMetadata.read(model);
+
 		if (descendants.length > 0) {
-			const { discriminator: key } = PortabilityMetadata.read(model);
 			const descriptor = descendants.find(descriptor => source instanceof descriptor.type);
 			if (descriptor === undefined) throw new TypeError(`Invalid '${typename(source)}' type for source`);
 			const descendant = descriptor.type as PortableConstructor<I, S>;
@@ -191,7 +195,6 @@ export abstract class Model {
 		}
 
 		const object = new Object() as S;
-		const { fields } = PortabilityMetadata.read(model);
 		for (const { key, association, type } of fields.values()) {
 			const value = Reflect.get(source, key);
 			const raw = type.export(value);

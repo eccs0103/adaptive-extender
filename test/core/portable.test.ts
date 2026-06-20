@@ -1,5 +1,5 @@
 import "adaptive-extender/core";
-import { ArrayOf, Deferred, Descendant, DiscriminatorKey, EnumAs, Field, Nullable, Optional, Model, Any, Timestamp, UnixSeconds, SetOf, MapOf, RecordOf } from "adaptive-extender/core";
+import { Deferred, Descendant, DiscriminatorKey, Enum, Field, Nullable, Optional, Model, Any } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
 // --- Models for Testing ---
@@ -8,7 +8,7 @@ class SimpleModel extends Model {
 	@Field(String)
 	name!: string;
 
-	@Field(Number, "age_value")
+	@Field(Number, { name: "age_value" })
 	age!: number;
 }
 
@@ -16,13 +16,13 @@ class ComplexModel extends Model {
 	@Field(SimpleModel)
 	child!: SimpleModel;
 
-	@Field(ArrayOf(String))
+	@Field(Array.Of(String))
 	tags!: string[];
 
-	@Field(Nullable(Number))
+	@Field(Nullable.Of(Number))
 	score!: number | null;
 
-	@Field(Optional(Boolean))
+	@Field(Optional.Of(Boolean))
 	active?: boolean;
 }
 
@@ -31,7 +31,7 @@ class Node extends Model {
 	@Field(String)
 	id!: string;
 
-	@Field(ArrayOf(Deferred(_ => Node)))
+	@Field(Array.Of(Deferred(_ => Node)))
 	children!: Node[];
 }
 
@@ -58,7 +58,7 @@ class Cat extends Animal {
 }
 
 class Shelter extends Model {
-	@Field(ArrayOf(Deferred<Animal, AnimalScheme>(_ => Animal)))
+	@Field(Array.Of(Deferred<Animal, AnimalScheme>(_ => Animal)))
 	animals!: Animal[];
 }
 
@@ -142,19 +142,19 @@ class BlueShape extends LabeledShape {
 }
 
 class Canvas extends Model {
-	@Field(ArrayOf(Deferred<Shape, object>(_ => Shape)))
+	@Field(Array.Of(Deferred<Shape, object>(_ => Shape)))
 	shapes!: Shape[];
 }
 
 // Map adapter models
 class SettingsModel extends Model {
-	@Field(SetOf(String))
+	@Field(Set.Of(String))
 	tags!: Set<string>;
 
-	@Field(RecordOf(Boolean))
+	@Field(Map.AsRecord(Boolean))
 	preferences!: Map<string, boolean>;
 
-	@Field(MapOf(Number, String))
+	@Field(Map.AsTuples(Number, String))
 	scores!: Map<number, string>;
 }
 
@@ -165,18 +165,18 @@ const Role = { admin: "admin", user: "user", guest: "guest" } as const;
 const Priority = Object.freeze({ low: 1, medium: 2, high: 3 });
 
 class TaskModel extends Model {
-	@Field(EnumAs(TaskStatus))
+	@Field(Enum.Of(TaskStatus))
 	status!: TaskStatus;
 
-	@Field(EnumAs(Direction))
+	@Field(Enum.Of(Direction))
 	direction!: Direction;
 }
 
 class AccessModel extends Model {
-	@Field(EnumAs(Role))
+	@Field(Enum.Of(Role))
 	role!: "admin" | "user" | "guest";
 
-	@Field(Optional(EnumAs(Priority)))
+	@Field(Optional.Of(Enum.Of(Priority)))
 	priority?: 1 | 2 | 3;
 }
 
@@ -186,7 +186,7 @@ class EarlyReturnModel extends Model {
 	@Field(String)
 	label!: string;
 
-	@Field(ArrayOf(Number), "nums")
+	@Field(Array.Of(Number), { name: "nums" })
 	values!: number[];
 
 	constructor();
@@ -197,6 +197,21 @@ class EarlyReturnModel extends Model {
 		this.label = label;
 		this.values = values;
 	}
+}
+
+// Migration default models — verify @Field({ default }) back-fills absent keys
+class MigrationModel extends Model {
+	@Field(String)
+	name!: string;
+
+	@Field(Number, { fallback: 42 })
+	score: number = 0;  // initializer is overwritten by import; fallback is the migration value
+
+	@Field(Array.Of(Number), { fallback: [] })
+	tags: number[] = [];
+
+	@Field(String, { name: "alias_key", fallback: "hello" })
+	aliased: string = "";
 }
 
 describe("Model Tests", () => {
@@ -252,7 +267,7 @@ describe("Model Tests", () => {
 		});
 	});
 
-	describe("Complex Types (ArrayOf, Nullable, Optional)", () => {
+	describe("Complex Types (Array.Of, Nullable.Of, Optional.Of)", () => {
 		it("should handle nested models and arrays", () => {
 			const raw = {
 				child: { name: "Kid", age_value: 5 },
@@ -375,7 +390,7 @@ describe("Model Tests", () => {
 			expect((shape as BlueShape).label).toBe("Blue");
 		});
 
-		it("should round-trip decorator-less leaves inside an ArrayOf container", () => {
+		it("should round-trip decorator-less leaves inside an Array.Of container", () => {
 			const canvas = new Canvas();
 			canvas.shapes = [new RedShape("r1", "Red"), new BlueShape("b2", "Blue")];
 			const raw: any = Canvas.export(canvas);
@@ -391,75 +406,75 @@ describe("Model Tests", () => {
 	});
 
 	describe("Adapters", () => {
-		describe("SetOf", () => {
+		describe("Set.Of", () => {
 			it("should identify as Set and convert elements", () => {
-				expect(SetOf(String)[Symbol.hasInstance](new Set())).toBe(true);
+				expect(Set.Of(String)[Symbol.hasInstance](new Set())).toBe(true);
 				const raw = ["a", "b"];
-				const set = SetOf(String).import(raw, "s");
+				const set = Set.Of(String).import(raw, "s");
 				expect(set).toBeInstanceOf(Set);
 				expect(Array.from(set)).toEqual(["a", "b"]);
 			});
 
 			it("should export Set to array", () => {
 				const set = new Set(["x", "y"]);
-				const arr = SetOf(String).export(set);
+				const arr = Set.Of(String).export(set);
 				expect(arr).toEqual(["x", "y"]);
 			});
 
 			it("should import Set of models", () => {
 				const raw = [{ name: "S1", age_value: 10 }];
-				const set = SetOf(SimpleModel).import(raw, "models");
+				const set = Set.Of(SimpleModel).import(raw, "models");
 				const first = Array.from(set)[0];
 				expect(first).toBeInstanceOf(SimpleModel);
 				expect((first as SimpleModel).name).toBe("S1");
 			});
 		});
 
-		describe("Timestamp", () => {
+		describe("Date.AsTimestamp", () => {
 			it("should identify as Timestamp", () => {
-				expect(Timestamp.name).toBe("Timestamp");
-				expect(Timestamp[Symbol.hasInstance](new Date())).toBe(true);
+				expect(Date.AsTimestamp.name).toBe("Timestamp");
+				expect(Date.AsTimestamp[Symbol.hasInstance](new Date())).toBe(true);
 			});
 
 			it("should import number as Date", () => {
 				const time = 1705752000000; // 2024-01-20T12:00:00.000Z
-				const date = Timestamp.import(time, "ts");
+				const date = Date.AsTimestamp.import(time, "ts");
 				expect(date).toBeInstanceOf(Date);
 				expect(date.getTime()).toBe(time);
 			});
 
 			it("should throw on invalid import type", () => {
-				expect(() => Timestamp.import("invalid", "ts")).toThrow(TypeError);
+				expect(() => Date.AsTimestamp.import("invalid", "ts")).toThrow(TypeError);
 			});
 
 			it("should export Date as number (milliseconds)", () => {
 				const time = 1705752000000;
 				const date = new Date(time);
-				expect(Timestamp.export(date)).toBe(time);
+				expect(Date.AsTimestamp.export(date)).toBe(time);
 			});
 		});
 
-		describe("UnixSeconds", () => {
+		describe("Date.AsUnixSeconds", () => {
 			it("should identify as UnixSeconds", () => {
-				expect(UnixSeconds.name).toBe("UnixSeconds");
-				expect(UnixSeconds[Symbol.hasInstance](new Date())).toBe(true);
+				expect(Date.AsUnixSeconds.name).toBe("UnixSeconds");
+				expect(Date.AsUnixSeconds[Symbol.hasInstance](new Date())).toBe(true);
 			});
 
 			it("should import seconds number as Date", () => {
 				const seconds = 1705752000; // 2024-01-20T12:00:00.000Z
-				const date = UnixSeconds.import(seconds, "unix");
+				const date = Date.AsUnixSeconds.import(seconds, "unix");
 				expect(date).toBeInstanceOf(Date);
 				expect(date.getTime()).toBe(seconds * 1000);
 			});
 
 			it("should throw on invalid import type", () => {
-				expect(() => UnixSeconds.import("invalid", "unix")).toThrow(TypeError);
+				expect(() => Date.AsUnixSeconds.import("invalid", "unix")).toThrow(TypeError);
 			});
 
 			it("should export Date as number (seconds)", () => {
 				const seconds = 1705752000;
 				const date = new Date(seconds * 1000 + 500); // +500ms (should be truncated)
-				expect(UnixSeconds.export(date)).toBe(seconds);
+				expect(Date.AsUnixSeconds.export(date)).toBe(seconds);
 			});
 		});
 
@@ -481,9 +496,13 @@ describe("Model Tests", () => {
 				const obj = { context: "data" };
 				expect(Any.export(obj)).toBe(obj);
 			});
+
+			it("should not be instantiable", () => {
+				expect(() => new (Any as any)()).toThrow(TypeError);
+			});
 		});
 
-		describe("RecordOf", () => {
+		describe("Map.AsRecord", () => {
 			it("should import Record<string, S> as Map<string, M> via @Field decorator", () => {
 				const raw = {
 					tags: [],
@@ -508,26 +527,26 @@ describe("Model Tests", () => {
 
 			it("should import and export Map of models", () => {
 				const raw = { first: { name: "Alice", age_value: 30 } };
-				const map = RecordOf(SimpleModel).import(raw, "m");
+				const map = Map.AsRecord(SimpleModel).import(raw, "m");
 				expect(map.get("first")).toBeInstanceOf(SimpleModel);
 				expect((map.get("first") as SimpleModel).name).toBe("Alice");
 
-				const exported: any = RecordOf(SimpleModel).export(map);
+				const exported: any = Map.AsRecord(SimpleModel).export(map);
 				expect(exported.first).toEqual({ name: "Alice", age_value: 30 });
 			});
 
 			it("should import an empty object as an empty map", () => {
-				const map = RecordOf(String).import({}, "m");
+				const map = Map.AsRecord(String).import({}, "m");
 				expect(map.size).toBe(0);
 			});
 
 			it("should throw when source is not an object", () => {
-				expect(() => RecordOf(Number).import("string", "m")).toThrow(TypeError);
-				expect(() => RecordOf(Number).import(null, "m")).toThrow(TypeError);
+				expect(() => Map.AsRecord(Number).import("string", "m")).toThrow(TypeError);
+				expect(() => Map.AsRecord(Number).import(null, "m")).toThrow(TypeError);
 			});
 		});
 
-		describe("MapOf", () => {
+		describe("Map.AsTuples", () => {
 			it("should import [SK, SV][] as Map<MK, MV> via @Field decorator", () => {
 				const raw = {
 					tags: [],
@@ -552,27 +571,27 @@ describe("Model Tests", () => {
 
 			it("should import and export Map of models as tuples", () => {
 				const raw = [["key1", { name: "Bob", age_value: 25 }]];
-				const map = MapOf(String, SimpleModel).import(raw, "m");
+				const map = Map.AsTuples(String, SimpleModel).import(raw, "m");
 				expect(map.get("key1")).toBeInstanceOf(SimpleModel);
 				expect((map.get("key1") as SimpleModel).age).toBe(25);
 
-				const exported = MapOf(String, SimpleModel).export(map);
+				const exported = Map.AsTuples(String, SimpleModel).export(map);
 				expect(exported).toEqual([["key1", { name: "Bob", age_value: 25 }]]);
 			});
 
 			it("should import an empty array as an empty map", () => {
-				const map = MapOf(String, Number).import([], "m");
+				const map = Map.AsTuples(String, Number).import([], "m");
 				expect(map.size).toBe(0);
 			});
 
 			it("should throw when source is not an array", () => {
-				expect(() => MapOf(String, Number).import({}, "m")).toThrow(TypeError);
-				expect(() => MapOf(String, Number).import("bad", "m")).toThrow(TypeError);
+				expect(() => Map.AsTuples(String, Number).import({}, "m")).toThrow(TypeError);
+				expect(() => Map.AsTuples(String, Number).import("bad", "m")).toThrow(TypeError);
 			});
 		});
 	});
 
-	describe("EnumAs", () => {
+	describe("Enum.Of", () => {
 		describe("TS numeric enum (TaskStatus)", () => {
 			it("should import valid numeric members via @Field", () => {
 				const model = TaskModel.import({ status: TaskStatus.Active, direction: Direction.Up }, "task");
@@ -637,7 +656,7 @@ describe("Model Tests", () => {
 			});
 		});
 
-		describe("JS const-object with numeric values (Priority) wrapped in Optional", () => {
+		describe("JS const-object with numeric values (Priority) wrapped in Optional.Of", () => {
 			it("should import valid numeric priority", () => {
 				const model = AccessModel.import({ role: "user", priority: 2 }, "access");
 				expect(model.priority).toBe(2);
@@ -723,6 +742,84 @@ describe("Model Tests", () => {
 				}
 				void InvalidModel;
 			}).toThrow("Portable fields cannot be static");
+		});
+	});
+
+	describe("Optional and Nullable classes", () => {
+		it("Optional.Of should not be instantiable", () => {
+			expect(() => new (Optional as any)()).toThrow(TypeError);
+		});
+
+		it("Nullable.Of should not be instantiable", () => {
+			expect(() => new (Nullable as any)()).toThrow(TypeError);
+		});
+
+		it("Optional.map should pass undefined through", () => {
+			const result = Optional.map(undefined, (v: number) => v * 2);
+			expect(result).toBeUndefined();
+		});
+
+		it("Optional.map should apply callback to non-undefined values", () => {
+			const result = Optional.map(5, (v: number) => v * 2);
+			expect(result).toBe(10);
+		});
+
+		it("Optional.map should treat null as a valid value and apply callback", () => {
+			const result = Optional.map(null, (v: null) => "was null");
+			expect(result).toBe("was null");
+		});
+
+		it("Nullable.map should pass null through", () => {
+			const result = Nullable.map(null, (v: number) => v + 1);
+			expect(result).toBeNull();
+		});
+
+		it("Nullable.map should apply callback to non-null values", () => {
+			const result = Nullable.map(5, (v: number) => v * 2);
+			expect(result).toBe(10);
+		});
+
+		it("Nullable.map should treat undefined as a valid value and apply callback", () => {
+			const result = Nullable.map(undefined, (v: undefined) => "was undefined");
+			expect(result).toBe("was undefined");
+		});
+	});
+
+	describe("@Field fallback (migration defaults)", () => {
+		it("should use the fallback value when the source key is absent", () => {
+			const model = MigrationModel.import({ name: "Alice" }, "m");
+			expect(model.score).toBe(42);
+		});
+
+		it("should use the imported value when the source key is present", () => {
+			const model = MigrationModel.import({ name: "Alice", score: 99 }, "m");
+			expect(model.score).toBe(99);
+		});
+
+		it("should back-fill an array default without sharing the instance across imports", () => {
+			const a = MigrationModel.import({ name: "A" }, "a");
+			const b = MigrationModel.import({ name: "B" }, "b");
+			expect(a.tags).toEqual([]);
+			expect(b.tags).toEqual([]);
+			// structuredClone gives independent instances
+			a.tags.push(1);
+			expect(b.tags).toEqual([]);
+		});
+
+		it("should respect an aliased name alongside a default", () => {
+			const model = MigrationModel.import({ name: "C" }, "c");
+			expect(model.aliased).toBe("hello");
+
+			const model2 = MigrationModel.import({ name: "D", alias_key: "world" }, "d");
+			expect(model2.aliased).toBe("world");
+		});
+
+		it("should export the live field value (not the default) regardless", () => {
+			const model = MigrationModel.import({ name: "E" }, "e");
+			const raw: any = MigrationModel.export(model);
+			expect(raw.score).toBe(42);
+			expect(raw.tags).toEqual([]);
+			expect(raw.alias_key).toBe("hello");
 		});
 	});
 });

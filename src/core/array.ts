@@ -2,6 +2,7 @@
 
 import "./global.js";
 import { type Promisable } from "./promise.js";
+import { type PortableConstructor } from "./portable.js";
 
 const { trunc } = Math;
 
@@ -20,6 +21,11 @@ declare global {
 		 * @param source The array to export.
 		 */
 		export(source: any[]): any[];
+		/**
+		 * Creates a portable wrapper for array types.
+		 * @param type The portable type of the array elements.
+		 */
+		Of<I, S>(type: PortableConstructor<I, S>): PortableConstructor<I[], S[]>;
 		/**
 		 * Creates an array of integers between the specified minimum and maximum values (exclusive).
 		 * @param min The minimum value of the range (inclusive).
@@ -75,6 +81,26 @@ Array.import = function (source: any, name: string): any[] {
 
 Array.export = function (source: any[]): any[] {
 	return source;
+};
+
+Array.Of = function <I, S>(type: PortableConstructor<I, S>): PortableConstructor<I[], S[]> {
+	return {
+		[Symbol.hasInstance](instance: any): boolean {
+			return Array[Symbol.hasInstance](instance);
+		},
+
+		get name(): string {
+			return `${type.name}[]`;
+		},
+
+		import(source: any, name: string): I[] {
+			return Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`));
+		},
+
+		export(source: I[]): S[] {
+			return source.map(item => type.export(item));
+		},
+	} as PortableConstructor<I[], S[]>;
 };
 
 Array.range = function (min: number, max: number): number[] {

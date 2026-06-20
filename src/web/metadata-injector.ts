@@ -1,7 +1,7 @@
 "use strict";
 
 import "adaptive-extender/web";
-import { Model, Field, Optional, ArrayOf, type PortableConstructor, DiscriminatorKey, Descendant, Deferred } from "adaptive-extender/web";
+import { Model, Field, Optional, type PortableConstructor, DiscriminatorKey, Descendant, Deferred } from "adaptive-extender/web";
 
 //#region URL adapter
 const URLAdapter = {
@@ -75,22 +75,22 @@ export interface MetadataConfiguration {
 @Descendant(Deferred(_ => ApplicationMetadata), "SoftwareApplication")
 @Descendant(Deferred(_ => OrganizationMetadata), "Organization")
 abstract class Metadata extends Model {
-	@Field(String, "@context")
+	@Field(String, { name: "@context" })
 	context: string = "https://schema.org";
 
-	@Field(String, "name")
+	@Field(String, { name: "name" })
 	name: string;
 
-	@Field(URLAdapter, "url")
+	@Field(URLAdapter, { name: "url" })
 	webpage: URL;
 
-	@Field(Optional(URLAdapter), "image")
+	@Field(Optional.Of(URLAdapter), { name: "image" })
 	preview?: URL;
 
-	@Field(Optional(String), "description")
+	@Field(Optional.Of(String), { name: "description" })
 	description?: string;
 
-	@Field(Optional(ArrayOf(String)), "keywords")
+	@Field(Optional.Of(Array.Of(String)), { name: "keywords" })
 	keywords?: string[];
 
 	constructor();
@@ -151,13 +151,13 @@ export interface PersonMetadataConfiguration extends MetadataConfiguration {
 }
 
 class PersonMetadata extends Metadata {
-	@Field(Optional(ArrayOf(URLAdapter)), "sameAs")
+	@Field(Optional.Of(Array.Of(URLAdapter)), { name: "sameAs" })
 	associations?: URL[];
 
-	@Field(Optional(String), "jobTitle")
+	@Field(Optional.Of(String), { name: "jobTitle" })
 	job?: string;
 
-	@Field(Optional(ArrayOf(String)), "knowsAbout")
+	@Field(Optional.Of(Array.Of(String)), { name: "knowsAbout" })
 	knowledge?: string[];
 
 	constructor();
@@ -215,13 +215,13 @@ export interface ApplicationMetadataConfiguration extends MetadataConfiguration 
 }
 
 class ApplicationMetadata extends Metadata {
-	@Field(String, "applicationCategory")
+	@Field(String, { name: "applicationCategory" })
 	category: string;
 
-	@Field(String, "operatingSystem")
+	@Field(String, { name: "operatingSystem" })
 	os: string;
 
-	@Field(Optional(String), "softwareVersion")
+	@Field(Optional.Of(String), { name: "softwareVersion" })
 	version?: string;
 
 	constructor();
@@ -279,13 +279,13 @@ export interface OrganizationMetadataConfiguration extends MetadataConfiguration
 }
 
 class OrganizationMetadata extends Metadata {
-	@Field(Optional(URLAdapter), "logo")
+	@Field(Optional.Of(URLAdapter), { name: "logo" })
 	logo?: URL;
 
-	@Field(Optional(String), "email")
+	@Field(Optional.Of(String), { name: "email" })
 	email?: string;
 
-	@Field(Optional(Date), "foundingDate")
+	@Field(Optional.Of(Date), { name: "foundingDate" })
 	foundation?: Date;
 
 	constructor();

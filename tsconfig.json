@@ -1,10 +1,5 @@
 {
 	"extends": "./tsconfig.base.json",
-	"compilerOptions": {
-		/* Emit & Declarations */
-		"declaration": true,
-		"sourceMap": true,
-	},
 	"files": [ ],
 	"references": [
 		{ "path": "./src/core/tsconfig.json" },

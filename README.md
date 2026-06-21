@@ -192,11 +192,11 @@ random.subarray(items, 3); // 3 random elements
 random.shuffle(array); // shuffle in place
 
 // Weighted selection
-const loot = random.case(new Map([
+const loot = random.case([
 	["common", 70],
 	["rare", 25],
 	["legendary", 5],
-]));
+]);
 ```
 
 ### Vector

@@ -1,3 +1,8 @@
+## 0.11.3 (22.06.2026)
+- Added `DescendantOptions` interface — configure `@Descendant` via `{ discriminator }` options instead of a positional string.
+- `Random.case()` now accepts any `Iterable<readonly [T, number]>` instead of `Readonly<Map<T, number>>`.
+- **Breaking:** `@Descendant(type, "name")` positional discriminator string removed — use `@Descendant(type, { discriminator: "name" })` instead.
+
 ## 0.11.2 (21.06.2026)
 - Added `Number.prototype.snap(step)` — snaps a number to the nearest multiple of `step`.
 - Added `Array.Of(type)` portable adapter for typed arrays, as a `PortableConstructor` wrapper usable with `@Field`.

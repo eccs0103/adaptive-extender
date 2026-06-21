@@ -25,6 +25,9 @@ describe("Number extensions", () => {
 		it("should lerp from [0,10] to [0,1]", () => {
 			expect((5).lerp(0, 10)).toBeCloseTo(0.5);
 		});
+		it("should normalize to values outside [0,1] for out-of-range input", () => {
+			expect((15).lerp(0, 10)).toBeCloseTo(1.5);
+		});
 		it("should lerp from [10,20] to [100,200]", () => {
 			expect((15).lerp(10, 20, 100, 200)).toBe(150);
 		});
@@ -53,8 +56,26 @@ describe("Number extensions", () => {
 			expect((-3).mod(5)).toBe(2);
 			expect((-8).mod(2, 5)).toBe(2);
 		});
-		it("should throw on zero length", () => {
+		it("should throw on zero length (1-arg)", () => {
+			expect(() => (5).mod(0)).toThrow(RangeError);
+		});
+		it("should throw on zero length (2-arg)", () => {
 			expect(() => (5).mod(0, 0)).toThrow(RangeError);
+		});
+	});
+
+	describe("Number.prototype.snap", () => {
+		it("should snap to nearest step", () => {
+			expect((7).snap(5)).toBe(5);
+			expect((8).snap(5)).toBe(10);
+		});
+		it("should snap negative values", () => {
+			expect((-3).snap(5)).toBe(-5);
+			expect((-2).snap(5)).toBeCloseTo(0);
+		});
+		it("should snap to decimal step", () => {
+			expect((0.7).snap(0.5)).toBeCloseTo(0.5);
+			expect((0.8).snap(0.5)).toBeCloseTo(1.0);
 		});
 	});
 });

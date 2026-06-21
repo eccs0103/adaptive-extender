@@ -16,7 +16,7 @@
 ## 0.9.13 (06.04.2026)
 - Added `Version` class for semantic versioning with `parse()`, `tryParse()` support.
 - Added `BigInt` portable support via `BigInt.import()` and `BigInt.export()`.
-- `ArchiveRepository.save()` is now `async` and returns `Promise<void>`. The promise resolves when the save completes and rejects on failure. A pending save is cancelled (with an `AbortError`) when superseded by a new call.
+- `ArchiveRepository.save()` is now `async` and returns `Promise<boolean>`. The promise resolves `true` when the save completes, `false` if cancelled (superseded by a subsequent call or aborted via `abort()`), and rejects only on serialization failure.
 - `Promise.withSignal` now has a default type parameter `T = void`.
 - Renamed `EnumFrom` adapter to `EnumAs`.
 

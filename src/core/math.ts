@@ -1,6 +1,6 @@
 "use strict";
 
-const { PI, trunc, pow } = Math;
+const { PI, trunc, pow, round } = Math;
 
 //#region Number
 declare global {
@@ -41,6 +41,11 @@ declare global {
 		 * @throws {RangeError} When the length is zero.
 		 */
 		mod(start: number, length: number): number;
+		/**
+		 * Snaps the number to the nearest multiple of the given step.
+		 * @param step The step size to snap to.
+		 */
+		snap(step: number): number;
 	}
 }
 
@@ -51,6 +56,11 @@ Number.prototype.clamp = function (min: number, max: number): number {
 	return result;
 };
 
+function normalize(value: number, min: number, max: number): number {
+	if (min === max) throw new Error("Minimum and maximum of the original range cant be equal");
+	return (value - min) / (max - min);
+}
+
 function lerp(value: number, min1: number, max1: number, min2: number, max2: number): number {
 	if (min1 === max1) throw new Error("Minimum and maximum of the original range cant be equal");
 	if (min2 === max2) throw new Error("Minimum and maximum of the target range cant be equal");
@@ -58,18 +68,26 @@ function lerp(value: number, min1: number, max1: number, min2: number, max2: num
 }
 
 Number.prototype.lerp = function (min1: number, max1: number, min2?: number, max2?: number): number {
-	if (min2 === undefined || max2 === undefined) return lerp(this.valueOf(), min1, max1, 0, 1);
+	if (min2 === undefined || max2 === undefined) return normalize(this.valueOf(), min1, max1);
 	return lerp(this.valueOf(), min1, max1, min2, max2);
 };
 
-function mod(value: number, start: number, length: number): number {
+function repeat(value: number, length: number): number {
 	if (length === 0) throw new RangeError("Length must not be zero");
-	return ((value - start) % length + length) % length + start;
+	return (value % length + length) % length;
+}
+
+function wrap(value: number, start: number, length: number): number {
+	return repeat(value - start, length) + start;
 }
 
 Number.prototype.mod = function (arg1: number, arg2?: number): number {
-	if (arg2 === undefined) return mod(this.valueOf(), 0, arg1);
-	return mod(this.valueOf(), arg1, arg2);
+	if (arg2 === undefined) return repeat(this.valueOf(), arg1);
+	return wrap(this.valueOf(), arg1, arg2);
+};
+
+Number.prototype.snap = function (step: number): number {
+	return round(this.valueOf() / step) * step;
 };
 //#endregion
 //#region Math

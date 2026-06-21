@@ -1,7 +1,7 @@
 "use strict";
 
 import "../core/index.js";
-import { type PortableConstructor, type Promisable } from "../core/index.js";
+import { type PortableConstructor } from "../core/index.js";
 
 //#region Archive
 /**
@@ -142,26 +142,26 @@ export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
 }
 //#endregion
 //#region Archive repository
-class SaveTransaction<T> {
+class SaveTransaction {
 	#idTimeout: number;
-	#resolve: (value: Promisable<T>) => void;
-	#reject: (reason?: any) => void;
+	#resolve: (value: boolean) => void;
+	#reject: (reason?: unknown) => void;
 
-	constructor(handler: TimerHandler, delay: number | undefined, resolve: (value: Promisable<T>) => void, reject: (reason: unknown) => void) {
+	constructor(handler: TimerHandler, delay: number | undefined, resolve: (value: boolean) => void, reject: (reason: unknown) => void) {
 		this.#idTimeout = setTimeout(handler, delay);
 		this.#resolve = resolve;
 		this.#reject = reject;
 	}
 
-	cancel(reason?: any): void {
+	cancel(): void {
 		clearTimeout(this.#idTimeout);
-		this.#reject(new DOMException(reason, "AbortError"));
+		this.#resolve(false);
 	}
 
-	settle(callback: () => Promisable<T>): void {
+	settle(callback: () => void): void {
 		try {
-			const result = callback();
-			this.#resolve(result);
+			callback();
+			this.#resolve(true);
 		} catch (reason) {
 			this.#reject(Error.from(reason));
 		}
@@ -174,7 +174,7 @@ class SaveTransaction<T> {
 export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 	#manager: ArchiveManager<M>;
 	#content: InstanceType<M>;
-	#transaction: SaveTransaction<void> | null = null;
+	#transaction: SaveTransaction | null = null;
 
 	/**
 	 * @param key Unique storage identifier.
@@ -220,20 +220,20 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 
 	/**
 	 * Schedules an immediate save operation for the current content.
-	 * Any pending delayed saves are overridden.
-	 * @returns A promise that resolves when the save completes, or rejects if it fails.
+	 * Any pending delayed saves are cancelled.
+	 * @returns A promise that resolves `true` when the save completes, `false` if cancelled (superseded or aborted), or rejects if serialization fails.
 	 */
-	async save(): Promise<void>;
+	async save(): Promise<boolean>;
 	/**
 	 * Schedules a save operation to be executed after the specified delay.
-	 * Useful for debouncing frequent updates.
+	 * Useful for debouncing frequent updates. Any existing pending save is cancelled.
 	 * @param delay The delay in milliseconds before saving.
-	 * @returns A promise that resolves when the save completes, or rejects if it fails.
+	 * @returns A promise that resolves `true` when the save completes, `false` if cancelled (superseded or aborted), or rejects if serialization fails.
 	 */
-	async save(delay: number): Promise<void>;
-	async save(delay?: number): Promise<void> {
+	async save(delay: number): Promise<boolean>;
+	async save(delay?: number): Promise<boolean> {
 		const transaction = this.#transaction;
-		transaction?.cancel("Save superseded by a subsequent call.");
+		transaction?.cancel();
 		return await new Promise((resolve, reject) => {
 			this.#transaction = new SaveTransaction(this.#handler.bind(this), delay, resolve, reject);
 		});
@@ -241,10 +241,11 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 
 	/**
 	 * Cancels any scheduled save operations.
+	 * Any pending {@linkcode save} promise resolves to `false`.
 	 */
 	abort(): void {
 		const transaction = this.#transaction;
-		transaction?.cancel("Save operation explicitly aborted.");
+		transaction?.cancel();
 		this.#transaction = null;
 	}
 

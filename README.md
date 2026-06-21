@@ -412,10 +412,10 @@ const repository = new ArchiveRepository("settings", Settings, new Settings());
 const settings = repository.content;
 settings.volume = 0.5;
 
-// save() is async — resolves when the write completes, rejects on failure
-await repository.save(); // save immediately
+// save() resolves true when persisted, false if cancelled (superseded or aborted), rejects only on serialization failure
+const saved = await repository.save(); // save immediately
 await repository.save(3000); // debounced — save after 3 seconds
-// A pending save is cancelled (AbortError) when superseded by a new call
+// A pending save resolves false when superseded by a new call or cancelled by abort()
 repository.reset(); // abort pending save and revert to initial state
 ```
 

@@ -136,18 +136,41 @@ describe("ArchiveRepository", () => {
 		expect(stored.value).toBe(500);
 	});
 
-	it("should abort pending save", async () => {
+	it("should resolve false when aborted", async () => {
 		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
 		repo.content.value = 500;
 		const savePromise = repo.save(1000);
 
 		repo.abort();
-		await expect(savePromise).rejects.toThrow("Save operation explicitly aborted.");
+		await expect(savePromise).resolves.toBe(false);
 		vi.advanceTimersByTime(1000);
 
 		// Should still be initial value in storage
 		const stored = JSON.parse(localStorage.getItem(KEY)!);
 		expect(stored.value).toBe(1);
+	});
+
+	it("should resolve false when superseded by a subsequent save", async () => {
+		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
+		repo.content.value = 500;
+		const firstSave = repo.save(1000);
+
+		repo.content.value = 600;
+		repo.save(500);
+
+		await expect(firstSave).resolves.toBe(false);
+	});
+
+	it("should resolve true when save completes", async () => {
+		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
+		repo.content.value = 500;
+		const savePromise = repo.save(1000);
+
+		vi.advanceTimersByTime(1000);
+		await expect(savePromise).resolves.toBe(true);
+
+		const stored = JSON.parse(localStorage.getItem(KEY)!);
+		expect(stored.value).toBe(500);
 	});
 
 	it("should reset repository state", () => {

@@ -63,8 +63,8 @@ class Shelter extends Model {
 }
 
 // Custom Discriminator Models
-@Descendant(Deferred(_ => CustomTypeA), "type-a")
-@Descendant(Deferred(_ => CustomTypeB), "type-b")
+@Descendant(Deferred(_ => CustomTypeA), { discriminator: "type-a" })
+@Descendant(Deferred(_ => CustomTypeB), { discriminator: "type-b" })
 abstract class CustomBase extends Model {
 	@Field(String)
 	id!: string;
@@ -83,8 +83,8 @@ class CustomTypeB extends CustomBase {
 
 // Custom Discriminator Key Models
 @DiscriminatorKey("kind")
-@Descendant(Deferred(_ => Notification), "msg")
-@Descendant(Deferred(_ => Alert), "alert")
+@Descendant(Deferred(_ => Notification), { discriminator: "msg" })
+@Descendant(Deferred(_ => Alert), { discriminator: "alert" })
 abstract class Event extends Model {
 	@Field(Number)
 	timestamp!: number;

@@ -1,13 +1,23 @@
-## 0.11.1 (21.06.2026)
-- Added `Array.Of(type)` portable adapter for typed arrays, alongside the existing `Array.import`/`Array.export`.
-- Added `Set.Of(type)` portable adapter for typed sets.
-- Added `Map.AsRecord(type)` and `Map.AsTuples(typeKey, typeValue)` portable adapters (moved from a separate module into [map](./src/core/map.ts)).
-- Added `Date.AsTimestamp` and `Date.AsUnixSeconds` portable adapters converting `Date` to millisecond and Unix-second numbers respectively.
-- Added `Number.prototype.snap(step)` — snaps a number to the nearest multiple of the given step.
-- **Breaking:** Removed `Reflect.mapNull`, `Reflect.mapUndefined`, and `Reflect.mapNullable`. Use `Nullable.map`, `Optional.map` from the portable module instead.
-- **Breaking:** Renamed `Archive`/`ArchiveManager`/`ArchiveRepository` to `Cell`/`PortableCell`/`BufferedCell`. Construction is now done via `Storage` factory methods (`localStorage.openCell`, `localStorage.openPortableCell`, `localStorage.openBufferedCell`) — the storage backend is no longer hardcoded to `localStorage`.
-- **Breaking:** `@Field` decorator no longer accepts a positional string as the second argument. Use `{ name: "..." }` options object: `@Field(String, { name: "fieldName" })`.
-- `PortableCell.save()` returns `Promise<boolean>` — resolves `true` when persisted, `false` if cancelled (superseded or aborted); rejects only on serialization failure.
+## 0.11.2 (21.06.2026)
+- Added `Number.prototype.snap(step)` — snaps a number to the nearest multiple of `step`.
+- Added `Array.Of(type)` portable adapter for typed arrays, as a `PortableConstructor` wrapper usable with `@Field`.
+- Added `Set.Of(type)` portable adapter for typed sets, serialized as arrays.
+- Added `Map.AsRecord(type)` portable adapter — converts `Map<string, T>` to and from a plain `Record<string, S>`.
+- Added `Map.AsTuples(typeKey, typeValue)` portable adapter — converts `Map<K, V>` to and from `[K, V][]` tuple arrays.
+- Added `Date.AsTimestamp` portable adapter — converts between `Date` instances and millisecond timestamps.
+- Added `Date.AsUnixSeconds` portable adapter — converts between `Date` instances and Unix-second integers.
+- Added `Optional.Of(type)` and `Optional.map(value, fn)` static methods on the `Optional` class.
+- Added `Nullable.Of(type)` and `Nullable.map(value, fn)` static methods on the `Nullable` class.
+- Added `Enum.Of(reference)` static method on the new `Enum` class.
+- Added `Storage.openCell(key, initial)`, `Storage.openPortableCell(key, model, instance)`, and `Storage.openBufferedCell(key, model, instance)` factory methods on the `Storage` prototype.
+- `BufferedCell.save()` returns `Promise<boolean>` — resolves `true` when persisted, `false` if cancelled (superseded or aborted); rejects only on serialization failure.
+- **Breaking:** Renamed `Archive` → `Cell`, `ArchiveManager` → `PortableCell`, `ArchiveRepository` → `BufferedCell`. All three constructors now require an explicit `storage` as their first argument (e.g. `localStorage.openBufferedCell(key, model, instance)`) — the backend is no longer hardcoded to `localStorage`.
+- **Breaking:** `Optional(type)` and `Nullable(type)` call syntax removed — use `Optional.Of(type)` and `Nullable.Of(type)` instead.
+- **Breaking:** `ArrayOf(type)`, `SetOf(type)`, `RecordOf(type)`, `MapOf(K, V)` adapter functions removed — use `Array.Of(type)`, `Set.Of(type)`, `Map.AsRecord(type)`, `Map.AsTuples(K, V)` instead.
+- **Breaking:** `EnumAs(reference)` function removed — use `Enum.Of(reference)` instead.
+- **Breaking:** `Timestamp` and `UnixSeconds` portable constants removed — use `Date.AsTimestamp` and `Date.AsUnixSeconds` instead.
+- **Breaking:** Removed `Reflect.mapNull`, `Reflect.mapUndefined`, and `Reflect.mapNullable` — use `Nullable.map(value, fn)` and `Optional.map(value, fn)` instead.
+- **Breaking:** `@Field(type, "name")` positional string shorthand removed — use `@Field(type, { name: "name" })` options object instead.
 
 ## 0.10.5 (13.06.2026)
 - Bugfix at [portable](./src/core/portable.ts).

@@ -47,6 +47,9 @@ const pixelX = angle.lerp(0, 360, 0, canvasWidth);
 // True mathematical modulo — works correctly with negative numbers
 const wrappedIndex = (-1).mod(items.length); // → items.length - 1
 
+// Snap to a grid step
+const snapped = (3.7).snap(0.5); // → 4
+
 // Chainable fallback for invalid values
 const ratio = (numerator / denominator).insteadNaN(0).insteadInfinity(1);
 ```
@@ -268,7 +271,7 @@ class AppConfig extends Model {
 	@Field(Number)
 	DB_PORT: number = 5432;
 	
-	@Field(Optional(String))
+	@Field(Optional.Of(String))
 	LOG_LEVEL?: string;
 }
 
@@ -284,7 +287,7 @@ Binds classes to their schema via decorators. Importing from JSON validates type
 ### Basic Usage
 
 ```typescript
-import { Model, Field, ArrayOf, Optional, Nullable } from "adaptive-extender/core";
+import { Model, Field, Optional, Nullable } from "adaptive-extender/core";
 
 class Tag extends Model {
 	@Field(String)
@@ -298,13 +301,13 @@ class Article extends Model {
 	@Field(Number)
 	views: number = 0;
 	
-	@Field(ArrayOf(Tag))
+	@Field(Array.Of(Tag))
 	tags: Tag[] = [];
 	
-	@Field(Optional(String))
+	@Field(Optional.Of(String))
 	subtitle?: string;
 	
-	@Field(Nullable(String))
+	@Field(Nullable.Of(String))
 	draft: string | null = null;
 }
 
@@ -343,16 +346,18 @@ const animal = Animal.import(json, "api.animal");
 
 ### Adapters
 
-| Adapter            | Type                                   |
-| :----------------- | :------------------------------------- |
-| `ArrayOf(T)`       | `T[]`                                  |
-| `SetOf(T)`         | `Set<T>` ↔ `T[]`                       |
-| `RecordOf(T)`      | `Map<string, T>` ↔ `Record<string, T>` |
-| `MapOf(K, V)`      | `Map<K, V>` ↔ `[K, V][]`               |
-| `Optional(T)`      | `T \| undefined`                       |
-| `Nullable(T)`      | `T \| null`                            |
-| `Deferred(_ => T)` | Circular references                    |
-| `EnumAs(E)`        | TypeScript `enum` or const-object enum |
+| Adapter              | Type                                   |
+| :------------------- | :------------------------------------- |
+| `Array.Of(T)`        | `T[]`                                  |
+| `Set.Of(T)`          | `Set<T>` ↔ `T[]`                       |
+| `Map.AsRecord(T)`    | `Map<string, T>` ↔ `Record<string, T>` |
+| `Map.AsTuples(K, V)` | `Map<K, V>` ↔ `[K, V][]`               |
+| `Optional.Of(T)`     | `T \| undefined`                       |
+| `Nullable.Of(T)`     | `T \| null`                            |
+| `Deferred(_ => T)`   | Circular references                    |
+| `Enum.Of(E)`         | TypeScript `enum` or const-object enum |
+| `Date.AsTimestamp`   | `Date` ↔ milliseconds (`number`)       |
+| `Date.AsUnixSeconds` | `Date` ↔ Unix seconds (`number`)       |
 
 ## Web
 
@@ -392,12 +397,12 @@ const fixedEngine = new StaticEngine({ launch: true });
 fixedEngine.limit = 30;
 ```
 
-### Archive (localStorage)
+### Storage (localStorage)
 
-Type-safe localStorage with buffered access and auto-save.
+Type-safe storage with buffered access and auto-save. Use the factory methods on any `Storage` instance (`localStorage`, `sessionStorage`, or custom) to create typed cells.
 
 ```typescript
-import { ArchiveRepository, Model, Field } from "adaptive-extender/web";
+import { Model, Field } from "adaptive-extender/web";
 
 class Settings extends Model {
 	@Field(Boolean)
@@ -407,16 +412,25 @@ class Settings extends Model {
 	volume: number = 1;
 }
 
-const repository = new ArchiveRepository("settings", Settings, new Settings());
+// BufferedCell — buffered read/write with debounced auto-save
+const cell = localStorage.openBufferedCell("settings", Settings, new Settings());
 
-const settings = repository.content;
+const settings = cell.content;
 settings.volume = 0.5;
 
 // save() resolves true when persisted, false if cancelled (superseded or aborted), rejects only on serialization failure
-const saved = await repository.save(); // save immediately
-await repository.save(3000); // debounced — save after 3 seconds
+const saved = await cell.save(); // save immediately
+await cell.save(3000); // debounced — save after 3 seconds
 // A pending save resolves false when superseded by a new call or cancelled by abort()
-repository.reset(); // abort pending save and revert to initial state
+cell.reset(); // abort pending save and revert to initial state
+
+// PortableCell — direct typed read/write without buffering
+const typed = localStorage.openPortableCell("config", Settings, new Settings());
+typed.content = settings;
+
+// Cell — raw JSON storage
+const raw = localStorage.openCell("flags", { debug: false });
+raw.data = { debug: true };
 ```
 
 ### Promise Utilities
@@ -429,15 +443,6 @@ const result = await Promise.withSignal((signal, resolve, reject) => {
 	buttonAccept.addEventListener("click", event => resolve(event.result), { signal });
 	buttonDecline.addEventListener("click", event => reject(event.error), { signal });
 });
-```
-
-## Reflect Utilities
-
-```typescript
-// Apply a function only if the value is not null / undefined
-const upper = Reflect.mapNull(maybeNull, text => text.toUpperCase());
-const trimmed = Reflect.mapUndefined(maybeUndefined, text => text.trim());
-const parsed = Reflect.mapNullable(maybeNullable, text => Number.parseInt(text));
 ```
 
 ## License

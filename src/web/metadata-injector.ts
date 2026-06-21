@@ -71,9 +71,9 @@ export interface MetadataConfiguration {
 }
 
 @DiscriminatorKey("@type")
-@Descendant(Deferred(_ => PersonMetadata), "Person")
-@Descendant(Deferred(_ => ApplicationMetadata), "SoftwareApplication")
-@Descendant(Deferred(_ => OrganizationMetadata), "Organization")
+@Descendant(Deferred(_ => PersonMetadata), { discriminator: "Person" })
+@Descendant(Deferred(_ => ApplicationMetadata), { discriminator: "SoftwareApplication" })
+@Descendant(Deferred(_ => OrganizationMetadata), { discriminator: "Organization" })
 abstract class Metadata extends Model {
 	@Field(String, { name: "@context" })
 	context: string = "https://schema.org";

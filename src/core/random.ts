@@ -142,14 +142,12 @@ export class Random {
 		}
 	}
 	/**
-	 * Selects a random key from a map based on assigned weights.
-	 * @param cases A map of items to their respective weights.
-	 * @returns A randomly selected item based on weights.
-	 * @throws {Error} If the map is empty.
-	 * @throws {Error} If no item can be selected.
+	 * Selects a random item from a weighted set of cases.
+	 * @param cases An iterable of item/weight pairs.
+	 * @returns A randomly selected item, with probability proportional to its weight.
+	 * @throws {Error} If the iterable yields no items.
 	 */
-	case<T>(cases: Readonly<Map<T, number>>): T {
-		if (1 > cases.size) throw new Error(`The cases must have at least 1 item`);
+	case<T>(cases: Iterable<readonly [T, number]>): T {
 		const summary = Array.from(cases).reduce((previous, [, weight]) => previous + weight, 0);
 		const random = this.#number(0, summary);
 		let begin = 0;
@@ -158,7 +156,7 @@ export class Random {
 			if (begin <= random && random < end) return item;
 			begin = end;
 		}
-		throw new Error(`Unable to select element with value ${random}`);
+		throw new Error(`The cases must have at least 1 item`);
 	};
 }
 //#endregion

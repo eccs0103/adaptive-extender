@@ -112,7 +112,7 @@ describe("Random", () => {
 	});
 
 	describe("case()", () => {
-		it("should select an item based on weights", () => {
+		it("should select an item based on weights from a map", () => {
 			const cases = new Map<string, number>([
 				["a", 1],
 				["b", 2],
@@ -122,8 +122,19 @@ describe("Random", () => {
 			expect(["a", "b", "c"]).toContain(result);
 		});
 
-		it("should throw if map is empty", () => {
+		it("should accept any iterable of item/weight pairs", () => {
+			const cases: ReadonlyArray<readonly [string, number]> = [
+				["a", 1],
+				["b", 2],
+				["c", 7],
+			];
+			const result = random.case(cases);
+			expect(["a", "b", "c"]).toContain(result);
+		});
+
+		it("should throw if the iterable yields no items", () => {
 			expect(() => random.case(new Map())).toThrow();
+			expect(() => random.case([])).toThrow();
 		});
 	});
 

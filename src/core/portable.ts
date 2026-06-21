@@ -46,6 +46,17 @@ export interface FieldOptions<I> {
 	fallback: I;
 }
 
+/**
+ * Options for the {@link Descendant} decorator.
+ */
+export interface DescendantOptions {
+	/**
+	 * Custom discriminator value identifying this descendant in the external source.
+	 * Defaults to the class name when omitted.
+	 */
+	discriminator: string;
+}
+
 class FieldDescriptor {
 	#key: string;
 	#association: string;
@@ -81,9 +92,9 @@ class DescendantDescriptor {
 	#type: PortableConstructor<Model, object>;
 	#discriminator: string | undefined;
 
-	constructor(type: PortableConstructor<Model, object>, discriminator: string | undefined) {
+	constructor(type: PortableConstructor<Model, object>, options: Partial<DescendantOptions> = {}) {
 		this.#type = type;
-		this.#discriminator = discriminator;
+		this.#discriminator = options.discriminator;
 	}
 
 	get discriminator(): string { return this.#discriminator ?? this.#type.name; }
@@ -292,14 +303,14 @@ export function Descendant<M extends typeof Model>(descendant: PortableConstruct
 /**
  * Decorator to register a descendant class in the base class's polymorphic registry.
  * @param descendant The subclass constructor to register.
- * @param discriminator The custom discriminator value.
+ * @param options Configuration for the descendant, including a custom discriminator value.
  */
-export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>, discriminator: string): (target: M, context: ClassDecoratorContext) => void;
-export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>, discriminator?: string): (target: M, context: ClassDecoratorContext) => void {
+export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>, options: Partial<DescendantOptions>): (target: M, context: ClassDecoratorContext) => void;
+export function Descendant<M extends typeof Model>(descendant: PortableConstructor<Model, object>, options: Partial<DescendantOptions> = {}): (target: M, context: ClassDecoratorContext) => void {
 	return function (model: M, context: ClassDecoratorContext): void {
 		void model;
 		const { descendants } = PortabilityMetadata.for(context.metadata);
-		descendants.push(new DescendantDescriptor(descendant, discriminator));
+		descendants.push(new DescendantDescriptor(descendant, options));
 	};
 }
 

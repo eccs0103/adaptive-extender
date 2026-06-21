@@ -324,8 +324,8 @@ const raw = Article.export(article); // → plain object, ready for JSON.stringi
 import { Model, Field, Descendant, DiscriminatorKey } from "adaptive-extender/core";
 
 @DiscriminatorKey("kind")
-@Descendant(Dog, "dog")
-@Descendant(Cat, "cat")
+@Descendant(Dog, { discriminator: "dog" })
+@Descendant(Cat, { discriminator: "cat" })
 abstract class Animal extends Model {
 }
 

@@ -1,4 +1,5 @@
-import { ArchiveManager, ArchiveRepository } from "adaptive-extender/web";
+import "adaptive-extender/web";
+import { Cell, PortableCell, BufferedCell } from "adaptive-extender/web";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 // A Mock Portable Model that behaves correctly
@@ -19,7 +20,7 @@ class MockArchivable {
 		// Basic validation to simulate type checking
 		if (typeof source.value !== "number") throw new TypeError("Missing or invalid 'value'");
 		if (typeof source.name !== "string") throw new TypeError("Missing or invalid 'name'");
-		
+
 		return new MockArchivable(source.value, source.name);
 	}
 
@@ -31,7 +32,7 @@ class MockArchivable {
 	}
 }
 
-describe("ArchiveManager", () => {
+describe("PortableCell", () => {
 	const KEY = "test_archive_key";
 
 	beforeEach(() => {
@@ -40,12 +41,12 @@ describe("ArchiveManager", () => {
 
 	it("should initialize with initial instance if storage is empty", () => {
 		const initial = new MockArchivable(10, "init");
-		const manager = new ArchiveManager(KEY, MockArchivable, initial);
+		const cell = localStorage.openPortableCell(KEY, MockArchivable, initial);
 
-		expect(manager.content.value).toBe(10);
-		expect(manager.content.name).toBe("init");
-		
-		// Should have persisted to localStorage immediately (or via Archive ctor)
+		expect(cell.content.value).toBe(10);
+		expect(cell.content.name).toBe("init");
+
+		// Should have persisted to localStorage immediately (or via Cell ctor)
 		const raw = localStorage.getItem(KEY);
 		expect(raw).toBeTruthy();
 	});
@@ -54,16 +55,16 @@ describe("ArchiveManager", () => {
 		const data = { value: 99, name: "stored" };
 		localStorage.setItem(KEY, JSON.stringify(data));
 
-		const manager = new ArchiveManager(KEY, MockArchivable, new MockArchivable(0, "default"));
-		
-		expect(manager.content.value).toBe(99);
-		expect(manager.content.name).toBe("stored");
+		const cell = localStorage.openPortableCell(KEY, MockArchivable, new MockArchivable(0, "default"));
+
+		expect(cell.content.value).toBe(99);
+		expect(cell.content.name).toBe("stored");
 	});
 
 	it("should persist changes when content setter is called", () => {
-		const manager = new ArchiveManager(KEY, MockArchivable, new MockArchivable(1, "a"));
+		const cell = localStorage.openPortableCell(KEY, MockArchivable, new MockArchivable(1, "a"));
 		const next = new MockArchivable(2, "b");
-		manager.content = next;
+		cell.content = next;
 
 		const raw = localStorage.getItem(KEY);
 		const parsed = JSON.parse(raw!);
@@ -72,14 +73,14 @@ describe("ArchiveManager", () => {
 
 	it("should reset to initial state", () => {
 		const initial = new MockArchivable(5, "start");
-		const manager = new ArchiveManager(KEY, MockArchivable, initial);
-		
-		manager.content = new MockArchivable(10, "change");
-		expect(manager.content.value).toBe(10);
+		const cell = localStorage.openPortableCell(KEY, MockArchivable, initial);
 
-		manager.reset();
-		expect(manager.content.value).toBe(5);
-		expect(manager.content.name).toBe("start");
+		cell.content = new MockArchivable(10, "change");
+		expect(cell.content.value).toBe(10);
+
+		cell.reset();
+		expect(cell.content.value).toBe(5);
+		expect(cell.content.name).toBe("start");
 	});
 
 	it("should throw TypeError during construction if instance is incompatible", () => {
@@ -90,19 +91,19 @@ describe("ArchiveManager", () => {
 		}
 
 		expect(() => {
-			new ArchiveManager(KEY, BadModel as any, new BadModel() as any);
+			localStorage.openPortableCell(KEY, BadModel as any, new BadModel() as any);
 		}).toThrow(TypeError);
 	});
 
 	it("should throw SyntaxError if storage is corrupted", () => {
 		localStorage.setItem(KEY, "{ invalid json");
-		const manager = new ArchiveManager(KEY, MockArchivable, new MockArchivable(0, ""));
-		
-		expect(() => manager.content).toThrow(SyntaxError);
+		const cell = localStorage.openPortableCell(KEY, MockArchivable, new MockArchivable(0, ""));
+
+		expect(() => cell.content).toThrow(SyntaxError);
 	});
 });
 
-describe("ArchiveRepository", () => {
+describe("BufferedCell", () => {
 	const KEY = "repo_key";
 
 	beforeEach(() => {
@@ -115,15 +116,15 @@ describe("ArchiveRepository", () => {
 	});
 
 	it("should provide access to in-memory content", () => {
-		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(100, "repo"));
-		expect(repo.content.value).toBe(100);
+		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(100, "repo"));
+		expect(cell.content.value).toBe(100);
 	});
 
 	it("should save with delay (debounce)", () => {
-		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
-		repo.content.value = 500;
-		
-		repo.save(1000);
+		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
+		cell.content.value = 500;
+
+		cell.save(1000);
 
 		// Not saved yet
 		let stored = JSON.parse(localStorage.getItem(KEY)!);
@@ -137,11 +138,11 @@ describe("ArchiveRepository", () => {
 	});
 
 	it("should resolve false when aborted", async () => {
-		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
-		repo.content.value = 500;
-		const savePromise = repo.save(1000);
+		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
+		cell.content.value = 500;
+		const savePromise = cell.save(1000);
 
-		repo.abort();
+		cell.abort();
 		await expect(savePromise).resolves.toBe(false);
 		vi.advanceTimersByTime(1000);
 
@@ -151,20 +152,20 @@ describe("ArchiveRepository", () => {
 	});
 
 	it("should resolve false when superseded by a subsequent save", async () => {
-		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
-		repo.content.value = 500;
-		const firstSave = repo.save(1000);
+		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
+		cell.content.value = 500;
+		const firstSave = cell.save(1000);
 
-		repo.content.value = 600;
-		repo.save(500);
+		cell.content.value = 600;
+		cell.save(500);
 
 		await expect(firstSave).resolves.toBe(false);
 	});
 
 	it("should resolve true when save completes", async () => {
-		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
-		repo.content.value = 500;
-		const savePromise = repo.save(1000);
+		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
+		cell.content.value = 500;
+		const savePromise = cell.save(1000);
 
 		vi.advanceTimersByTime(1000);
 		await expect(savePromise).resolves.toBe(true);
@@ -174,12 +175,12 @@ describe("ArchiveRepository", () => {
 	});
 
 	it("should reset repository state", () => {
-		const repo = new ArchiveRepository(KEY, MockArchivable, new MockArchivable(1, "start"));
-		repo.content.value = 999;
-		
-		repo.reset();
-		
-		expect(repo.content.value).toBe(1);
+		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
+		cell.content.value = 999;
+
+		cell.reset();
+
+		expect(cell.content.value).toBe(1);
 		const stored = JSON.parse(localStorage.getItem(KEY)!);
 		expect(stored.value).toBe(1);
 	});

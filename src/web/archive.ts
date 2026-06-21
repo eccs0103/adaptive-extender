@@ -3,41 +3,44 @@
 import "../core/index.js";
 import { type PortableConstructor } from "../core/index.js";
 
-//#region Archive
+//#region Cell
 /**
- * Low-level interface for persistent data storage.
- * Handles direct serialization and retrieval from the platform's local storage.
+ * Low-level interface for a single keyed entry in a {@link Storage} backend.
+ * Handles direct serialization and retrieval of raw data.
  */
-class Archive {
+export class Cell {
+	#storage: Storage;
 	#key: string;
 
 	/**
+	 * @param storage The underlying storage backend.
 	 * @param key Unique storage identifier.
-	 * @param initial Default value used if no data exists at the specified key.
+	 * @param initial Default value written if no data exists at the specified key.
 	 */
-	constructor(key: string, initial: any) {
+	constructor(storage: Storage, key: string, initial: unknown) {
+		this.#storage = storage;
 		this.#key = key;
 		this.#initialize(initial);
 	}
 
-	#initialize(value: any): void {
-		if (localStorage.getItem(this.#key) !== null) return;
+	#initialize(value: unknown): void {
+		if (this.#storage.getItem(this.#key) !== null) return;
 		this.data = value;
 	}
 
-	static #compress(key: string, value: any): string {
+	static #compress(key: string, value: unknown): string {
 		try {
 			return JSON.stringify(value);
 		} catch {
-			throw new SyntaxError(`Archive [${key}]: Serialization failed.`);
+			throw new SyntaxError(`Cell [${key}]: Serialization failed.`);
 		}
 	}
 
-	static #decompress(key: string, text: string): any {
+	static #decompress(key: string, text: string): unknown {
 		try {
 			return JSON.parse(text);
 		} catch {
-			throw new SyntaxError(`Archive [${key}]: Data corrupted.`);
+			throw new SyntaxError(`Cell [${key}]: Data corrupted.`);
 		}
 	}
 
@@ -53,10 +56,10 @@ class Archive {
 	 * @throws {ReferenceError} If the entry is missing from the storage.
 	 * @throws {SyntaxError} If the data is corrupted and cannot be parsed.
 	 */
-	get data(): any {
-		const text = localStorage.getItem(this.#key);
-		if (text === null) throw new ReferenceError(`Archive [${this.#key}]: Entry not found.`);
-		return Archive.#decompress(this.#key, text);
+	get data(): unknown {
+		const text = this.#storage.getItem(this.#key);
+		if (text === null) throw new ReferenceError(`Cell [${this.#key}]: Entry not found.`);
+		return Cell.#decompress(this.#key, text);
 	}
 
 	/**
@@ -64,30 +67,31 @@ class Archive {
 	 * @param value The value to serialize and store.
 	 * @throws {SyntaxError} If the value cannot be serialized.
 	 */
-	set data(value: any) {
-		const text = Archive.#compress(this.#key, value);
-		localStorage.setItem(this.#key, text);
+	set data(value: unknown) {
+		const text = Cell.#compress(this.#key, value);
+		this.#storage.setItem(this.#key, text);
 	}
 }
 //#endregion
-//#region Archive manager
+//#region Portable cell
 /**
  * Orchestrates the lifecycle and state-to-model mapping for a specific data type.
  */
-export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
-	#archive: Archive;
+export class PortableCell<M extends PortableConstructor<InstanceType<M>>> {
+	#cell: Cell;
 	#model: M;
 	#initial: unknown;
 
 	/**
+	 * @param storage The underlying storage backend.
 	 * @param key Unique storage identifier.
 	 * @param model Constructor with import/export capabilities.
 	 * @param instance Baseline object state for initialization and resets.
 	 * @throws {TypeError} If the provided instance is incompatible with the model schema.
 	 */
-	constructor(key: string, model: M, instance: InstanceType<M>) {
-		const scheme = ArchiveManager.#ensureCompatibility(key, model, instance);
-		this.#archive = new Archive(key, scheme);
+	constructor(storage: Storage, key: string, model: M, instance: InstanceType<M>) {
+		const scheme = PortableCell.#ensureCompatibility(key, model, instance);
+		this.#cell = new Cell(storage, key, scheme);
 		this.#model = model;
 		this.#initial = scheme;
 	}
@@ -100,7 +104,7 @@ export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
 			throw new TypeError("Type mismatch during compatibility check.");
 		} catch (reason) {
 			const { message } = Error.from(reason);
-			throw new TypeError(`Archive [${key}]: Schema validation failed: ${message}`);
+			throw new TypeError(`PortableCell [${key}]: Schema validation failed: ${message}`);
 		}
 	}
 
@@ -108,7 +112,7 @@ export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
 	 * The storage identifier managed by this instance.
 	 */
 	get key(): string {
-		return this.#archive.key;
+		return this.#cell.key;
 	}
 
 	/**
@@ -117,10 +121,10 @@ export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
 	 */
 	get content(): InstanceType<M> {
 		try {
-			return this.#model.import(this.#archive.data, this.#archive.key);
+			return this.#model.import(this.#cell.data, this.#cell.key);
 		} catch (error) {
 			if (!(error instanceof TypeError)) throw error;
-			throw new SyntaxError(`Archive [${this.#archive.key}]: Content restoration failed.`);
+			throw new SyntaxError(`PortableCell [${this.#cell.key}]: Content restoration failed.`);
 		}
 	}
 
@@ -130,18 +134,18 @@ export class ArchiveManager<M extends PortableConstructor<InstanceType<M>>> {
 	 * @throws {SyntaxError} If the instance state cannot be serialized.
 	 */
 	set content(value: InstanceType<M>) {
-		this.#archive.data = this.#model.export(value);
+		this.#cell.data = this.#model.export(value);
 	}
 
 	/**
 	 * Reverts the storage to the original state provided at construction.
 	 */
 	reset(): void {
-		this.#archive.data = this.#initial;
+		this.#cell.data = this.#initial;
 	}
 }
 //#endregion
-//#region Archive repository
+//#region Buffered cell
 class SaveTransaction {
 	#idTimeout: number;
 	#resolve: (value: boolean) => void;
@@ -169,21 +173,22 @@ class SaveTransaction {
 }
 
 /**
- * A high-level repository providing buffered access to persistent data with auto-save management.
+ * A high-level cell providing buffered access to persistent data with auto-save management.
  */
-export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
-	#manager: ArchiveManager<M>;
+export class BufferedCell<M extends PortableConstructor<InstanceType<M>>> {
+	#cell: PortableCell<M>;
 	#content: InstanceType<M>;
 	#transaction: SaveTransaction | null = null;
 
 	/**
+	 * @param storage The underlying storage backend.
 	 * @param key Unique storage identifier.
 	 * @param model Constructor for state transformation.
 	 * @param instance Initial state template.
 	 */
-	constructor(key: string, model: M, instance: InstanceType<M>) {
-		this.#manager = new ArchiveManager(key, model, instance);
-		this.#content = this.#manager.content;
+	constructor(storage: Storage, key: string, model: M, instance: InstanceType<M>) {
+		this.#cell = new PortableCell(storage, key, model, instance);
+		this.#content = this.#cell.content;
 		this.#initializeUnloadHandler();
 	}
 
@@ -199,7 +204,7 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 	 * The unique storage identifier.
 	 */
 	get key(): string {
-		return this.#manager.key;
+		return this.#cell.key;
 	}
 
 	/**
@@ -214,7 +219,7 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 		const transaction = this.#transaction;
 		this.#transaction = null;
 		transaction?.settle(() => {
-			this.#manager.content = this.#content;
+			this.#cell.content = this.#content;
 		});
 	}
 
@@ -254,9 +259,48 @@ export class ArchiveRepository<M extends PortableConstructor<InstanceType<M>>> {
 	 */
 	reset(): void {
 		this.abort();
-		const manager = this.#manager;
-		manager.reset();
-		this.#content = manager.content;
+		const cell = this.#cell;
+		cell.reset();
+		this.#content = cell.content;
 	}
 }
+//#endregion
+//#region Storage
+declare global {
+	interface Storage {
+		/**
+		 * Opens a raw keyed entry backed by this storage.
+		 * @param key Unique storage identifier.
+		 * @param initial Default value written if no data exists at the specified key.
+		 */
+		openCell(key: string, initial: unknown): Cell;
+		/**
+		 * Opens a typed, model-bound entry backed by this storage.
+		 * @param key Unique storage identifier.
+		 * @param model Constructor with import/export capabilities.
+		 * @param instance Baseline object state for initialization and resets.
+		 * @throws {TypeError} If the instance is incompatible with the model schema.
+		 */
+		openPortableCell<M extends PortableConstructor<InstanceType<M>>>(key: string, model: M, instance: InstanceType<M>): PortableCell<M>;
+		/**
+		 * Opens a buffered, model-bound entry backed by this storage with auto-save management.
+		 * @param key Unique storage identifier.
+		 * @param model Constructor for state transformation.
+		 * @param instance Initial state template.
+		 */
+		openBufferedCell<M extends PortableConstructor<InstanceType<M>>>(key: string, model: M, instance: InstanceType<M>): BufferedCell<M>;
+	}
+}
+
+Storage.prototype.openCell = function (key: string, initial: unknown): Cell {
+	return new Cell(this, key, initial);
+};
+
+Storage.prototype.openPortableCell = function <M extends PortableConstructor<InstanceType<M>>>(key: string, model: M, instance: InstanceType<M>): PortableCell<M> {
+	return new PortableCell(this, key, model, instance);
+};
+
+Storage.prototype.openBufferedCell = function <M extends PortableConstructor<InstanceType<M>>>(key: string, model: M, instance: InstanceType<M>): BufferedCell<M> {
+	return new BufferedCell(this, key, model, instance);
+};
 //#endregion

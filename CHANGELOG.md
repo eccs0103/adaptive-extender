@@ -1,3 +1,15 @@
+## 0.11.0 (21.06.2026)
+- Added `Array.Of(type)` portable adapter for typed arrays, alongside the existing `Array.import`/`Array.export`.
+- Added `Set.Of(type)` portable adapter for typed sets.
+- Added `Map.AsRecord(type)` and `Map.AsTuples(typeKey, typeValue)` portable adapters (moved from a separate module into [map](./src/core/map.ts)).
+- Added `Date.AsTimestamp` and `Date.AsUnixSeconds` portable adapters converting `Date` to millisecond and Unix-second numbers respectively.
+- Added `Number.prototype.snap(step)` — snaps a number to the nearest multiple of the given step.
+- **Breaking:** Removed `Reflect.mapNull`, `Reflect.mapUndefined`, and `Reflect.mapNullable`. Use `Nullable.map`, `Optional.map` from the portable module instead.
+- **Breaking:** Renamed `Archive`/`ArchiveManager`/`ArchiveRepository` to `Cell`/`PortableCell`/`BufferedCell`. Construction is now done via `Storage` factory methods (`localStorage.openCell`, `localStorage.openPortableCell`, `localStorage.openBufferedCell`) — the storage backend is no longer hardcoded to `localStorage`.
+- **Breaking:** `@Field` decorator no longer accepts a positional string as the second argument. Use `{ name: "..." }` options object: `@Field(String, { name: "fieldName" })`.
+- `PortableCell.save()` returns `Promise<boolean>` — resolves `true` when persisted, `false` if cancelled (superseded or aborted); rejects only on serialization failure.
+- Internal: `portable.ts` de-anemia refactor — `FieldDescriptor`, `DescendantDescriptor`, and `ModelSchema` are now rich objects with their own behavior (`importInto`, `exportFrom`, `accepts`, `owns`); `SchemaResolver` absorbed into `ModelSchema.resolve()`; `Model.import`/`Model.export` are thin facades.
+
 ## 0.10.5 (13.06.2026)
 - Bugfix at [portable](./src/core/portable.ts).
 

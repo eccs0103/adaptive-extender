@@ -1,3 +1,8 @@
+## 0.12.0 (22.06.2026)
+- `Model.import` is now an overlay — when a source key is absent, the field's class initializer value is kept (migration default). Absent keys with no initializer delegate to their type: `Optional.Of` yields `undefined`, strict types (`String`, `Number`, nested `Model`, …) throw as before.
+- **Breaking:** `FieldOptions.fallback` removed from `@Field` options. Replace `@Field(type, { fallback: value })` with a field initializer: `field: T = value`.
+- **Breaking:** `FieldOptions<I>` type parameter removed — the interface is now non-generic `FieldOptions`. Update any explicit `FieldOptions<T>` references to `FieldOptions`.
+
 ## 0.11.3 (22.06.2026)
 - Added `DescendantOptions` interface — configure `@Descendant` via `{ discriminator }` options instead of a positional string.
 - `Random.case()` now accepts any `Iterable<readonly [T, number]>` instead of `Readonly<Map<T, number>>`.

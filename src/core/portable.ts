@@ -35,15 +35,11 @@ Reflect.set(Symbol, "metadata", Reflect.get(Symbol, "metadata") ?? Symbol.for("S
 /**
  * Options for the {@link Field} decorator.
  */
-export interface FieldOptions<I> {
+export interface FieldOptions {
 	/**
 	 * Alias for the field key in the external source.
 	 */
 	name: string;
-	/**
-	 * Fallback value used when the source key is absent during import.
-	 */
-	fallback: I;
 }
 
 /**
@@ -61,16 +57,11 @@ class FieldDescriptor {
 	#key: string;
 	#association: string;
 	#type: PortableConstructor;
-	#hasFallback: boolean = false;
-	#fallback: unknown;
 
-	constructor(key: string, type: PortableConstructor, options: Partial<FieldOptions<unknown>> = {}) {
+	constructor(key: string, type: PortableConstructor, options: Partial<FieldOptions> = {}) {
 		this.#key = key;
 		this.#association = options.name ?? key;
 		this.#type = type;
-		if (!("fallback" in options)) return;
-		this.#hasFallback = true;
-		this.#fallback = type.export(options.fallback);
 	}
 
 	get key(): string { return this.#key; }
@@ -78,9 +69,7 @@ class FieldDescriptor {
 
 	import(object: object, name: string): unknown {
 		const association = this.#association;
-		const raw = Reflect.get(object, association);
-		const source = raw === undefined && this.#hasFallback ? this.#fallback : raw;
-		return this.#type.import(source, `${name}.${association}`);
+		return this.#type.import(Reflect.get(object, association), `${name}.${association}`);
 	}
 
 	export(source: object): unknown {
@@ -162,7 +151,11 @@ class ConcreteSchema extends ModelSchema {
 	import(source: any, name: string): Model {
 		const object = Object.import(source, name);
 		const instance = Reflect.construct(this.#model, []);
-		for (const descriptor of this.#fields.values()) Reflect.set(instance, descriptor.key, descriptor.import(object, name));
+		for (const descriptor of this.#fields.values()) {
+			const key = descriptor.key;
+			if (Reflect.get(object, descriptor.association) === undefined && Reflect.get(instance, key) !== undefined) continue;
+			Reflect.set(instance, key, descriptor.import(object, name));
+		}
 		return instance;
 	}
 
@@ -258,10 +251,10 @@ export function Field<I, S>(type: PortableConstructor<I, S>): (target: void, con
 /**
  * Decorator to register a class field as part of the portable schema.
  * @param type The portable constructor to use for import/export.
- * @param options Configuration for aliasing and migration defaults.
+ * @param options Configuration for aliasing. Migration defaults are provided by field initializers — absent keys that have an initializer keep it; absent keys without one delegate to the type (optional types yield `undefined`, strict types throw).
  */
-export function Field<I, S>(type: PortableConstructor<I, S>, options: Partial<FieldOptions<I>>): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void;
-export function Field<I, S>(type: PortableConstructor<I, S>, options: Partial<FieldOptions<I>> = {}): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void {
+export function Field<I, S>(type: PortableConstructor<I, S>, options: Partial<FieldOptions>): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void;
+export function Field<I, S>(type: PortableConstructor<I, S>, options: Partial<FieldOptions> = {}): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void {
 	return function (_: void, context: ClassFieldDecoratorContext<Model, I>): void {
 		if (context.static) throw new TypeError("Portable fields cannot be static");
 		const key = context.name;

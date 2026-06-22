@@ -199,19 +199,31 @@ class EarlyReturnModel extends Model {
 	}
 }
 
-// Migration default models — verify @Field({ default }) back-fills absent keys
+// Migration default models — absent source keys keep the field initializer (overlay import)
 class MigrationModel extends Model {
 	@Field(String)
 	name!: string;
 
-	@Field(Number, { fallback: 42 })
-	score: number = 0;  // initializer is overwritten by import; fallback is the migration value
+	@Field(Number)
+	score: number = 42;  // initializer IS the migration default; absent key keeps this value
 
-	@Field(Array.Of(Number), { fallback: [] })
+	@Field(Array.Of(Number))
 	tags: number[] = [];
 
-	@Field(String, { name: "alias_key", fallback: "hello" })
-	aliased: string = "";
+	@Field(String, { name: "alias_key" })
+	aliased: string = "hello";
+}
+
+// Strictness model — required field with no initializer must be present in source
+class StrictModel extends Model {
+	@Field(String)
+	theme!: string;
+
+	@Field(Optional.Of(String))
+	nickname?: string;
+
+	@Field(Number)
+	volume: number = 50;
 }
 
 describe("Model Tests", () => {
@@ -785,28 +797,28 @@ describe("Model Tests", () => {
 		});
 	});
 
-	describe("@Field fallback (migration defaults)", () => {
-		it("should use the fallback value when the source key is absent", () => {
+	describe("overlay import — migration defaults via field initializers", () => {
+		it("should keep the field initializer when the source key is absent", () => {
 			const model = MigrationModel.import({ name: "Alice" }, "m");
 			expect(model.score).toBe(42);
 		});
 
-		it("should use the imported value when the source key is present", () => {
+		it("should overwrite the initializer when the source key is present", () => {
 			const model = MigrationModel.import({ name: "Alice", score: 99 }, "m");
 			expect(model.score).toBe(99);
 		});
 
-		it("should back-fill an array default without sharing the instance across imports", () => {
+		it("should give independent array instances across imports without any clone trick", () => {
 			const a = MigrationModel.import({ name: "A" }, "a");
 			const b = MigrationModel.import({ name: "B" }, "b");
 			expect(a.tags).toEqual([]);
 			expect(b.tags).toEqual([]);
-			// structuredClone gives independent instances
+			// Reflect.construct re-runs the initializer for each import — no shared reference
 			a.tags.push(1);
 			expect(b.tags).toEqual([]);
 		});
 
-		it("should respect an aliased name alongside a default", () => {
+		it("should respect an aliased name alongside an initializer default", () => {
 			const model = MigrationModel.import({ name: "C" }, "c");
 			expect(model.aliased).toBe("hello");
 
@@ -814,12 +826,39 @@ describe("Model Tests", () => {
 			expect(model2.aliased).toBe("world");
 		});
 
-		it("should export the live field value (not the default) regardless", () => {
+		it("should export the live field value regardless", () => {
 			const model = MigrationModel.import({ name: "E" }, "e");
 			const raw: any = MigrationModel.export(model);
 			expect(raw.score).toBe(42);
 			expect(raw.tags).toEqual([]);
 			expect(raw.alias_key).toBe("hello");
+		});
+	});
+
+	describe("overlay import — strictness (delegate rule)", () => {
+		it("should throw when a required field (no initializer, strict type) is absent", () => {
+			expect(() => StrictModel.import({ volume: 30 }, "s")).toThrow(TypeError);
+		});
+
+		it("should throw on a completely empty source for a required-field model", () => {
+			expect(() => StrictModel.import({}, "s")).toThrow(TypeError);
+		});
+
+		it("should yield undefined for an Optional.Of field that is absent", () => {
+			const model = StrictModel.import({ theme: "dark" }, "s");
+			expect(model.nickname).toBeUndefined();
+		});
+
+		it("should keep the initializer default for a defaulted field that is absent", () => {
+			const model = StrictModel.import({ theme: "dark" }, "s");
+			expect(model.volume).toBe(50);
+		});
+
+		it("should import all fields when all keys are present", () => {
+			const model = StrictModel.import({ theme: "light", nickname: "ace", volume: 70 }, "s");
+			expect(model.theme).toBe("light");
+			expect(model.nickname).toBe("ace");
+			expect(model.volume).toBe(70);
 		});
 	});
 });

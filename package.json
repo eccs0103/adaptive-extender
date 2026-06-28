@@ -1,6 +1,6 @@
 {
 	"name": "adaptive-extender",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Adaptive library for JS/TS development environments",
 	"type": "module",
 	"main": "./dist/core/index.js",
@@ -67,5 +67,9 @@
 		"jsdom": "^27.0.0",
 		"typescript": "^6.0.3",
 		"vitest": "^4.0.10"
+	},
+	"allowScripts": {
+		"esbuild@0.28.0": true,
+		"esbuild@0.27.7": true
 	}
 }

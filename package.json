@@ -1,6 +1,6 @@
 {
 	"name": "adaptive-extender",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Adaptive library for JS/TS development environments",
 	"type": "module",
 	"main": "./dist/core/index.js",
@@ -58,7 +58,7 @@
 		"build:worker": "tsc -p ./src/worker/tsconfig.json",
 		"build": "npm run build:core && npm run build:node && npm run build:web && npm run build:worker",
 		"prepublishOnly": "npm run build",
-		"test": "npm run build & vitest run",
+		"test": "npm run build && vitest run",
 		"coverage": "vitest run --coverage"
 	},
 	"devDependencies": {
@@ -66,10 +66,12 @@
 		"esbuild": "^0.28.0",
 		"jsdom": "^27.0.0",
 		"typescript": "^6.0.3",
-		"vitest": "^4.0.10"
+		"vitest": "~4.0.18"
+	},
+	"overrides": {
+		"vite": "^7.3.6"
 	},
 	"allowScripts": {
-		"esbuild@0.28.0": true,
-		"esbuild@0.27.7": true
+		"esbuild@0.28.1": true
 	}
 }

@@ -1,4 +1,4 @@
-## 1.0.1 (29.06.2026)
+## 1.0.2 (29.06.2026)
 - Added [casing](./src/core/casing.ts) module to the core package — the `Casing` class with preset getters (`Casing.camel`, `pascal`, `snake`, `upperSnake`, `kebab`, `upperKebab`, `lower`, `upper`, `title`, `sentence`), plus `Casing.words(text)`, `casing.format(words)`, and `casing.convert(text)`.
 - Added `String.prototype.toCamelCase`, `toPascalCase`, `toSnakeCase`, `toUpperSnakeCase`, `toKebabCase`, `toUpperKebabCase`, and `toSentenceCase` — convert a string to the named casing.
 - Added `Iterator.range(min, max)` and `Iterator.zip(...iterables)` static methods.

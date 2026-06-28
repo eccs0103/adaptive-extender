@@ -63,6 +63,14 @@ const displayName = username.insteadEmpty("Anonymous");
 
 "hello world".toTitleCase(); // → "Hello World"
 "île-de-france".toLocalTitleCase("fr"); // → "Île-De-France"
+
+"hello world".toCamelCase();      // → "helloWorld"
+"hello world".toPascalCase();     // → "HelloWorld"
+"hello world".toSnakeCase();      // → "hello_world"
+"hello world".toUpperSnakeCase(); // → "HELLO_WORLD"
+"hello world".toKebabCase();      // → "hello-world"
+"hello world".toUpperKebabCase(); // → "HELLO-WORLD"
+"Hello World".toSentenceCase();   // → "Hello world"
 ```
 
 ### Array
@@ -70,12 +78,12 @@ const displayName = username.insteadEmpty("Anonymous");
 ```typescript
 for (const index of Array.range(0, 10)) { ... }
 
-for (const [user, role] of Array.zip(users, roles)) {
+// Lazy integer range — does not allocate an array
+for (const index of Iterator.range(0, 10)) { ... }
+
+for (const [user, role] of Iterator.zip(users, roles)) {
 	console.log(`${user.name}: ${role}`);
 }
-
-// Collect an async iterable into an array
-const packets = await Array.fromAsync(readableStream);
 
 items.swap(0, items.length - 1);
 items.resize(10, null);
@@ -229,6 +237,25 @@ console.log(v.toString()); // → "1.2.3"
 
 const parsed = Version.parse("2.0.0");
 const safe = Version.tryParse(userInput); // → Version | null
+```
+
+### Casing
+
+Converts strings between identifier casing styles via universal word tokenization. Use the preset getters or build a custom strategy.
+
+```typescript
+import { Casing } from "adaptive-extender/core";
+
+Casing.pascal.convert("hello world"); // → "HelloWorld"
+Casing.snake.convert("helloWorld");   // → "hello_world"
+Casing.kebab.convert("HelloWorld");   // → "hello-world"
+
+// Tokenize without converting
+Casing.words("helloWorld"); // → ["hello", "World"]
+
+// Custom round-trip: tokenize → format
+const words = Casing.words("myVariableName");
+Casing.upperSnake.format(words); // → "MY_VARIABLE_NAME"
 ```
 
 ### Controller
@@ -395,6 +422,23 @@ engine.addEventListener("trigger", () => {
 // Static — fixed fps via setTimeout
 const fixedEngine = new StaticEngine({ launch: true });
 fixedEngine.limit = 30;
+```
+
+### Stopwatch
+
+Accumulates elapsed time driven by an engine's `trigger` events. Available in both `web` and `worker` packages.
+
+```typescript
+import { FastEngine, Stopwatch } from "adaptive-extender/web";
+
+const engine = new FastEngine({ launch: true });
+const stopwatch = new Stopwatch(engine);
+
+stopwatch.launched = true; // start accumulating
+console.log(stopwatch.elapsed); // total seconds since launched
+
+stopwatch.launched = false; // pause
+stopwatch.reset(); // → elapsed is 0
 ```
 
 ### Storage (localStorage)

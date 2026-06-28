@@ -18,35 +18,30 @@ export abstract class Vector implements Iterable<number, BuiltinIteratorReturn, 
 	 * Projects each element of a vector into a new form.
 	 * @param callback A transform function to apply to each element.
 	 */
-	*map<U>(callback: (value: number, index: number) => U): IteratorObject<U, BuiltinIteratorReturn> {
-		let index = 0;
-		for (const metric of this) yield callback(metric, index++);
+	map<U>(callback: (value: number) => U): IteratorObject<U, BuiltinIteratorReturn> {
+		return Iterator.from(this).map(callback);
 	}
 	/**
 	 * Filters a sequence of values based on a predicate.
 	 * @param predicate A function to test each element for a condition.
 	 * @returns An iterator for a sequence of values that satisfy the condition.
 	 */
-	filter<S extends number>(predicate: (value: number, index: number) => value is S): IteratorObject<S, BuiltinIteratorReturn>;
+	filter<S extends number>(predicate: (value: number) => value is S): IteratorObject<S, BuiltinIteratorReturn>;
 	/**
 	 * Filters a sequence of values based on a predicate.
 	 * @param predicate A function to test each element for a condition.
 	 * @returns An iterator for a sequence of values that satisfy the condition.
 	 */
-	filter(predicate: (value: number, index: number) => unknown): IteratorObject<number, BuiltinIteratorReturn>;
-	*filter(predicate: (value: number, index: number) => unknown): IteratorObject<number, BuiltinIteratorReturn> {
-		let index = 0;
-		for (const metric of this) {
-			if (predicate(metric, index++)) yield metric;
-		}
+	filter(predicate: (value: number) => unknown): IteratorObject<number, BuiltinIteratorReturn>;
+	filter(predicate: (value: number) => unknown): IteratorObject<number, BuiltinIteratorReturn> {
+		return Iterator.from(this).filter(predicate);
 	}
 	/**
 	 * Projects each element of a sequence to an iterable and flattens the resulting sequences into one sequence.
 	 * @param callback A transform function to apply to each element.
 	 */
-	*flatMap<U>(callback: (value: number, index: number) => Iterable<U>): IteratorObject<U, BuiltinIteratorReturn> {
-		let index = 0;
-		for (const metric of this) yield* callback(metric, index++);
+	flatMap<U>(callback: (value: number) => Iterable<U>): IteratorObject<U, BuiltinIteratorReturn> {
+		return Iterator.from(this).flatMap(callback);
 	}
 	/**
 	 * Applies an accumulator function over a sequence.
@@ -54,14 +49,14 @@ export abstract class Vector implements Iterable<number, BuiltinIteratorReturn, 
 	 * @returns The final accumulator value.
 	 * @throws {TypeError} If the vector is empty and no initial value is provided.
 	 */
-	reduce(callback: (accumulator: number, value: number, index: number) => number): number;
+	reduce(callback: (accumulator: number, value: number, counter: number) => number): number;
 	/**
 	 * Applies an accumulator function over a sequence.
 	 * @param callback An accumulator function to be invoked on each element.
 	 * @param initial The initial accumulator value.
 	 * @returns The final accumulator value.
 	 */
-	reduce(callback: (accumulator: number, value: number, index: number) => number, initial: number): number;
+	reduce(callback: (accumulator: number, value: number, counter: number) => number, initial: number): number;
 	/**
 	 * Applies an accumulator function over a sequence.
 	 * @template U
@@ -69,69 +64,47 @@ export abstract class Vector implements Iterable<number, BuiltinIteratorReturn, 
 	 * @param initial The initial accumulator value.
 	 * @returns The final accumulator value.
 	 */
-	reduce<U>(callback: (accumulator: U, value: number, index: number) => U, initial: U): U;
-	reduce<U>(callback: (accumulator: U, value: number, index: number) => U, initial?: U): U {
-		let index = 0;
-		let accumulator = initial;
-		const iterator = this[Symbol.iterator]();
-		if (accumulator === undefined) {
-			const result1 = iterator.next();
-			if (result1.done) throw new TypeError("Reduce of empty vector with no initial value");
-			accumulator = result1.value as U;
-		}
-		for (const value of iterator) {
-			accumulator = callback(accumulator, value, index++);
-		}
-		return accumulator;
+	reduce<U>(callback: (accumulator: U, value: number, counter: number) => U, initial: U): U;
+	reduce<U>(callback: (accumulator: U, value: number, counter: number) => U, initial?: U): U {
+		const iterator = Iterator.from(this);
+		if (initial !== undefined) return iterator.reduce(callback, initial);
+		return iterator.reduce(callback as unknown as (accumulator: number, value: number, counter: number) => number) as U;
 	}
 	/**
 	 * Performs the specified action for each element in a vector.
 	 * @param callback An action to perform on each element.
 	 */
-	forEach(callback: (value: number, index: number) => void): void {
-		let index = 0;
-		for (const metric of this) callback(metric, index++);
+	forEach(callback: (value: number) => void): void {
+		Iterator.from(this).forEach(callback);
 	}
 	/**
 	 * Determines whether any element of a vector satisfies a condition.
 	 * @param predicate A function to test each element for a condition.
 	 */
-	some(predicate: (value: number, index: number) => unknown): boolean {
-		let index = 0;
-		for (const metric of this) {
-			if (predicate(metric, index++)) return true;
-		}
-		return false;
+	some(predicate: (value: number) => unknown): boolean {
+		return Iterator.from(this).some(predicate);
 	}
 	/**
 	 * Determines whether all elements of a vector satisfy a condition.
 	 * @param predicate A function to test each element for a condition.
 	 */
-	every(predicate: (value: number, index: number) => unknown): boolean {
-		let index = 0;
-		for (const metric of this) {
-			if (!predicate(metric, index++)) return false;
-		}
-		return true;
+	every(predicate: (value: number) => unknown): boolean {
+		return Iterator.from(this).every(predicate);
 	}
 	/**
 	 * Returns the first element in the sequence that satisfies a specified condition.
 	 * @param predicate A function to test each element for a condition.
 	 * @returns The first element in the sequence that passes the test in the specified predicate. Returns `undefined` if no such element is found.
 	 */
-	find<S extends number>(predicate: (value: number, index: number) => value is S): S | undefined;
+	find<S extends number>(predicate: (value: number) => value is S): S | undefined;
 	/**
 	 * Returns the first element in the sequence that satisfies a specified condition.
 	 * @param predicate A function to test each element for a condition.
 	 * @returns The first element in the sequence that passes the test in the specified predicate. Returns `undefined` if no such element is found.
 	 */
-	find(predicate: (value: number, index: number) => unknown): number | undefined;
-	find(predicate: (value: number, index: number) => unknown): number | undefined {
-		let index = 0;
-		for (const metric of this) {
-			if (predicate(metric, index++)) return metric;
-		}
-		return undefined;
+	find(predicate: (value: number) => unknown): number | undefined;
+	find(predicate: (value: number) => unknown): number | undefined {
+		return Iterator.from(this).find(predicate);
 	}
 	//#endregion
 	//#region Validators

@@ -1,3 +1,12 @@
+## 1.0.0 (29.06.2026)
+- Added [casing](./src/core/casing.ts) module to the core package — the `Casing` class with preset getters (`Casing.camel`, `pascal`, `snake`, `upperSnake`, `kebab`, `upperKebab`, `lower`, `upper`, `title`, `sentence`), plus `Casing.words(text)`, `casing.format(words)`, and `casing.convert(text)`.
+- Added `String.prototype.toCamelCase`, `toPascalCase`, `toSnakeCase`, `toUpperSnakeCase`, `toKebabCase`, `toUpperKebabCase`, and `toSentenceCase` — convert a string to the named casing.
+- Added `Iterator.range(min, max)` and `Iterator.zip(...iterables)` static methods.
+- Added [stopwatch](./src/web/stopwatch.ts) module to the web and worker packages — the `Stopwatch` class accumulates elapsed time from an engine's `trigger` events (`elapsed`, `launched`, `reset()`).
+- **Breaking:** `Vector`'s `map`, `filter`, `flatMap`, `forEach`, `some`, `every`, and `find` callbacks no longer receive the element index — remove the index parameter from those callbacks.
+- **Breaking:** Removed `Array.zip`. Use the new `Iterator.zip(...iterables)` instead.
+- **Breaking:** Removed the custom `Array.fromAsync` extension. Use the native `Array.fromAsync` (available at the ES2025 lib target).
+
 ## 0.12.0 (22.06.2026)
 - `Model.import` is now an overlay — when a source key is absent, the field's class initializer value is kept (migration default). Absent keys with no initializer delegate to their type: `Optional.Of` yields `undefined`, strict types (`String`, `Number`, nested `Model`, …) throw as before.
 - **Breaking:** `FieldOptions.fallback` removed from `@Field` options. Replace `@Field(type, { fallback: value })` with a field initializer: `field: T = value`.

@@ -36,31 +36,7 @@ describe("Array extensions", () => {
 		});
 	});
 
-	describe("Array.zip", () => {
-		it("should zip two arrays", () => {
-			const a = [1, 2, 3];
-			const b = ["a", "b", "c"];
-			const zipped = Array.from(Array.zip(a, b));
-			expect(zipped).toEqual([[1, "a"], [2, "b"], [3, "c"]]);
-		});
-
-		it("should stop at the shortest iterable", () => {
-			const a = [1, 2];
-			const b = ["x", "y", "z"];
-			const zipped = Array.from(Array.zip(a, b));
-			expect(zipped).toEqual([[1, "x"], [2, "y"]]);
-		});
-
-		it("should zip more than two arrays", () => {
-			const a = [1, 2];
-			const b = ["x", "y"];
-			const c = [true, false];
-			const zipped = Array.from(Array.zip(a, b, c));
-			expect(zipped).toEqual([[1, "x", true], [2, "y", false]]);
-		});
-	});
-
-	describe("Array.fromAsync", () => {
+describe("Array.fromAsync", () => {
 		it("should create an array from an async iterable", async () => {
 			async function* asyncGen() {
 				yield 1;

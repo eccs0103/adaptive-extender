@@ -1,7 +1,7 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"lib": [ "ES2022", "ESNext.Decorators" ],
+		"lib": [ "ES2025", "ESNext.Decorators" ],
 		"types": [ "node" ],
 		"rootDir": "../",
 		"outDir": "../../dist/"

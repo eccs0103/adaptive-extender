@@ -1,6 +1,7 @@
 "use strict";
 
 import "./global.js";
+import { Casing } from "./casing.js";
 
 //#region String
 declare global {
@@ -64,6 +65,41 @@ declare global {
 		 * Converts the string to title case using any Intl.LocalesArgument.
 		 */
 		toLocalTitleCase(locales: Intl.LocalesArgument): string;
+		/**
+		 * Converts the string to lowerCamelCase by tokenizing words and capitalizing each after the first.
+		 * @example `"hello-world"` → `"helloWorld"`
+		 */
+		toCamelCase(): string;
+		/**
+		 * Converts the string to UpperCamelCase (PascalCase) by tokenizing words and capitalizing each.
+		 * @example `"hello-world"` → `"HelloWorld"`
+		 */
+		toPascalCase(): string;
+		/**
+		 * Converts the string to lower_snake_case by tokenizing words and joining with underscores.
+		 * @example `"helloWorld"` → `"hello_world"`
+		 */
+		toSnakeCase(): string;
+		/**
+		 * Converts the string to UPPER_SNAKE_CASE by tokenizing words and joining with underscores in uppercase.
+		 * @example `"helloWorld"` → `"HELLO_WORLD"`
+		 */
+		toUpperSnakeCase(): string;
+		/**
+		 * Converts the string to lower-kebab-case by tokenizing words and joining with hyphens.
+		 * @example `"helloWorld"` → `"hello-world"`
+		 */
+		toKebabCase(): string;
+		/**
+		 * Converts the string to UPPER-KEBAB-CASE by tokenizing words and joining with hyphens in uppercase.
+		 * @example `"helloWorld"` → `"HELLO-WORLD"`
+		 */
+		toUpperKebabCase(): string;
+		/**
+		 * Converts the string to Sentence case — first word capitalized, remaining lowercase.
+		 * @example `"HELLO_WORLD"` → `"Hello world"`
+		 */
+		toSentenceCase(): string;
 	}
 }
 
@@ -109,5 +145,33 @@ String.prototype.toTitleCase = function (): string {
 
 String.prototype.toLocalTitleCase = function (locales?: Intl.LocalesArgument | string | string[]): string {
 	return this.toLocaleLowerCase(locales).replace(patternWordsFirstLetter, char => char.toLocaleUpperCase(locales));
+};
+
+String.prototype.toCamelCase = function (): string {
+	return Casing.camel.convert(this.valueOf());
+};
+
+String.prototype.toPascalCase = function (): string {
+	return Casing.pascal.convert(this.valueOf());
+};
+
+String.prototype.toSnakeCase = function (): string {
+	return Casing.snake.convert(this.valueOf());
+};
+
+String.prototype.toUpperSnakeCase = function (): string {
+	return Casing.upperSnake.convert(this.valueOf());
+};
+
+String.prototype.toKebabCase = function (): string {
+	return Casing.kebab.convert(this.valueOf());
+};
+
+String.prototype.toUpperKebabCase = function (): string {
+	return Casing.upperKebab.convert(this.valueOf());
+};
+
+String.prototype.toSentenceCase = function (): string {
+	return Casing.sentence.convert(this.valueOf());
 };
 //#endregion

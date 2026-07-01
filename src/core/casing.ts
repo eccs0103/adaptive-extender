@@ -6,7 +6,7 @@
  * One instance = one formatting strategy. Use the static preset getters to obtain a casing.
  */
 export class Casing {
-	static #pattern: RegExp = /[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+/g;
+	static #pattern: RegExp = /[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+/g;
 	static #camel: Casing = new Casing(Casing.#toLower, Casing.#toCapital, "");
 	static #pascal: Casing = new Casing(Casing.#toCapital, Casing.#toCapital, "");
 	static #snake: Casing = new Casing(Casing.#toLower, Casing.#toLower, "_");

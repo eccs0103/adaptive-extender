@@ -1,3 +1,7 @@
+## 1.0.3 (01.07.2026)
+- Hardened `Vector1D.tryParse`, `Vector2D.tryParse`, and `Vector3D.tryParse` against polynomial-time regex backtracking on adversarial input — token capture class tightened from `\S+` to `[^\s,()]+` so no component token can overlap a delimiter or terminator.
+- Hardened `Casing.words` against polynomial-time regex backtracking on adversarial input — rewrote the uppercase-run alternative from `[A-Z]+(?=[A-Z][a-z])` (positive lookahead, O(n) backtrack) to `[A-Z]+(?![a-z])` (negative lookahead, O(1) backtrack); output is identical for all valid inputs.
+
 ## 1.0.2 (29.06.2026)
 - Added [casing](./src/core/casing.ts) module to the core package — the `Casing` class with preset getters (`Casing.camel`, `pascal`, `snake`, `upperSnake`, `kebab`, `upperKebab`, `lower`, `upper`, `title`, `sentence`), plus `Casing.words(text)`, `casing.format(words)`, and `casing.convert(text)`.
 - Added `String.prototype.toCamelCase`, `toPascalCase`, `toSnakeCase`, `toUpperSnakeCase`, `toKebabCase`, `toUpperKebabCase`, and `toSentenceCase` — convert a string to the named casing.

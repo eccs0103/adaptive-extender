@@ -32,7 +32,7 @@ export class Vector2D extends Vector1D {
 		super(x);
 		this.#y = y;
 	}
-	static #patternVector2D: RegExp = /^\(\s*(\S+)\s*,\s*(\S+)\s*\)$/;
+	static #patternVector2D: RegExp = /^\(\s*([^\s,()]+)\s*,\s*([^\s,()]+)\s*\)$/;
 	/**
 	 * Creates a new `Vector2D` from a single scalar value.
 	 * @param scalar The scalar value.

@@ -24,7 +24,7 @@ export class Vector3D extends Vector2D {
 	}
 	//#endregion
 	//#region Builders
-	static #patternVector3D: RegExp = /^\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)$/;
+	static #patternVector3D: RegExp = /^\(\s*([^\s,()]+)\s*,\s*([^\s,()]+)\s*,\s*([^\s,()]+)\s*\)$/;
 	/**
 	 * @param x The x-component of the vector.
 	 * @param y The y-component of the vector.

@@ -30,7 +30,7 @@ export class Vector1D extends Vector {
 		super();
 		this.#x = x;
 	}
-	static #patternVector1D: RegExp = /^\(\s*(\S+)\s*\)$/;
+	static #patternVector1D: RegExp = /^\(\s*([^\s,()]+)\s*\)$/;
 	/**
 	 * Creates a new `Vector1D` from a single scalar value.
 	 * @param scalar The scalar value.

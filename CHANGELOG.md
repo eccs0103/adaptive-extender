@@ -1,6 +1,6 @@
 ## 1.0.3 (01.07.2026)
 - Hardened `Vector1D.tryParse`, `Vector2D.tryParse`, and `Vector3D.tryParse` against polynomial-time regex backtracking on adversarial input — token capture class tightened from `\S+` to `[^\s,()]+` so no component token can overlap a delimiter or terminator.
-- Hardened `Casing.words` against polynomial-time regex backtracking — reworked the tokenizer to a multi-alternative form with a plain `[A-Z]+` fallback so a rejected acronym lookahead consumes the whole uppercase run instead of forcing a per-character re-scan; output is identical for all inputs.
+- Hardened `Casing.words` against polynomial-time regex backtracking on adversarial input — replaced the acronym alternative's positive lookahead `[A-Z]+(?=[A-Z][a-z])` (which backtracks across an entire uppercase run when no capitalised word follows) with the negative-lookahead form `[A-Z]+(?![a-z])` that backs off at most one character; `Casing.words` output is unchanged for all inputs.
 
 ## 1.0.2 (29.06.2026)
 - Added [casing](./src/core/casing.ts) module to the core package — the `Casing` class with preset getters (`Casing.camel`, `pascal`, `snake`, `upperSnake`, `kebab`, `upperKebab`, `lower`, `upper`, `title`, `sentence`), plus `Casing.words(text)`, `casing.format(words)`, and `casing.convert(text)`.

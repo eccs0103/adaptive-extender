@@ -77,5 +77,35 @@ export class Version {
 		if (version === null) throw new SyntaxError(`Unable to parse '${string}' as version`);
 		return version;
 	}
+
+	/**
+	 * Compares two versions by major, then minor, then patch component.
+	 * @returns A negative number if `left` precedes `right`, a positive number if it follows, or zero if they are equal.
+	 */
+	static compare(left: Readonly<Version>, right: Readonly<Version>): number {
+		if (left.major !== right.major) return left.major - right.major;
+		if (left.minor !== right.minor) return left.minor - right.minor;
+		return left.patch - right.patch;
+	}
+
+	/**
+	 * Validates and imports a version from a raw string source.
+	 * @param source The raw value to check.
+	 * @param name The field name for error context.
+	 * @throws {TypeError} If the source is not a string.
+	 * @throws {SyntaxError} If the string cannot be parsed as a version.
+	 */
+	static import(source: any, name: string): Version {
+		if (typeof source !== "string") throw new TypeError(`Unable to import version from ${name} due its ${typename(source)} type`);
+		return Version.parse(source);
+	}
+
+	/**
+	 * Returns the version string for export.
+	 * @param source The version to export.
+	 */
+	static export(source: Version): string {
+		return source.toString();
+	}
 }
 //#endregion

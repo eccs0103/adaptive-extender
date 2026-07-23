@@ -1,3 +1,8 @@
+## 1.0.4 (24.07.2026)
+- Added `Version.compare(left, right)` — orders two versions by major, then minor, then patch.
+- `Version` is now a `PortableConstructor<Version, string>` — added `Version.import`/`Version.export`, so it can be used directly as a `@Field(Version, …)` type.
+- Added a seeded `Random` constructor — `new Random(seed)` produces a deterministic sequence of values; `new Random()` continues to use the platform's native entropy. Throws if `seed` is not a finite number.
+
 ## 1.0.3 (01.07.2026)
 - Hardened `Vector1D.tryParse`, `Vector2D.tryParse`, and `Vector3D.tryParse` against polynomial-time regex backtracking on adversarial input — token capture class tightened from `\S+` to `[^\s,()]+` so no component token can overlap a delimiter or terminator.
 - Hardened `Casing.words` against polynomial-time regex backtracking on adversarial input — replaced the acronym alternative's positive lookahead `[A-Z]+(?=[A-Z][a-z])` (which backtracks across an entire uppercase run when no capitalised word follows) with the negative-lookahead form `[A-Z]+(?![a-z])` that backs off at most one character; `Casing.words` output is unchanged for all inputs.

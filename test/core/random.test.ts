@@ -143,4 +143,35 @@ describe("Random", () => {
 			expect(Random.global).toBeInstanceOf(Random);
 		});
 	});
+
+	describe("seed", () => {
+		it("should produce identical sequences for the same seed", () => {
+			const first = new Random(12345);
+			const second = new Random(12345);
+			const sequence = () => [first.number(1), first.integer(10), first.boolean(0.5)];
+			const otherSequence = () => [second.number(1), second.integer(10), second.boolean(0.5)];
+			expect(sequence()).toEqual(otherSequence());
+		});
+
+		it("should produce different sequences for different seeds", () => {
+			const first = new Random(1);
+			const second = new Random(2);
+			const values = Array.from({ length: 5 }, () => first.number(1));
+			const otherValues = Array.from({ length: 5 }, () => second.number(1));
+			expect(values).not.toEqual(otherValues);
+		});
+
+		it("should differ from an unseeded instance", () => {
+			const seeded = new Random(42);
+			const unseeded = new Random();
+			const values = Array.from({ length: 5 }, () => seeded.number(1));
+			const otherValues = Array.from({ length: 5 }, () => unseeded.number(1));
+			expect(values).not.toEqual(otherValues);
+		});
+
+		it("should throw if seed is not finite", () => {
+			expect(() => new Random(NaN)).toThrow();
+			expect(() => new Random(Infinity)).toThrow();
+		});
+	});
 });

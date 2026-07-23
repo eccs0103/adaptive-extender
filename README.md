@@ -191,6 +191,7 @@ console.log(orange.toString({ format: ColorFormats.hsl, deep: true }));
 import { Random } from "adaptive-extender/core";
 
 const random = Random.global;
+const seeded = new Random(42); // deterministic, reproducible sequence
 
 random.boolean(0.9); // true with 90% probability
 random.number(0, 1); // float [0, 1)
@@ -205,6 +206,8 @@ const loot = random.case([
 	["rare", 25],
 	["legendary", 5],
 ]);
+
+seeded.integer(1, 6); // same result every run for the same seed
 ```
 
 ### Vector
@@ -234,9 +237,13 @@ import { Version } from "adaptive-extender/core";
 
 const v = new Version(1, 2, 3);
 console.log(v.toString()); // → "1.2.3"
+[parsed, v].sort(Version.compare); // ascending order
 
 const parsed = Version.parse("2.0.0");
 const safe = Version.tryParse(userInput); // → Version | null
+
+Version.import("1.4.0", "field"); // → Version { major: 1, minor: 4, patch: 0 }
+Version.export(v); // → "1.2.3"
 ```
 
 ### Casing

@@ -82,4 +82,59 @@ describe("Version", () => {
 			expect(() => Version.parse("1.2")).toThrow(SyntaxError);
 		});
 	});
+
+	describe("compare", () => {
+		it("should return negative when left major is less than right's", () => {
+			expect(Version.compare(new Version(1, 0, 0), new Version(2, 0, 0))).toBeLessThan(0);
+		});
+
+		it("should return positive when left major is greater than right's", () => {
+			expect(Version.compare(new Version(2, 0, 0), new Version(1, 0, 0))).toBeGreaterThan(0);
+		});
+
+		it("should fall through to minor when major components are equal", () => {
+			expect(Version.compare(new Version(1, 1, 0), new Version(1, 2, 0))).toBeLessThan(0);
+			expect(Version.compare(new Version(1, 2, 0), new Version(1, 1, 0))).toBeGreaterThan(0);
+		});
+
+		it("should fall through to patch when major and minor components are equal", () => {
+			expect(Version.compare(new Version(1, 1, 1), new Version(1, 1, 2))).toBeLessThan(0);
+			expect(Version.compare(new Version(1, 1, 2), new Version(1, 1, 1))).toBeGreaterThan(0);
+		});
+
+		it("should return zero for equal versions", () => {
+			expect(Version.compare(new Version(1, 2, 3), new Version(1, 2, 3))).toBe(0);
+		});
+
+		it("should sort an array into ascending order", () => {
+			const versions = [new Version(1, 0, 0), new Version(0, 9, 9), new Version(1, 0, 1), new Version(0, 1, 0)];
+			versions.sort(Version.compare);
+			expect(versions.map(version => version.toString())).toEqual(["0.1.0", "0.9.9", "1.0.0", "1.0.1"]);
+		});
+	});
+
+	describe("import", () => {
+		it("should create a Version from a valid string", () => {
+			const version = Version.import("1.4.0", "field");
+			expect(version.major).toBe(1);
+			expect(version.minor).toBe(4);
+			expect(version.patch).toBe(0);
+		});
+
+		it("should throw TypeError if source is not a string", () => {
+			expect(() => Version.import(123, "field")).toThrow(TypeError);
+			expect(() => Version.import(null, "field")).toThrow(TypeError);
+		});
+
+		it("should throw SyntaxError if source cannot be parsed as a version", () => {
+			expect(() => Version.import("bad", "field")).toThrow(SyntaxError);
+			expect(() => Version.import("1.2", "field")).toThrow(SyntaxError);
+		});
+	});
+
+	describe("export", () => {
+		it("should return the major.minor.patch string", () => {
+			expect(Version.export(new Version(1, 2, 3))).toBe("1.2.3");
+		});
+	});
 });

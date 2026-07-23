@@ -1,6 +1,39 @@
 "use strict";
 
-const { random, trunc } = Math;
+const { random, trunc, imul } = Math;
+
+//#region Xoshiro128
+class Xoshiro128 {
+	#state: Uint32Array = new Uint32Array(4);
+
+	constructor(seed: number) {
+		let value = seed;
+		for (let index = 0; index < this.#state.length; index++) {
+			value = value + 0x9E3779B9 | 0;
+			let mix = imul(value ^ (value >>> 16), 0x21F0AAAD);
+			mix = imul(mix ^ (mix >>> 15), 0x735A2D97);
+			this.#state[index] = mix ^ (mix >>> 15);
+		}
+	}
+
+	next(): number {
+		const state = this.#state;
+		const result = imul(Xoshiro128.#rotl(imul(state[1], 5), 7), 9) >>> 0;
+		const value = state[1] << 9;
+		state[2] ^= state[0];
+		state[3] ^= state[1];
+		state[1] ^= state[2];
+		state[0] ^= state[3];
+		state[2] ^= value;
+		state[3] = Xoshiro128.#rotl(state[3], 11);
+		return result / 4294967296;
+	}
+
+	static #rotl(value: number, shift: number): number {
+		return (value << shift) | (value >>> (32 - shift));
+	}
+}
+//#endregion
 
 //#region Random
 /**
@@ -8,12 +41,43 @@ const { random, trunc } = Math;
  */
 export class Random {
 	static #global: Random = new Random();
+	#engine: Xoshiro128 | null = null;
+
+	/**
+	 * Creates a random generator backed by the platform's native source of entropy.
+	 */
+	constructor();
+	/**
+	 * Creates a seeded random generator that produces a deterministic sequence of values.
+	 * @param seed The seed value.
+	 * @throws {Error} If `seed` is not a finite number.
+	 */
+	constructor(seed: number);
+	constructor(seed?: number | undefined) {
+		if (seed === undefined) return;
+		if (!Number.isFinite(seed)) throw new Error(`The seed ${seed} must be a finite number`);
+		this.#engine = new Xoshiro128(seed);
+	}
+
 	/**
 	 * Gets the global shared random generator instance.
 	 */
-	static get global(): Random {
-		return Random.#global;
+	static get global(): Random { return Random.#global; }
+
+	#random(): number {
+		const engine = this.#engine;
+		if (engine === null) return random();
+		return engine.next();
 	}
+
+	#number(min: number, max: number): number {
+		return this.#random() * (max - min) + min;
+	}
+
+	#integer(min: number, max: number): number {
+		return trunc(this.#number(min, max + 1));
+	}
+
 	/**
 	 * Generates a random boolean with a 50% probability of being `true`.
 	 * @returns A random boolean value.
@@ -30,11 +94,9 @@ export class Random {
 	boolean(factor: number = 0.5): boolean {
 		if (!Number.isFinite(factor)) throw new Error(`The factor ${factor} must be a finite number`);
 		if (0 > factor || factor > 1) throw new RangeError(`The factor ${factor} is out of range [0 - 1]`);
-		return random() < factor;
+		return this.#random() < factor;
 	}
-	#number(min: number, max: number): number {
-		return random() * (max - min) + min;
-	}
+
 	/**
 	 * Generates a random floating-point number between the smallest and largest possible number.
 	 * @returns A random floating-point number.
@@ -58,9 +120,7 @@ export class Random {
 		if (arg2 === undefined) return this.#number(0, arg1);
 		return this.#number(arg1, arg2);
 	}
-	#integer(min: number, max: number): number {
-		return trunc(this.#number(min, max + 1));
-	}
+
 	/**
 	 * Generates a random integer between the minimum safe integer and the maximum safe integer.
 	 * @returns A random integer value.
@@ -84,6 +144,7 @@ export class Random {
 		if (arg2 === undefined) return this.#integer(0, arg1);
 		return this.#integer(arg1, arg2);
 	}
+
 	/**
 	 * Selects a random item from a non-empty array.
 	 * @param array The array to pick from.
@@ -94,6 +155,7 @@ export class Random {
 		if (array.length < 1) throw new Error(`Array must have at least 1 item`);
 		return array[this.#integer(0, array.length - 1)];
 	}
+
 	/**
 	 * Creates a shuffled range of numbers between `min` and `max`.
 	 * @param min Minimum value (inclusive).
@@ -105,6 +167,7 @@ export class Random {
 		this.shuffle(array);
 		return array;
 	}
+
 	/**
 	 * Returns all elements of the array in random order.
 	 * @param array The source array.
@@ -130,6 +193,7 @@ export class Random {
 		}
 		return subarray;
 	}
+
 	/**
 	 * Randomly shuffles the order of elements in an array in place.
 	 * @param array The array to shuffle.
@@ -141,6 +205,7 @@ export class Random {
 			array.swap(index, pair);
 		}
 	}
+
 	/**
 	 * Selects a random item from a weighted set of cases.
 	 * @param cases An iterable of item/weight pairs.
@@ -157,6 +222,6 @@ export class Random {
 			begin = end;
 		}
 		throw new Error(`The cases must have at least 1 item`);
-	};
+	}
 }
 //#endregion

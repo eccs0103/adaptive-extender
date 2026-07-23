@@ -2,6 +2,11 @@ import "adaptive-extender/core";
 import { Version, Field, Model } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
+class ReleaseModel extends Model {
+	@Field(Version)
+	version!: Version;
+}
+
 describe("Version", () => {
 	describe("constructor", () => {
 		it("should create a version from valid components", () => {
@@ -34,6 +39,14 @@ describe("Version", () => {
 			expect(() => new Version(NaN, 0, 0)).toThrow(Error);
 			expect(() => new Version(0, Infinity, 0)).toThrow(Error);
 			expect(() => new Version(0, 0, -Infinity)).toThrow(Error);
+		});
+
+		it("should default to 0.0.0 when called with no arguments", () => {
+			const v = new Version();
+			expect(v.major).toBe(0);
+			expect(v.minor).toBe(0);
+			expect(v.patch).toBe(0);
+			expect(v.toString()).toBe("0.0.0");
 		});
 	});
 
@@ -135,6 +148,17 @@ describe("Version", () => {
 	describe("export", () => {
 		it("should return the major.minor.patch string", () => {
 			expect(Version.export(new Version(1, 2, 3))).toBe("1.2.3");
+		});
+	});
+
+	describe("PortableConstructor", () => {
+		it("should round-trip through @Field(Version)", () => {
+			const model = ReleaseModel.import({ version: "1.2.3" }, "release");
+			expect(model.version).toBeInstanceOf(Version);
+			expect(model.version.toString()).toBe("1.2.3");
+
+			const raw: any = ReleaseModel.export(model);
+			expect(raw.version).toBe("1.2.3");
 		});
 	});
 });

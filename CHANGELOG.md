@@ -1,4 +1,4 @@
-## 1.0.4 (24.07.2026)
+## 1.0.5 (24.07.2026)
 - Added `Version.compare(left, right)` — orders two versions by major, then minor, then patch.
 - `Version` is now a `PortableConstructor<Version, string>` — added `Version.import`/`Version.export`, so it can be used directly as a `@Field(Version, …)` type.
 - Added a seeded `Random` constructor — `new Random(seed)` produces a deterministic sequence of values; `new Random()` continues to use the platform's native entropy. Throws if `seed` is not a finite number.

@@ -11,16 +11,21 @@ const { trunc } = Math;
 export class Version {
 	static #pattern: RegExp = /^(\d+)\.(\d+)\.(\d+)$/;
 
-	#major: number = 0;
-	#minor: number = 0;
-	#patch: number = 0;
+	#major: number;
+	#minor: number;
+	#patch: number;
 
+	/**
+	 * Creates a version defaulting to `0.0.0`.
+	 */
+	constructor();
 	/**
 	 * Creates a version from its numeric components.
 	 * Non-integer finite values are truncated; negative finite values are clamped to zero.
 	 * @throws {Error} If any component is not a finite number.
 	 */
-	constructor(major: number, minor: number, patch: number) {
+	constructor(major: number, minor: number, patch: number);
+	constructor(major: number = 0, minor: number = 0, patch: number = 0) {
 		if (!Number.isFinite(major)) throw new Error(`The major ${major} must be a finite number`);
 		if (!Number.isFinite(minor)) throw new Error(`The minor ${minor} must be a finite number`);
 		if (!Number.isFinite(patch)) throw new Error(`The patch ${patch} must be a finite number`);
@@ -32,23 +37,17 @@ export class Version {
 	/**
 	 * Gets the major component.
 	 */
-	get major(): number {
-		return this.#major;
-	}
+	get major(): number { return this.#major; }
 
 	/**
 	 * Gets the minor component.
 	 */
-	get minor(): number {
-		return this.#minor;
-	}
+	get minor(): number { return this.#minor; }
 
 	/**
 	 * Gets the patch component.
 	 */
-	get patch(): number {
-		return this.#patch;
-	}
+	get patch(): number { return this.#patch; }
 
 	/**
 	 * Returns the version as a `"major.minor.patch"` string.

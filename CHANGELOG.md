@@ -1,3 +1,6 @@
+## 1.0.7 (17.09.2026)
+- Updated development dependencies to clear a high-severity `nanoid` advisory ([GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8)) pulled in transitively via `postcss` — pinned via `overrides` in `package.json`. No public API change.
+
 ## 1.0.6 (24.07.2026)
 - Added `Version.compare(left, right)` — orders two versions by major, then minor, then patch.
 - `Version` is now a `PortableConstructor<Version, string>` — added `Version.import`/`Version.export`, so it can be used directly as a `@Field(Version, …)` type.

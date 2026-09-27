@@ -51,19 +51,19 @@ Number.export = function (source: number): number {
 };
 
 Number.prototype.insteadNaN = function <T>(value: T): number | T {
-	const current = this.valueOf();
+	const current = +this;
 	if (Number.isNaN(current)) return value;
 	return current;
 };
 
 Number.prototype.insteadInfinity = function <T>(value: T): number | T {
-	const current = this.valueOf();
+	const current = +this;
 	if (!Number.isFinite(current)) return value;
 	return current;
 };
 
 Number.prototype.insteadZero = function <T>(value: T): number | T {
-	const current = this.valueOf();
+	const current = +this;
 	if (current === 0) return value;
 	return current;
 };

@@ -38,6 +38,10 @@ describe("Number extensions", () => {
 			expect((5 as number).insteadNaN("fallback")).toBe(5);
 			expect((0 as number).insteadNaN("fallback")).toBe(0);
 		});
+
+		it("should return a primitive for a boxed receiver", () => {
+			expect(new Number(5).insteadNaN("fallback")).toBe(5);
+		});
 	});
 
 	describe("Number.prototype.insteadInfinity", () => {

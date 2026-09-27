@@ -50,7 +50,7 @@ declare global {
 }
 
 Number.prototype.clamp = function (min: number, max: number): number {
-	let result = this.valueOf();
+	let result = +this;
 	if (result < min) return min;
 	if (result > max) return max;
 	return result;
@@ -68,8 +68,8 @@ function lerp(value: number, min1: number, max1: number, min2: number, max2: num
 }
 
 Number.prototype.lerp = function (min1: number, max1: number, min2?: number, max2?: number): number {
-	if (min2 === undefined || max2 === undefined) return normalize(this.valueOf(), min1, max1);
-	return lerp(this.valueOf(), min1, max1, min2, max2);
+	if (min2 === undefined || max2 === undefined) return normalize(+this, min1, max1);
+	return lerp(+this, min1, max1, min2, max2);
 };
 
 function repeat(value: number, length: number): number {
@@ -82,12 +82,12 @@ function wrap(value: number, start: number, length: number): number {
 }
 
 Number.prototype.mod = function (arg1: number, arg2?: number): number {
-	if (arg2 === undefined) return repeat(this.valueOf(), arg1);
-	return wrap(this.valueOf(), arg1, arg2);
+	if (arg2 === undefined) return repeat(+this, arg1);
+	return wrap(+this, arg1, arg2);
 };
 
 Number.prototype.snap = function (step: number): number {
-	return round(this.valueOf() / step) * step;
+	return round(+this / step) * step;
 };
 //#endregion
 //#region Math

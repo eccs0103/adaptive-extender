@@ -19,6 +19,9 @@ describe("Number extensions", () => {
 			expect((0).clamp(-3, 3)).toBe(0);
 			expect((5).clamp(-3, 3)).toBe(3);
 		});
+		it("should return a primitive for a boxed receiver", () => {
+			expect(new Number(3).clamp(2, 5)).toBe(3);
+		});
 	});
 
 	describe("Number.prototype.lerp", () => {

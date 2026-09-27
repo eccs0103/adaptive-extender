@@ -1,3 +1,6 @@
+## 1.0.8 (28.09.2026)
+- `Number.prototype.clamp`, `lerp`, `mod`, `snap`, `insteadNaN`, `insteadInfinity`, and `insteadZero` are several times faster per call (for example `lerp` 9.3 → 1.6 ns, `clamp` 17.4 → 3.9 ns in V8) — the receiver is now unwrapped with unary `+` instead of a `this.valueOf()` call. Results are unchanged, including for boxed `Number` receivers. No public API change.
+
 ## 1.0.7 (17.09.2026)
 - Updated development dependencies to clear a high-severity `nanoid` advisory ([GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8)) pulled in transitively via `postcss` — pinned via `overrides` in `package.json`. No public API change.
 

@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/core";
 import { EnvironmentProvider, Field, Model } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";

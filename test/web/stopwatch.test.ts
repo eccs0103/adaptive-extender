@@ -1,3 +1,5 @@
+"use strict";
+
 import { Stopwatch, WebEngine } from "adaptive-extender/web";
 import { describe, it, expect } from "vitest";
 

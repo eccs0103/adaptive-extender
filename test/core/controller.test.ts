@@ -24,16 +24,16 @@ describe("Controller", () => {
 
 	it("should call the catch method when an error occurs in the run method", async () => {
 		let catchCalled = false;
-		const testError = new Error("Test error");
+		const error = new Error("Test error");
 
 		class TestController extends Controller {
 			async run() {
-				throw testError;
+				throw error;
 			}
 
-			async catch(error: Error) {
+			async catch(reason: Error) {
 				catchCalled = true;
-				assert.strictEqual(error, testError, "error in catch should be the one thrown");
+				assert.strictEqual(reason, error, "error in catch should be the one thrown");
 			}
 		}
 
@@ -72,11 +72,11 @@ describe("Controller", () => {
 	});
 
 	it("should re-throw errors by default when catch is not overridden", async () => {
-		const testError = new Error("uncaught");
+		const error = new Error("uncaught");
 
 		class TestController extends Controller {
 			async run() {
-				throw testError;
+				throw error;
 			}
 		}
 

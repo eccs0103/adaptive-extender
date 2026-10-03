@@ -1,3 +1,5 @@
+"use strict";
+
 import { PreciseEngine, StaticEngine, WebWorkersEngine } from "adaptive-extender/worker";
 import { describe, it, expect, vi } from "vitest";
 

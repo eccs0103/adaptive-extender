@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
@@ -13,32 +15,32 @@ describe("Boolean extensions", () => {
 
 		it("should throw TypeError for non-boolean values (number)", () => {
 			const value = 1;
-			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
+			const message = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(message));
 		});
 
 		it("should throw TypeError for non-boolean values (string)", () => {
 			const value = "true";
-			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
+			const message = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(message));
 		});
 
 		it("should throw TypeError for non-boolean values (object)", () => {
 			const value = {};
-			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
+			const message = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(message));
 		});
 
 		it("should throw TypeError for non-boolean values (undefined)", () => {
 			const value = undefined;
-			const expectedMessage = `Unable to import boolean from [source] due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(expectedMessage));
+			const message = `Unable to import boolean from [source] due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any, "[source]")).toThrow(new TypeError(message));
 		});
 
 		it("should use custom name in error message", () => {
 			const value = 0;
-			const expectedMessage = `Unable to import boolean from customName due its ${typename(value)} type`;
-			expect(() => Boolean.import(value as any, "customName")).toThrow(new TypeError(expectedMessage));
+			const message = `Unable to import boolean from customName due its ${typename(value)} type`;
+			expect(() => Boolean.import(value as any, "customName")).toThrow(new TypeError(message));
 		});
 	});
 

@@ -1,3 +1,5 @@
+"use strict";
+
 import { Timespan } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 

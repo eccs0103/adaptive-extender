@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/web";
 import { Cell, PortableCell, BufferedCell } from "adaptive-extender/web";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
@@ -140,10 +142,10 @@ describe("BufferedCell", () => {
 	it("should resolve false when aborted", async () => {
 		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
 		cell.content.value = 500;
-		const savePromise = cell.save(1000);
+		const promise = cell.save(1000);
 
 		cell.abort();
-		await expect(savePromise).resolves.toBe(false);
+		await expect(promise).resolves.toBe(false);
 		vi.advanceTimersByTime(1000);
 
 		// Should still be initial value in storage
@@ -154,21 +156,21 @@ describe("BufferedCell", () => {
 	it("should resolve false when superseded by a subsequent save", async () => {
 		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
 		cell.content.value = 500;
-		const firstSave = cell.save(1000);
+		const promise = cell.save(1000);
 
 		cell.content.value = 600;
 		cell.save(500);
 
-		await expect(firstSave).resolves.toBe(false);
+		await expect(promise).resolves.toBe(false);
 	});
 
 	it("should resolve true when save completes", async () => {
 		const cell = localStorage.openBufferedCell(KEY, MockArchivable, new MockArchivable(1, "start"));
 		cell.content.value = 500;
-		const savePromise = cell.save(1000);
+		const promise = cell.save(1000);
 
 		vi.advanceTimersByTime(1000);
-		await expect(savePromise).resolves.toBe(true);
+		await expect(promise).resolves.toBe(true);
 
 		const stored = JSON.parse(localStorage.getItem(KEY)!);
 		expect(stored.value).toBe(500);

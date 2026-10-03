@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/web";
 import { describe, it, expect, beforeEach } from "vitest";
 

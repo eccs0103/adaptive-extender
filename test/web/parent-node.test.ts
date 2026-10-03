@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/web";
 import { describe, it, expect, beforeEach } from "vitest";
 
@@ -51,15 +53,15 @@ describe("ParentNode extensions", () => {
 		});
 
 		it("should return an empty NodeList if no elements are found", () => {
-			const emptyList = document.getElements(Element, ".non-existent");
-			expect(emptyList.length).toBe(0);
+			const list = document.getElements(Element, ".non-existent");
+			expect(list.length).toBe(0);
 		});
 	});
 
 	describe("getElementAsync", () => {
 		it("should return a promise that resolves with the correct element", async () => {
-			const containerPromise = document.getElementAsync(HTMLDivElement, "#container");
-			await expect(containerPromise).resolves.toBeInstanceOf(HTMLDivElement);
+			const promise = document.getElementAsync(HTMLDivElement, "#container");
+			await expect(promise).resolves.toBeInstanceOf(HTMLDivElement);
 		});
 	});
 });

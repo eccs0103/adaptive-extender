@@ -1,3 +1,5 @@
+"use strict";
+
 import { Vector, Vector3D } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 

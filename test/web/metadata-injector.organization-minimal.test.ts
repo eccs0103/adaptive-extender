@@ -1,3 +1,5 @@
+"use strict";
+
 import { MetadataInjector } from "adaptive-extender/web";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 

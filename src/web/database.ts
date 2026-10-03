@@ -58,16 +58,8 @@ export class RecordStore {
 		});
 	}
 
-	#begin(version: number | null): IDBOpenDBRequest {
-		const factory = this.#factory;
-		const database = this.#database;
-		if (version === null) return factory.open(database);
-		return factory.open(database, version);
-	}
-
-	async #request(version: number | null): Promise<IDBDatabase> {
+	async #upgrade(request: IDBOpenDBRequest): Promise<IDBDatabase> {
 		const name = this.#name;
-		const request = this.#begin(version);
 		request.addEventListener("upgradeneeded", (event) => {
 			const { result } = request;
 			if (result.objectStoreNames.contains(name)) return;
@@ -88,14 +80,16 @@ export class RecordStore {
 
 	// A missing store needs a version upgrade; another context may win the same version first, so the upgrade is retried
 	async #establish(): Promise<IDBDatabase> {
+		const factory = this.#factory;
+		const database = this.#database;
 		const name = this.#name;
 		for (let attempt = 1; ; attempt++) {
-			const connection = await this.#request(null);
+			const connection = await this.#upgrade(factory.open(database));
 			if (connection.objectStoreNames.contains(name)) return this.#watch(connection);
 			const { version } = connection;
 			connection.close();
 			try {
-				return this.#watch(await this.#request(version + 1));
+				return this.#watch(await this.#upgrade(factory.open(database, version + 1)));
 			} catch (reason) {
 				if (!(reason instanceof DOMException) || reason.name !== "VersionError" || attempt >= RecordStore.#attempts) throw reason;
 			}
@@ -171,7 +165,7 @@ export class RecordStore {
 	async entries(): Promise<Map<IDBValidKey, unknown>> {
 		const store = await this.#open("readonly");
 		const [keys, values] = await Promise.all([RecordStore.#settle(store.getAllKeys()), RecordStore.#settle(store.getAll())]);
-		return new Map(keys.map((key, index) => [key, values[index]]));
+		return new Map(Iterator.zip(keys, values));
 	}
 
 	/**
@@ -198,7 +192,7 @@ export class RecordStore {
 	 * Writes every record in one transaction: either all of them are committed or none is.
 	 * @param entries The records to store, by key.
 	 */
-	async setAll(entries: ReadonlyMap<IDBValidKey, unknown>): Promise<void> {
+	async putAll(entries: ReadonlyMap<IDBValidKey, unknown>): Promise<void> {
 		const store = await this.#open("readwrite");
 		const { transaction } = store;
 		try {
@@ -226,7 +220,7 @@ export class RecordStore {
 	 * Removes every listed record in one transaction.
 	 * @param keys The keys of the records.
 	 */
-	async deleteAll(keys: Iterable<IDBValidKey>): Promise<void> {
+	async dropAll(keys: Iterable<IDBValidKey>): Promise<void> {
 		const store = await this.#open("readwrite");
 		const { transaction } = store;
 		try {
@@ -352,9 +346,9 @@ export class PortableStore<M extends PortableConstructor<InstanceType<M>>> {
 	 * Exports and writes every instance in one transaction: either all of them are committed or none is.
 	 * @param entries The instances to store, by key.
 	 */
-	async setAll(entries: ReadonlyMap<IDBValidKey, InstanceType<M>>): Promise<void> {
+	async putAll(entries: ReadonlyMap<IDBValidKey, InstanceType<M>>): Promise<void> {
 		const model = this.#model;
-		await this.#store.setAll(new Map(Array.from(entries, ([key, instance]) => [key, model.export(instance)])));
+		await this.#store.putAll(new Map(Array.from(entries, ([key, instance]) => [key, model.export(instance)])));
 	}
 
 	/**
@@ -369,8 +363,8 @@ export class PortableStore<M extends PortableConstructor<InstanceType<M>>> {
 	 * Removes every listed record in one transaction.
 	 * @param keys The keys of the records.
 	 */
-	async deleteAll(keys: Iterable<IDBValidKey>): Promise<void> {
-		await this.#store.deleteAll(keys);
+	async dropAll(keys: Iterable<IDBValidKey>): Promise<void> {
+		await this.#store.dropAll(keys);
 	}
 
 	/**

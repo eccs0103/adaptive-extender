@@ -32,8 +32,9 @@ export class Timespan {
 	 */
 	set days(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#value += Timespan.#toValue(value - this.#dm[0], 0, 0, 0, 0);
-		Timespan.#toComponents(this.#value, this.#dm, this.#hms);
+		const dm = this.#dm;
+		this.#value += Timespan.#toValue(value - dm[0], 0, 0, 0, 0);
+		Timespan.#toComponents(this.#value, dm, this.#hms);
 	}
 	/**
 	 * Gets the hours component of the timespan.
@@ -46,8 +47,9 @@ export class Timespan {
 	 */
 	set hours(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#value += Timespan.#toValue(0, value - this.#hms[0], 0, 0, 0);
-		Timespan.#toComponents(this.#value, this.#dm, this.#hms);
+		const hms = this.#hms;
+		this.#value += Timespan.#toValue(0, value - hms[0], 0, 0, 0);
+		Timespan.#toComponents(this.#value, this.#dm, hms);
 	}
 	/**
 	 * Gets the minutes component of the timespan.
@@ -60,8 +62,9 @@ export class Timespan {
 	 */
 	set minutes(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#value += Timespan.#toValue(0, 0, value - this.#hms[1], 0, 0);
-		Timespan.#toComponents(this.#value, this.#dm, this.#hms);
+		const hms = this.#hms;
+		this.#value += Timespan.#toValue(0, 0, value - hms[1], 0, 0);
+		Timespan.#toComponents(this.#value, this.#dm, hms);
 	}
 	/**
 	 * Gets the seconds component of the timespan.
@@ -74,8 +77,9 @@ export class Timespan {
 	 */
 	set seconds(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#value += Timespan.#toValue(0, 0, 0, value - this.#hms[2], 0);
-		Timespan.#toComponents(this.#value, this.#dm, this.#hms);
+		const hms = this.#hms;
+		this.#value += Timespan.#toValue(0, 0, 0, value - hms[2], 0);
+		Timespan.#toComponents(this.#value, this.#dm, hms);
 	}
 	/**
 	 * Gets the milliseconds component of the timespan.
@@ -88,8 +92,9 @@ export class Timespan {
 	 */
 	set milliseconds(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#value += Timespan.#toValue(0, 0, 0, 0, value - this.#dm[1]);
-		Timespan.#toComponents(this.#value, this.#dm, this.#hms);
+		const dm = this.#dm;
+		this.#value += Timespan.#toValue(0, 0, 0, 0, value - dm[1]);
+		Timespan.#toComponents(this.#value, dm, this.#hms);
 	}
 	//#endregion
 	//#region Builders

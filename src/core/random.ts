@@ -8,11 +8,12 @@ class Xoshiro128 {
 
 	constructor(seed: number) {
 		let value = seed;
-		for (let index = 0; index < this.#state.length; index++) {
+		const state = this.#state;
+		for (let index = 0; index < state.length; index++) {
 			value = value + 0x9E3779B9 | 0;
 			let mix = imul(value ^ (value >>> 16), 0x21F0AAAD);
 			mix = imul(mix ^ (mix >>> 15), 0x735A2D97);
-			this.#state[index] = mix ^ (mix >>> 15);
+			state[index] = mix ^ (mix >>> 15);
 		}
 	}
 

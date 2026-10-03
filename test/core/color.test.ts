@@ -1,3 +1,5 @@
+"use strict";
+
 import { Color, ColorFormats } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 

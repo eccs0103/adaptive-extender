@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
@@ -16,11 +18,11 @@ describe("Promise extensions", () => {
 		});
 
 		it("should be false for pending promise", async () => {
-			let resolveFn: (v: number) => void;
-			const p = new Promise<number>(resolve => { resolveFn = resolve; });
+			let resolve2: (v: number) => void;
+			const p = new Promise<number>(resolve => { resolve2 = resolve; });
 			const settled = await Promise.race([p.isSettled, Promise.resolve(false)]);
 			expect(settled).toBe(false);
-			resolveFn!(1);
+			resolve2!(1);
 		});
 	});
 

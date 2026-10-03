@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/core";
 import { Deferred, Descendant, DiscriminatorKey, Enum, Field, Nullable, Optional, Model, Any } from "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
@@ -161,8 +163,10 @@ class SettingsModel extends Model {
 // Enum adapter models
 enum TaskStatus { Pending, Active, Closed }
 enum Direction { Up = "UP", Down = "DOWN", Left = "LEFT" }
-const Role = { admin: "admin", user: "user", guest: "guest" } as const;
-const Priority = Object.freeze({ low: 1, medium: 2, high: 3 });
+class Fixtures {
+	static readonly role = { admin: "admin", user: "user", guest: "guest" } as const;
+	static readonly priority = Object.freeze({ low: 1, medium: 2, high: 3 });
+}
 
 class TaskModel extends Model {
 	@Field(Enum.Of(TaskStatus))
@@ -173,10 +177,10 @@ class TaskModel extends Model {
 }
 
 class AccessModel extends Model {
-	@Field(Enum.Of(Role))
+	@Field(Enum.Of(Fixtures.role))
 	role!: "admin" | "user" | "guest";
 
-	@Field(Optional.Of(Enum.Of(Priority)))
+	@Field(Optional.Of(Enum.Of(Fixtures.priority)))
 	priority?: 1 | 2 | 3;
 }
 

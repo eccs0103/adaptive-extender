@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/web";
 import { RecordStore, PortableStore } from "adaptive-extender/web";
 import { describe, it, expect } from "vitest";
@@ -79,7 +81,7 @@ describe("RecordStore", () => {
 	it("should list keys, values and entries in key order", async () => {
 		const store = indexedDB.openStore(unique(), "records");
 
-		await store.setAll(new Map<IDBValidKey, unknown>([["b", 2], ["a", 1], ["c", 3]]));
+		await store.putAll(new Map<IDBValidKey, unknown>([["b", 2], ["a", 1], ["c", 3]]));
 
 		expect(await store.keys()).toEqual(["a", "b", "c"]);
 		expect(await store.values()).toEqual([1, 2, 3]);
@@ -89,9 +91,9 @@ describe("RecordStore", () => {
 
 	it("should delete several records and clear the store", async () => {
 		const store = indexedDB.openStore(unique(), "records");
-		await store.setAll(new Map<IDBValidKey, unknown>([["a", 1], ["b", 2], ["c", 3]]));
+		await store.putAll(new Map<IDBValidKey, unknown>([["a", 1], ["b", 2], ["c", 3]]));
 
-		await store.deleteAll(["a", "c"]);
+		await store.dropAll(["a", "c"]);
 		expect(await store.keys()).toEqual(["b"]);
 
 		await store.clear();
@@ -103,7 +105,7 @@ describe("RecordStore", () => {
 
 		const batch = new Map<IDBValidKey, unknown>([["a", 1], ["b", () => 2], ["c", 3]]);
 
-		await expect(store.setAll(batch)).rejects.toThrow();
+		await expect(store.putAll(batch)).rejects.toThrow();
 		expect(await store.count()).toBe(0);
 	});
 
@@ -116,14 +118,14 @@ describe("RecordStore", () => {
 
 	it("should add a second store to an open database and keep the first one working", async () => {
 		const database = unique();
-		const first = indexedDB.openStore(database, "first");
-		const second = indexedDB.openStore(database, "second");
+		const store = indexedDB.openStore(database, "first");
+		const store2 = indexedDB.openStore(database, "second");
 
-		await first.set("key", "one");
-		await second.set("key", "two");
+		await store.set("key", "one");
+		await store2.set("key", "two");
 
-		expect(await first.get("key")).toBe("one");
-		expect(await second.get("key")).toBe("two");
+		expect(await store.get("key")).toBe("one");
+		expect(await store2.get("key")).toBe("two");
 	});
 
 	it("should read a database created with out-of-line keys at version 1", async () => {
@@ -166,7 +168,7 @@ describe("PortableStore", () => {
 	it("should write a batch and list restored instances", async () => {
 		const store = indexedDB.openPortableStore(unique(), "notes", Note);
 
-		await store.setAll(new Map<IDBValidKey, Note>([["b", new Note("B", false)], ["a", new Note("A", true)]]));
+		await store.putAll(new Map<IDBValidKey, Note>([["b", new Note("B", false)], ["a", new Note("A", true)]]));
 
 		const values = await store.values();
 		expect(values.every(value => value instanceof Note)).toBe(true);
@@ -197,10 +199,10 @@ describe("PortableStore", () => {
 
 	it("should delete and clear records", async () => {
 		const store = indexedDB.openPortableStore(unique(), "notes", Note);
-		await store.setAll(new Map<IDBValidKey, Note>([["a", new Note("A", true)], ["b", new Note("B", true)], ["c", new Note("C", true)]]));
+		await store.putAll(new Map<IDBValidKey, Note>([["a", new Note("A", true)], ["b", new Note("B", true)], ["c", new Note("C", true)]]));
 
 		await store.delete("a");
-		await store.deleteAll(["b"]);
+		await store.dropAll(["b"]);
 		expect(await store.keys()).toEqual(["c"]);
 		expect(await store.has("c")).toBe(true);
 

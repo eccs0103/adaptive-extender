@@ -1,3 +1,5 @@
+"use strict";
+
 import { MetadataInjector } from "adaptive-extender/web";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
@@ -48,8 +50,8 @@ describe("MetadataInjector — Person", () => {
 	});
 
 	it("should set og:type to profile", () => {
-		const ogType = document.querySelector('meta[property="og:type"]');
-		expect(ogType?.getAttribute("content")).toBe("profile");
+		const metaOgType = document.querySelector('meta[property="og:type"]');
+		expect(metaOgType?.getAttribute("content")).toBe("profile");
 	});
 
 	it("should set author meta tag", () => {
@@ -58,8 +60,8 @@ describe("MetadataInjector — Person", () => {
 	});
 
 	it("should merge keywords and knowledge into keywords meta, deduplicating", () => {
-		const keywordsMeta = document.querySelector('meta[name="keywords"]');
-		const parts = (keywordsMeta?.getAttribute("content") ?? "").split(",");
+		const metaKeywords = document.querySelector('meta[name="keywords"]');
+		const parts = (metaKeywords?.getAttribute("content") ?? "").split(",");
 		expect(parts).toContain("dev");
 		expect(parts).toContain("open-source");
 		expect(parts).toContain("TypeScript");

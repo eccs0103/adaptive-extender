@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/core";
 import { describe, it, expect } from "vitest";
 
@@ -38,49 +40,49 @@ describe("Array extensions", () => {
 
 describe("Array.fromAsync", () => {
 		it("should create an array from an async iterable", async () => {
-			async function* asyncGen() {
+			async function* generator() {
 				yield 1;
 				yield 2;
 				yield 3;
 			}
-			const result = await Array.fromAsync(asyncGen());
+			const result = await Array.fromAsync(generator());
 			expect(result).toEqual([1, 2, 3]);
 		});
 
 		it("should create an array from a sync iterable", async () => {
-			function* syncGen() {
+			function* generator() {
 				yield "a";
 				yield "b";
 			}
-			const result = await Array.fromAsync(syncGen());
+			const result = await Array.fromAsync(generator());
 			expect(result).toEqual(["a", "b"]);
 		});
 
 		it("should use a mapper function", async () => {
-			async function* asyncGen() {
+			async function* generator() {
 				yield 1;
 				yield 2;
 			}
-			const result = await Array.fromAsync(asyncGen(), (x) => x * 2);
+			const result = await Array.fromAsync(generator(), (x) => x * 2);
 			expect(result).toEqual([2, 4]);
 		});
 
 		it("should use a mapper function returning a promise", async () => {
-			async function* asyncGen() {
+			async function* generator() {
 				yield 1;
 				yield 2;
 			}
-			const result = await Array.fromAsync(asyncGen(), async (x) => x * 2);
+			const result = await Array.fromAsync(generator(), async (x) => x * 2);
 			expect(result).toEqual([2, 4]);
 		});
 
 		it("should use context with mapper", async () => {
 			const context = { multiplier: 3 };
-			async function* asyncGen() {
+			async function* generator() {
 				yield 1;
 				yield 2;
 			}
-			const result = await Array.fromAsync(asyncGen(), function (this: typeof context, x) {
+			const result = await Array.fromAsync(generator(), function (this: typeof context, x) {
 				return x * this.multiplier;
 			}, context);
 			expect(result).toEqual([3, 6]);

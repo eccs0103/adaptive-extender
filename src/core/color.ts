@@ -45,8 +45,9 @@ export class Color {
 	 */
 	set red(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#rgb[0] = value;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[0] = value;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 	}
 	/**
 	 * Gets the green color component.
@@ -59,8 +60,9 @@ export class Color {
 	 */
 	set green(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#rgb[1] = value;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[1] = value;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 	}
 	/**
 	 * Gets the blue color component.
@@ -73,8 +75,9 @@ export class Color {
 	 */
 	set blue(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#rgb[2] = value;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[2] = value;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 	}
 	#hsl: Uint16Array = new Uint16Array([0, 0, 0]);
 	/**
@@ -88,8 +91,9 @@ export class Color {
 	 */
 	set hue(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#hsl[0] = value.mod(360);
-		Color.#HSLtoRGB(this.#hsl, this.#rgb);
+		const hsl = this.#hsl;
+		hsl[0] = value.mod(360);
+		Color.#HSLtoRGB(hsl, this.#rgb);
 	}
 	/**
 	 * Gets the saturation color component.
@@ -102,8 +106,9 @@ export class Color {
 	 */
 	set saturation(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#hsl[1] = value.clamp(0, 100);
-		Color.#HSLtoRGB(this.#hsl, this.#rgb);
+		const hsl = this.#hsl;
+		hsl[1] = value.clamp(0, 100);
+		Color.#HSLtoRGB(hsl, this.#rgb);
 	}
 	/**
 	 * Gets the lightness color component.
@@ -116,8 +121,9 @@ export class Color {
 	 */
 	set lightness(value: number) {
 		if (!Number.isFinite(value)) return;
-		this.#hsl[2] = value.clamp(0, 100);
-		Color.#HSLtoRGB(this.#hsl, this.#rgb);
+		const hsl = this.#hsl;
+		hsl[2] = value.clamp(0, 100);
+		Color.#HSLtoRGB(hsl, this.#rgb);
 	}
 	#alpha: number = 1;
 	/**
@@ -479,10 +485,11 @@ export class Color {
 		scale = scale.clamp(0, 1);
 		const { red, green, blue } = this;
 		const achromatic = (red + green + blue) / 3;
-		this.#rgb[0] = red + (achromatic - red) * scale;
-		this.#rgb[1] = green + (achromatic - green) * scale;
-		this.#rgb[2] = blue + (achromatic - blue) * scale;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[0] = red + (achromatic - red) * scale;
+		rgb[1] = green + (achromatic - green) * scale;
+		rgb[2] = blue + (achromatic - blue) * scale;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 		return this;
 	}
 	/**
@@ -502,9 +509,10 @@ export class Color {
 		scale = scale.clamp(0, 1);
 		const { green, blue } = this;
 		const average = (green + blue) / 2;
-		this.#rgb[1] = green + (average - green) * scale;
-		this.#rgb[2] = blue + (average - blue) * scale;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[1] = green + (average - green) * scale;
+		rgb[2] = blue + (average - blue) * scale;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 		return this;
 	}
 	/**
@@ -524,9 +532,10 @@ export class Color {
 		scale = scale.clamp(0, 1);
 		const { red, blue } = this;
 		const average = (red + blue) / 2;
-		this.#rgb[0] = red + (average - red) * scale;
-		this.#rgb[2] = blue + (average - blue) * scale;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[0] = red + (average - red) * scale;
+		rgb[2] = blue + (average - blue) * scale;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 		return this;
 	}
 	/**
@@ -546,9 +555,10 @@ export class Color {
 		scale = scale.clamp(0, 1);
 		const { red, green } = this;
 		const average = (red + green) / 2;
-		this.#rgb[0] = red + (average - red) * scale;
-		this.#rgb[1] = green + (average - green) * scale;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[0] = red + (average - red) * scale;
+		rgb[1] = green + (average - green) * scale;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 		return this;
 	}
 	/**
@@ -567,10 +577,11 @@ export class Color {
 		if (!Number.isFinite(scale)) throw new Error(`The scale ${scale} must be a finite number`);
 		scale = scale.clamp(0, 1);
 		const { red, green, blue } = this;
-		this.#rgb[0] = red + ((255 - red) - red) * scale;
-		this.#rgb[1] = green + ((255 - green) - green) * scale;
-		this.#rgb[2] = blue + ((255 - blue) - blue) * scale;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[0] = red + ((255 - red) - red) * scale;
+		rgb[1] = green + ((255 - green) - green) * scale;
+		rgb[2] = blue + ((255 - blue) - blue) * scale;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 		return this;
 	}
 	/**
@@ -592,10 +603,11 @@ export class Color {
 		const redness = (red * 0.393) + (green * 0.769) + (blue * 0.189);
 		const greenness = (red * 0.349) + (green * 0.686) + (blue * 0.168);
 		const blueness = (red * 0.272) + (green * 0.534) + (blue * 0.131);
-		this.#rgb[0] = red + (redness - red) * scale;
-		this.#rgb[1] = green + (greenness - green) * scale;
-		this.#rgb[2] = blue + (blueness - blue) * scale;
-		Color.#RGBtoHSL(this.#rgb, this.#hsl);
+		const rgb = this.#rgb;
+		rgb[0] = red + (redness - red) * scale;
+		rgb[1] = green + (greenness - green) * scale;
+		rgb[2] = blue + (blueness - blue) * scale;
+		Color.#RGBtoHSL(rgb, this.#hsl);
 		return this;
 	}
 	/**

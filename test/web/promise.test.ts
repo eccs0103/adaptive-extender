@@ -1,3 +1,5 @@
+"use strict";
+
 import "adaptive-extender/web";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
@@ -12,22 +14,22 @@ describe("Promise extensions", () => {
 		});
 
 		it("should resolve after the specified timeout", async () => {
-			const timeoutPromise = Promise.asTimeout(1000);
+			const promise = Promise.asTimeout(1000);
 
 			await vi.advanceTimersByTimeAsync(1000);
 
-			await expect(timeoutPromise).resolves.toBeUndefined();
+			await expect(promise).resolves.toBeUndefined();
 		});
 
 		it("should call clearTimeout in the finally block", async () => {
-			const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
+			const spy = vi.spyOn(global, "clearTimeout");
 
-			const timeoutPromise = Promise.asTimeout(1000);
+			const promise = Promise.asTimeout(1000);
 			await vi.advanceTimersByTimeAsync(1000);
-			await timeoutPromise;
+			await promise;
 
-			expect(clearTimeoutSpy).toHaveBeenCalled();
-			clearTimeoutSpy.mockRestore();
+			expect(spy).toHaveBeenCalled();
+			spy.mockRestore();
 		});
 	});
 
@@ -43,18 +45,18 @@ describe("Promise extensions", () => {
 		});
 
 		it("should abort the signal after the promise resolves", async () => {
-			let signalInCallback: AbortSignal | undefined;
+			let signal2: AbortSignal | undefined;
 
 			const promise = Promise.withSignal<string>((signal, resolve) => {
-				signalInCallback = signal;
+				signal2 = signal;
 				expect(signal.aborted).toBe(false);
 				resolve("done");
 			});
 
 			await promise;
 
-			expect(signalInCallback).toBeDefined();
-			expect(signalInCallback!.aborted).toBe(true);
+			expect(signal2).toBeDefined();
+			expect(signal2!.aborted).toBe(true);
 		});
 	});
 });

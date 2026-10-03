@@ -57,9 +57,10 @@ export class Cell {
 	 * @throws {SyntaxError} If the data is corrupted and cannot be parsed.
 	 */
 	get data(): unknown {
-		const text = this.#storage.getItem(this.#key);
-		if (text === null) throw new ReferenceError(`Cell [${this.#key}]: Entry not found.`);
-		return Cell.#decompress(this.#key, text);
+		const key = this.#key;
+		const text = this.#storage.getItem(key);
+		if (text === null) throw new ReferenceError(`Cell [${key}]: Entry not found.`);
+		return Cell.#decompress(key, text);
 	}
 
 	/**
@@ -68,8 +69,9 @@ export class Cell {
 	 * @throws {SyntaxError} If the value cannot be serialized.
 	 */
 	set data(value: unknown) {
-		const text = Cell.#compress(this.#key, value);
-		this.#storage.setItem(this.#key, text);
+		const key = this.#key;
+		const text = Cell.#compress(key, value);
+		this.#storage.setItem(key, text);
 	}
 }
 //#endregion
@@ -120,11 +122,13 @@ export class PortableCell<M extends PortableConstructor<InstanceType<M>>> {
 	 * @throws {SyntaxError} If storage is corrupted or data is incompatible with the current model version.
 	 */
 	get content(): InstanceType<M> {
+		const cell = this.#cell;
+		const { key } = cell;
 		try {
-			return this.#model.import(this.#cell.data, this.#cell.key);
-		} catch (error) {
-			if (!(error instanceof TypeError)) throw error;
-			throw new SyntaxError(`PortableCell [${this.#cell.key}]: Content restoration failed.`);
+			return this.#model.import(cell.data, key);
+		} catch (reason) {
+			if (!(reason instanceof TypeError)) throw reason;
+			throw new SyntaxError(`PortableCell [${key}]: Content restoration failed.`);
 		}
 	}
 
@@ -189,10 +193,10 @@ export class BufferedCell<M extends PortableConstructor<InstanceType<M>>> {
 	constructor(storage: Storage, key: string, model: M, instance: InstanceType<M>) {
 		this.#cell = new PortableCell(storage, key, model, instance);
 		this.#content = this.#cell.content;
-		this.#initializeUnloadHandler();
+		this.#guardUnload();
 	}
 
-	#initializeUnloadHandler(): void {
+	#guardUnload(): void {
 		window.addEventListener("beforeunload", (event) => {
 			if (this.#transaction === null) return;
 			event.returnValue = "Pending changes are being saved.";

@@ -1,15 +1,10 @@
 {
+	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"target": "ES2016",
-		"module": "CommonJS",
-		"lib": [ "ES2016", "WebWorker" ],
-		"esModuleInterop": true,
-		"allowJs": true,
+		"lib": [ "ES2025", "WebWorker", "ESNext.Decorators" ],
+		"types": [ ],
 		"skipLibCheck": true,
-		"declaration": true,
-		"sourceMap": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
+		"noEmit": true
 	},
 	"include": [ "./*.ts" ]
 }

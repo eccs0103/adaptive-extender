@@ -6,6 +6,11 @@
  */
 export type Constructor<I = any, P extends readonly any[] = []> = abstract new (...args: P) => I;
 
+/**
+ * The keys of `T` whose property type is assignable to `V`.
+ */
+export type KeysOf<T, V> = { [P in keyof T]: T[P] extends V ? P : never }[keyof T];
+
 declare global {
 	/**
 	 * Returns the constructor of the given non-nullable value.

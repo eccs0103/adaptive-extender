@@ -486,7 +486,7 @@ raw.data = { debug: true };
 
 ### Database (IndexedDB)
 
-SQL-style tables over IndexedDB. A table holds rows of one model, identified by a primary key property of that model. Available in both `web` and `worker` packages.
+Keyed stores over IndexedDB, opened like storage cells. The database and the store are created on first use. Available in both `web` and `worker` packages.
 
 ```typescript
 import { Model, Field } from "adaptive-extender/web";
@@ -499,8 +499,8 @@ class Note extends Model {
 	text: string;
 }
 
-const database = indexedDB.openDatabase("Notes"); // opens lazily on first use
-const notes = database.openTable("Notes", Note, "id"); // created on first use
+// PortableStore — model rows, identified by a property of the model
+const notes = indexedDB.openPortableStore("Notes", "Notes", Note, "id");
 
 await notes.insert(note); // rejects if a row with the same id exists
 await notes.update(note); // rejects if no row with that id exists
@@ -513,9 +513,20 @@ const count = await notes.count();
 // Batches run in one transaction — stored completely or not at all
 await notes.insert([note1, note2]);
 await notes.delete(new Set(["id-1", "id-2"]));
+
+// Store — raw values kept by structured clone (files, blobs, binary data), string keys by default
+const files = indexedDB.openStore("Media", "Files");
+
+await files.insert("cover", file);
+await files.insert([["front", front], ["back", back]]); // any iterable of [key, value] pairs, one transaction
+const cover = await files.select("cover"); // the File or null
+const everything = await files.select(); // [key, value] pairs in key order
+
+const scores = indexedDB.openStore<number>("Game", "Scores"); // keys typed by the template
+await scores.insert(1, 9000);
 ```
 
-Primary keys must be strings, finite numbers or valid dates. Values pass through structured clone, so `@Field(Any)` columns can hold `File`, `Blob` or binary data.
+Primary keys of a portable store must be strings, finite numbers or valid dates.
 
 ### Promise Utilities
 

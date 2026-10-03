@@ -1,24 +1,10 @@
 {
+	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		/* Language & Environment */
-		"target": "ES2016",
-		"module": "CommonJS",
-		"lib": [ "ES2016", "DOM", "DOM.Iterable" ],
-
-		/* Interop & Compatibility */
-		"esModuleInterop": true,
-		"allowJs": true,
+		"lib": [ "ES2025", "DOM", "DOM.Iterable", "ESNext.Decorators" ],
+		"types": [ ],
 		"skipLibCheck": true,
-
-		/* Emit & Declarations */
-		"declaration": true,
-		"sourceMap": true,
-
-		/* Type Checking & Linting */
-		"strict": true,
-
-		/* Miscellaneous */
-		"forceConsistentCasingInFileNames": true,
+		"noEmit": true
 	},
 	"include": [ "./*.ts" ]
 }

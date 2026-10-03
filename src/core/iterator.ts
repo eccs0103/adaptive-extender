@@ -29,9 +29,13 @@ Iterator.range = function* (min: number, max: number): IteratorObject<number, vo
 Iterator.zip = function*<T extends unknown[]>(...iterables: { [K in keyof T]: Iterable<T[K]> }): IteratorObject<T, void> {
 	const iterators = iterables.map(iterable => iterable[Symbol.iterator]());
 	while (true) {
-		const results = iterators.map(iterator => iterator.next());
-		if (results.some(result => result.done)) break;
-		yield results.map(result => result.value) as T;
+		const values: unknown[] = [];
+		for (const iterator of iterators) {
+			const result = iterator.next();
+			if (result.done) return;
+			values.push(result.value);
+		}
+		yield values as T;
 	}
 };
 //#endregion

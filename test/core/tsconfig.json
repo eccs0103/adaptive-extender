@@ -1,24 +1,10 @@
 {
+	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		/* Language & Environment */
-		"target": "ES2020",
-		"module": "CommonJS",
-		"lib": [ "ES2020" ],
-
-		/* Interop & Compatibility */
-		"esModuleInterop": true,
-		"allowJs": true,
+		"lib": [ "ES2025", "ESNext.Array", "ESNext.Decorators" ],
+		"types": [ ],
 		"skipLibCheck": true,
-
-		/* Emit & Declarations */
-		"declaration": true,
-		"sourceMap": true,
-
-		/* Type Checking & Linting */
-		"strict": true,
-
-		/* Miscellaneous */
-		"forceConsistentCasingInFileNames": true,
+		"noEmit": true
 	},
 	"include": [ "./*.ts" ]
 }

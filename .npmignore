@@ -7,5 +7,5 @@ node_modules
 
 src/
 test/
-*tsconfig.json
+*tsconfig*.json
 vitest.config.ts

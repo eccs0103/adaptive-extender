@@ -22,7 +22,7 @@ describe("Promise extensions", () => {
 		});
 
 		it("should call clearTimeout in the finally block", async () => {
-			const spy = vi.spyOn(global, "clearTimeout");
+			const spy = vi.spyOn(globalThis, "clearTimeout");
 
 			const promise = Promise.asTimeout(1000);
 			await vi.advanceTimersByTimeAsync(1000);

@@ -1,42 +1,35 @@
 "use strict";
 
 import "adaptive-extender/worker";
-import { RecordStore, PortableStore } from "adaptive-extender/worker";
 import { describe, it, expect } from "vitest";
 
 class Counter {
+	id: string;
 	value: number;
 
-	constructor(value: number) {
+	constructor(id: string, value: number) {
+		this.id = id;
 		this.value = value;
 	}
 
 	static import(source: any, name: string): Counter {
-		if (typeof source !== "object" || source === null || typeof source.value !== "number") throw new TypeError(`Invalid source for ${name}`);
-		return new Counter(source.value);
+		if (typeof source !== "object" || source === null || typeof source.id !== "string" || typeof source.value !== "number") throw new TypeError(`Invalid source for ${name}`);
+		return new Counter(source.id, source.value);
 	}
 
 	static export(instance: Counter): any {
-		return { value: instance.value };
+		return { id: instance.id, value: instance.value };
 	}
 }
 
-describe("Database stores in workers", () => {
-	it("should open and use a raw store", async () => {
-		const store = indexedDB.openStore(`worker-${crypto.randomUUID()}`, "records");
-		expect(store).toBeInstanceOf(RecordStore);
+describe("Database in workers", () => {
+	it("should open a table and keep its rows", async () => {
+		const table = indexedDB.openDatabase(`worker-${crypto.randomUUID()}`).openTable("counters", Counter, "id");
 
-		await store.set("key", "value");
+		await table.insert(new Counter("hits", 3));
+		await table.update(new Counter("hits", 4));
 
-		expect(await store.get("key")).toBe("value");
-	});
-
-	it("should open and use a portable store", async () => {
-		const store = indexedDB.openPortableStore(`worker-${crypto.randomUUID()}`, "counters", Counter);
-		expect(store).toBeInstanceOf(PortableStore);
-
-		await store.set("hits", new Counter(3));
-
-		expect(await store.get("hits")).toEqual(new Counter(3));
+		expect(await table.select("hits")).toEqual(new Counter("hits", 4));
+		expect(await table.count()).toBe(1);
 	});
 });

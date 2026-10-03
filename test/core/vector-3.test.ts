@@ -78,17 +78,17 @@ describe("Vector3D", () => {
 		it("should parse valid string", () => {
 			const v = Vector3D.tryParse("(123,456,789)");
 			expect(v).toBeInstanceOf(Vector3D);
-			expect(v!.x).toBe(123);
-			expect(v!.y).toBe(456);
-			expect(v!.z).toBe(789);
+			expect(v?.x).toBe(123);
+			expect(v?.y).toBe(456);
+			expect(v?.z).toBe(789);
 		});
 
 		it("should trim and parse string", () => {
 			const v = Vector3D.tryParse("   (42, 99, 101)   ");
 			expect(v).toBeInstanceOf(Vector3D);
-			expect(v!.x).toBe(42);
-			expect(v!.y).toBe(99);
-			expect(v!.z).toBe(101);
+			expect(v?.x).toBe(42);
+			expect(v?.y).toBe(99);
+			expect(v?.z).toBe(101);
 		});
 
 		it("should return null for invalid string", () => {
@@ -103,17 +103,17 @@ describe("Vector3D", () => {
 		it("should parse negative and float", () => {
 			const v1 = Vector3D.tryParse("(-7.5, 8.25, 0.5)");
 			expect(v1).toBeInstanceOf(Vector3D);
-			expect(v1!.x).toBe(-7.5);
-			expect(v1!.y).toBe(8.25);
-			expect(v1!.z).toBe(0.5);
+			expect(v1?.x).toBe(-7.5);
+			expect(v1?.y).toBe(8.25);
+			expect(v1?.z).toBe(0.5);
 		});
 
 		it("should parse NaN", () => {
 			const v = Vector3D.tryParse("(NaN,NaN,NaN)");
 			expect(v).toBeInstanceOf(Vector3D);
-			expect(v!.x).toBeNaN();
-			expect(v!.y).toBeNaN();
-			expect(v!.z).toBeNaN();
+			expect(v?.x).toBeNaN();
+			expect(v?.y).toBeNaN();
+			expect(v?.z).toBeNaN();
 		});
 	});
 

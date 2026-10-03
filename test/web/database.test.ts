@@ -1,28 +1,36 @@
 "use strict";
 
 import "adaptive-extender/web";
-import { RecordStore, PortableStore } from "adaptive-extender/web";
+import { Model, Field, Any } from "adaptive-extender/web";
 import { describe, it, expect } from "vitest";
 
 class Note {
+	id: string;
 	text: string;
-	pinned: boolean;
 
-	constructor(text: string, pinned: boolean) {
+	constructor(id: string, text: string) {
+		this.id = id;
 		this.text = text;
-		this.pinned = pinned;
 	}
 
 	static import(source: any, name: string): Note {
 		if (typeof source !== "object" || source === null) throw new TypeError(`Invalid source for ${name}`);
+		if (typeof source.id !== "string") throw new TypeError("Missing or invalid 'id'");
 		if (typeof source.text !== "string") throw new TypeError("Missing or invalid 'text'");
-		if (typeof source.pinned !== "boolean") throw new TypeError("Missing or invalid 'pinned'");
-		return new Note(source.text, source.pinned);
+		return new Note(source.id, source.text);
 	}
 
 	static export(instance: Note): any {
-		return { text: instance.text, pinned: instance.pinned };
+		return { id: instance.id, text: instance.text };
 	}
+}
+
+class Attachment extends Model {
+	@Field(Number)
+	index: number;
+
+	@Field(Any)
+	data: Uint8Array;
 }
 
 function unique(): string {
@@ -31,182 +39,157 @@ function unique(): string {
 
 function raw(request: IDBRequest): Promise<any> {
 	return new Promise((resolve, reject) => {
-		request.onsuccess = () => resolve(request.result);
-		request.onerror = () => reject(request.error);
+		request.onsuccess = event => resolve(request.result);
+		request.onerror = event => reject(request.error);
 	});
 }
 
-describe("RecordStore", () => {
-	it("should be opened through indexedDB.openStore", () => {
-		const store = indexedDB.openStore("database", "store");
-		expect(store).toBeInstanceOf(RecordStore);
-		expect(store.database).toBe("database");
-		expect(store.name).toBe("store");
+describe("Database", () => {
+	it("should expose its name and open tables", () => {
+		const database = indexedDB.openDatabase("database");
+		const table = database.openTable("notes", Note, "id");
+
+		expect(database.name).toBe("database");
+		expect(table.name).toBe("notes");
 	});
 
-	it("should write, read, check and delete a record", async () => {
-		const store = indexedDB.openStore(unique(), "records");
+	it("should add a second table to an open database and keep the first one working", async () => {
+		const database = indexedDB.openDatabase(unique());
+		const notes = database.openTable("notes", Note, "id");
+		await notes.insert(new Note("a", "one"));
 
-		await store.set("alpha", { value: 1 });
+		const archive = database.openTable("archive", Note, "id");
+		await archive.insert(new Note("a", "two"));
 
-		expect(await store.get("alpha")).toEqual({ value: 1 });
-		expect(await store.has("alpha")).toBe(true);
-		await store.delete("alpha");
-		expect(await store.get("alpha")).toBeNull();
-		expect(await store.has("alpha")).toBe(false);
+		expect(await notes.select("a")).toEqual(new Note("a", "one"));
+		expect(await archive.select("a")).toEqual(new Note("a", "two"));
 	});
 
-	it("should tell a stored null apart from a missing record", async () => {
-		const store = indexedDB.openStore(unique(), "records");
-
-		await store.set("empty", null);
-
-		expect(await store.get("empty")).toBeNull();
-		expect(await store.has("empty")).toBe(true);
-		expect(await store.has("missing")).toBe(false);
-	});
-
-	it("should keep dates, arrays and numeric keys by structured clone", async () => {
-		const store = indexedDB.openStore(unique(), "records");
-		const date = new Date("2026-10-03T00:00:00.000Z");
-
-		await store.set(7, { date, list: [1, 2, 3] });
-
-		const value: any = await store.get(7);
-		expect(value.date).toBeInstanceOf(Date);
-		expect(value.date.getTime()).toBe(date.getTime());
-		expect(value.list).toEqual([1, 2, 3]);
-	});
-
-	it("should list keys, values and entries in key order", async () => {
-		const store = indexedDB.openStore(unique(), "records");
-
-		await store.putAll(new Map<IDBValidKey, unknown>([["b", 2], ["a", 1], ["c", 3]]));
-
-		expect(await store.keys()).toEqual(["a", "b", "c"]);
-		expect(await store.values()).toEqual([1, 2, 3]);
-		expect(Array.from(await store.entries())).toEqual([["a", 1], ["b", 2], ["c", 3]]);
-		expect(await store.count()).toBe(3);
-	});
-
-	it("should delete several records and clear the store", async () => {
-		const store = indexedDB.openStore(unique(), "records");
-		await store.putAll(new Map<IDBValidKey, unknown>([["a", 1], ["b", 2], ["c", 3]]));
-
-		await store.dropAll(["a", "c"]);
-		expect(await store.keys()).toEqual(["b"]);
-
-		await store.clear();
-		expect(await store.count()).toBe(0);
-	});
-
-	it("should store nothing from a batch that fails part way", async () => {
-		const store = indexedDB.openStore(unique(), "records");
-
-		const batch = new Map<IDBValidKey, unknown>([["a", 1], ["b", () => 2], ["c", 3]]);
-
-		await expect(store.putAll(batch)).rejects.toThrow();
-		expect(await store.count()).toBe(0);
-	});
-
-	it("should reject a value that cannot be cloned", async () => {
-		const store = indexedDB.openStore(unique(), "records");
-
-		await expect(store.set("function", () => 1)).rejects.toThrow();
-		expect(await store.has("function")).toBe(false);
-	});
-
-	it("should add a second store to an open database and keep the first one working", async () => {
-		const database = unique();
-		const store = indexedDB.openStore(database, "first");
-		const store2 = indexedDB.openStore(database, "second");
-
-		await store.set("key", "one");
-		await store2.set("key", "two");
-
-		expect(await store.get("key")).toBe("one");
-		expect(await store2.get("key")).toBe("two");
-	});
-
-	it("should read a database created with out-of-line keys at version 1", async () => {
-		const database = unique();
-		const request = indexedDB.open(database, 1);
-		request.onupgradeneeded = () => request.result.createObjectStore("Library");
+	it("should read a table created with out-of-line keys at version 1", async () => {
+		const name = unique();
+		const request = indexedDB.open(name, 1);
+		request.onupgradeneeded = event => request.result.createObjectStore("Library");
 		const connection: IDBDatabase = await raw(request);
 		const transaction = connection.transaction("Library", "readwrite");
-		transaction.objectStore("Library").put({ title: "Existing" }, "sheet-1");
+		transaction.objectStore("Library").put({ id: "sheet-1", text: "Existing" }, "sheet-1");
 		await new Promise(resolve => transaction.oncomplete = resolve);
 		connection.close();
 
-		const store = indexedDB.openStore(database, "Library");
+		const table = indexedDB.openDatabase(name).openTable("Library", Note, "id");
 
-		expect(await store.get("sheet-1")).toEqual({ title: "Existing" });
-		await store.set("sheet-2", { title: "Added" });
-		expect(await store.keys()).toEqual(["sheet-1", "sheet-2"]);
+		expect(await table.select("sheet-1")).toEqual(new Note("sheet-1", "Existing"));
+		await table.insert(new Note("sheet-2", "Added"));
+		expect(await table.count()).toBe(2);
+	});
+
+	it("should reject a table that uses in-line keys", async () => {
+		const name = unique();
+		const request = indexedDB.open(name, 1);
+		request.onupgradeneeded = event => request.result.createObjectStore("Library", { keyPath: "id" });
+		const connection: IDBDatabase = await raw(request);
+		connection.close();
+
+		const table = indexedDB.openDatabase(name).openTable("Library", Note, "id");
+
+		await expect(table.count()).rejects.toThrow(TypeError);
 	});
 });
 
-describe("PortableStore", () => {
-	it("should be opened through indexedDB.openPortableStore", () => {
-		const store = indexedDB.openPortableStore("database", "notes", Note);
-		expect(store).toBeInstanceOf(PortableStore);
-		expect(store.database).toBe("database");
-		expect(store.name).toBe("notes");
+describe("Table", () => {
+	it("should insert, select, update and delete a row", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
+
+		await table.insert(new Note("a", "first"));
+		expect(await table.select("a")).toEqual(new Note("a", "first"));
+
+		await table.update(new Note("a", "second"));
+		expect(await table.select("a")).toEqual(new Note("a", "second"));
+
+		await table.delete("a");
+		expect(await table.select("a")).toBeNull();
 	});
 
-	it("should store and restore model instances", async () => {
-		const store = indexedDB.openPortableStore(unique(), "notes", Note);
+	it("should restore rows as model instances", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
 
-		await store.set("first", new Note("Hello", true));
+		await table.insert(new Note("a", "text"));
 
-		const note = await store.get("first");
-		expect(note).toBeInstanceOf(Note);
-		expect(note).toEqual(new Note("Hello", true));
-		expect(await store.get("missing")).toBeNull();
+		expect(await table.select("a")).toBeInstanceOf(Note);
 	});
 
-	it("should write a batch and list restored instances", async () => {
-		const store = indexedDB.openPortableStore(unique(), "notes", Note);
+	it("should reject inserting a row whose key exists", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
+		await table.insert(new Note("a", "first"));
 
-		await store.putAll(new Map<IDBValidKey, Note>([["b", new Note("B", false)], ["a", new Note("A", true)]]));
-
-		const values = await store.values();
-		expect(values.every(value => value instanceof Note)).toBe(true);
-		expect(values.map(value => value.text)).toEqual(["A", "B"]);
-		const entries = await store.entries();
-		expect(entries.get("b")).toEqual(new Note("B", false));
-		expect(await store.keys()).toEqual(["a", "b"]);
-		expect(await store.count()).toBe(2);
+		await expect(table.insert(new Note("a", "second"))).rejects.toThrow();
+		expect(await table.select("a")).toEqual(new Note("a", "first"));
 	});
 
-	it("should store exported records readable by a raw store", async () => {
-		const database = unique();
-		const store = indexedDB.openPortableStore(database, "notes", Note);
+	it("should reject updating a missing row", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
 
-		await store.set("first", new Note("Raw", false));
-
-		expect(await indexedDB.openStore(database, "notes").get("first")).toEqual({ text: "Raw", pinned: false });
+		await expect(table.update(new Note("missing", "text"))).rejects.toThrow(ReferenceError);
+		expect(await table.count()).toBe(0);
 	});
 
-	it("should report a record incompatible with the model as a SyntaxError", async () => {
-		const database = unique();
-		await indexedDB.openStore(database, "notes").set("broken", { text: 42 });
-		const store = indexedDB.openPortableStore(database, "notes", Note);
+	it("should insert, update and delete batches in key order", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
 
-		await expect(store.get("broken")).rejects.toThrow(SyntaxError);
-		await expect(store.values()).rejects.toThrow(SyntaxError);
+		await table.insert([new Note("b", "2"), new Note("a", "1"), new Note("c", "3")]);
+		expect((await table.select()).map(note => note.id)).toEqual(["a", "b", "c"]);
+
+		await table.update([new Note("a", "x"), new Note("b", "y")]);
+		expect((await table.select()).map(note => note.text)).toEqual(["x", "y", "3"]);
+
+		await table.delete(new Set(["a", "c"]));
+		expect(await table.select()).toEqual([new Note("b", "y")]);
 	});
 
-	it("should delete and clear records", async () => {
-		const store = indexedDB.openPortableStore(unique(), "notes", Note);
-		await store.putAll(new Map<IDBValidKey, Note>([["a", new Note("A", true)], ["b", new Note("B", true)], ["c", new Note("C", true)]]));
+	it("should store nothing from a batch that fails part way", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
+		await table.insert(new Note("b", "existing"));
 
-		await store.delete("a");
-		await store.dropAll(["b"]);
-		expect(await store.keys()).toEqual(["c"]);
-		expect(await store.has("c")).toBe(true);
+		await expect(table.insert([new Note("a", "new"), new Note("b", "duplicate")])).rejects.toThrow();
+		expect(await table.count()).toBe(1);
 
-		await store.clear();
-		expect(await store.count()).toBe(0);
+		await expect(table.update([new Note("b", "changed"), new Note("z", "missing")])).rejects.toThrow(ReferenceError);
+		expect(await table.select("b")).toEqual(new Note("b", "existing"));
+	});
+
+	it("should reject a primary key that is not a string, a number or a date", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("notes", Note, "id");
+
+		await expect(table.insert(new Note(true as any, "text"))).rejects.toThrow(TypeError);
+	});
+
+	it("should keep numeric keys and binary data by structured clone", async () => {
+		const table = indexedDB.openDatabase(unique()).openTable("attachments", Attachment, "index");
+		const attachment = new Attachment();
+		attachment.index = 7;
+		attachment.data = new Uint8Array([1, 2, 3]);
+
+		await table.insert(attachment);
+
+		const restored = await table.select(7);
+		expect(restored).toBeInstanceOf(Attachment);
+		expect(restored).not.toBeNull();
+		if (restored === null) return;
+		expect(ArrayBuffer.isView(restored.data)).toBe(true);
+		expect(Array.from(restored.data)).toEqual([1, 2, 3]);
+	});
+
+	it("should report a row incompatible with the model as a SyntaxError", async () => {
+		const name = unique();
+		const notes = indexedDB.openDatabase(name).openTable("notes", Note, "id");
+		await notes.count();
+		const request = indexedDB.open(name);
+		const connection: IDBDatabase = await raw(request);
+		const transaction = connection.transaction("notes", "readwrite");
+		transaction.objectStore("notes").put({ id: "broken", text: 42 }, "broken");
+		await new Promise(resolve => transaction.oncomplete = resolve);
+		connection.close();
+
+		await expect(notes.select("broken")).rejects.toThrow(SyntaxError);
+		await expect(notes.select()).rejects.toThrow(SyntaxError);
 	});
 });

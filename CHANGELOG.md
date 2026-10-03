@@ -1,3 +1,7 @@
+## 1.1.0 (03.10.2026)
+- Added [database](./src/web/database.ts) module to the web and worker packages — `indexedDB.openDatabase(name)` opens an IndexedDB database lazily as a `Database`, and `database.openTable(name, model, key)` returns a `Table` of model rows identified by the `key` property of the model. Missing tables are created on first use, and the connection steps aside when another context upgrades the database.
+- Added `Table.select()` (every row in primary key order) and `Table.select(key)` (one row or `null`), `Table.insert(row | rows)` (rejects with a `ConstraintError` when the key exists), `Table.update(row | rows)` (rejects with a `ReferenceError` when the row is missing), `Table.delete(key | keys)`, and `Table.count()` — every batch runs in one transaction, so it is stored completely or not at all.
+
 ## 1.0.8 (28.09.2026)
 - `Number.prototype.clamp`, `lerp`, `mod`, `snap`, `insteadNaN`, `insteadInfinity`, and `insteadZero` are several times faster per call (for example `lerp` 9.3 → 1.6 ns, `clamp` 17.4 → 3.9 ns in V8) — the receiver is now unwrapped with unary `+` instead of a `this.valueOf()` call. Results are unchanged, including for boxed `Number` receivers. No public API change.
 

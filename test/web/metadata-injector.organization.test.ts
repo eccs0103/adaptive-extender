@@ -24,7 +24,8 @@ describe("MetadataInjector — Organization", () => {
 		const script = document.querySelector('script[type="application/ld+json"]');
 		expect(script).not.toBeNull();
 
-		const data = JSON.parse(script!.textContent!);
+		if (script === null || script.textContent === null) throw new ReferenceError("Metadata script is missing");
+		const data = JSON.parse(script.textContent);
 		expect(data["@context"]).toBe("https://schema.org");
 		expect(data["@type"]).toBe("Organization");
 		expect(data.name).toBe("Acme Corp");

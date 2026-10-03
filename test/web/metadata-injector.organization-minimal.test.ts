@@ -19,19 +19,22 @@ describe("MetadataInjector — Organization (minimal config)", () => {
 
 	it("should omit foundingDate from JSON when foundation is not provided", () => {
 		const script = document.querySelector('script[type="application/ld+json"]');
-		const data = JSON.parse(script!.textContent!);
+		if (script === null || script.textContent === null) throw new ReferenceError("Metadata script is missing");
+		const data = JSON.parse(script.textContent);
 		expect(data.foundingDate).toBeUndefined();
 	});
 
 	it("should omit logo from JSON when logo is not provided", () => {
 		const script = document.querySelector('script[type="application/ld+json"]');
-		const data = JSON.parse(script!.textContent!);
+		if (script === null || script.textContent === null) throw new ReferenceError("Metadata script is missing");
+		const data = JSON.parse(script.textContent);
 		expect(data.logo).toBeUndefined();
 	});
 
 	it("should omit image from JSON when preview is not provided", () => {
 		const script = document.querySelector('script[type="application/ld+json"]');
-		const data = JSON.parse(script!.textContent!);
+		if (script === null || script.textContent === null) throw new ReferenceError("Metadata script is missing");
+		const data = JSON.parse(script.textContent);
 		expect(data.image).toBeUndefined();
 	});
 });

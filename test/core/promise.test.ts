@@ -18,11 +18,10 @@ describe("Promise extensions", () => {
 		});
 
 		it("should be false for pending promise", async () => {
-			let resolve2: (v: number) => void;
-			const p = new Promise<number>(resolve => { resolve2 = resolve; });
+			const { promise: p, resolve } = Promise.withResolvers<number>();
 			const settled = await Promise.race([p.isSettled, Promise.resolve(false)]);
 			expect(settled).toBe(false);
-			resolve2!(1);
+			resolve(1);
 		});
 	});
 

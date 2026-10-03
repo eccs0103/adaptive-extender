@@ -46,13 +46,13 @@ describe("Vector1D", () => {
 		it("should parse valid string", () => {
 			const v = Vector1D.tryParse("(123)");
 			expect(v).toBeInstanceOf(Vector1D);
-			expect(v!.x).toBe(123);
+			expect(v?.x).toBe(123);
 		});
 
 		it("should trim and parse string", () => {
 			const v = Vector1D.tryParse("   (42)   ");
 			expect(v).toBeInstanceOf(Vector1D);
-			expect(v!.x).toBe(42);
+			expect(v?.x).toBe(42);
 		});
 
 		it("should return null for invalid string", () => {
@@ -64,13 +64,13 @@ describe("Vector1D", () => {
 		it("should parse negative and float", () => {
 			const v1 = Vector1D.tryParse("(-7.5)");
 			expect(v1).toBeInstanceOf(Vector1D);
-			expect(v1!.x).toBe(-7.5);
+			expect(v1?.x).toBe(-7.5);
 		});
 
 		it("should parse NaN", () => {
 			const v = Vector1D.tryParse("(NaN)");
 			expect(v).toBeInstanceOf(Vector1D);
-			expect(v!.x).toBeNaN();
+			expect(v?.x).toBeNaN();
 		});
 	});
 

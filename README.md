@@ -484,6 +484,39 @@ const raw = localStorage.openCell("flags", { debug: false });
 raw.data = { debug: true };
 ```
 
+### Database (IndexedDB)
+
+SQL-style tables over IndexedDB. A table holds rows of one model, identified by a primary key property of that model. Available in both `web` and `worker` packages.
+
+```typescript
+import { Model, Field } from "adaptive-extender/web";
+
+class Note extends Model {
+	@Field(String)
+	id: string;
+
+	@Field(String)
+	text: string;
+}
+
+const database = indexedDB.openDatabase("Notes"); // opens lazily on first use
+const notes = database.openTable("Notes", Note, "id"); // created on first use
+
+await notes.insert(note); // rejects if a row with the same id exists
+await notes.update(note); // rejects if no row with that id exists
+await notes.delete(note.id);
+
+const one = await notes.select("some-id"); // Note or null
+const all = await notes.select(); // every row in key order
+const count = await notes.count();
+
+// Batches run in one transaction — stored completely or not at all
+await notes.insert([note1, note2]);
+await notes.delete(new Set(["id-1", "id-2"]));
+```
+
+Primary keys must be strings, finite numbers or valid dates. Values pass through structured clone, so `@Field(Any)` columns can hold `File`, `Blob` or binary data.
+
 ### Promise Utilities
 
 ```typescript

@@ -84,31 +84,31 @@ describe("Timespan", () => {
 		it("should parse valid timespan strings", () => {
 			const t1 = Timespan.tryParse("1.02:03:04.005");
 			expect(t1).toBeInstanceOf(Timespan);
-			expect(t1!.days).toBe(1);
-			expect(t1!.hours).toBe(2);
-			expect(t1!.minutes).toBe(3);
-			expect(t1!.seconds).toBe(4);
-			expect(t1!.milliseconds).toBe(5);
+			expect(t1?.days).toBe(1);
+			expect(t1?.hours).toBe(2);
+			expect(t1?.minutes).toBe(3);
+			expect(t1?.seconds).toBe(4);
+			expect(t1?.milliseconds).toBe(5);
 
 			const t2 = Timespan.tryParse("-1.02:03:04.005");
 			expect(t2).toBeInstanceOf(Timespan);
-			expect(t2!.days).toBe(-1);
-			expect(t2!.hours).toBe(-2);
-			expect(t2!.minutes).toBe(-3);
-			expect(t2!.seconds).toBe(-4);
-			expect(t2!.milliseconds).toBe(-5);
+			expect(t2?.days).toBe(-1);
+			expect(t2?.hours).toBe(-2);
+			expect(t2?.minutes).toBe(-3);
+			expect(t2?.seconds).toBe(-4);
+			expect(t2?.milliseconds).toBe(-5);
 
 			const t3 = Timespan.tryParse("02:03:04");
 			expect(t3).toBeInstanceOf(Timespan);
-			expect(t3!.days).toBe(0);
-			expect(t3!.hours).toBe(2);
-			expect(t3!.minutes).toBe(3);
-			expect(t3!.seconds).toBe(4);
-			expect(t3!.milliseconds).toBe(0);
+			expect(t3?.days).toBe(0);
+			expect(t3?.hours).toBe(2);
+			expect(t3?.minutes).toBe(3);
+			expect(t3?.seconds).toBe(4);
+			expect(t3?.milliseconds).toBe(0);
 
 			const t4 = Timespan.tryParse("02:03:04.123");
 			expect(t4).toBeInstanceOf(Timespan);
-			expect(t4!.milliseconds).toBe(123);
+			expect(t4?.milliseconds).toBe(123);
 		});
 
 		it("should return null for invalid strings", () => {

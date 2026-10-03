@@ -61,15 +61,15 @@ describe("Vector2D", () => {
 		it("should parse valid string", () => {
 			const v = Vector2D.tryParse("(123,456)");
 			expect(v).toBeInstanceOf(Vector2D);
-			expect(v!.x).toBe(123);
-			expect(v!.y).toBe(456);
+			expect(v?.x).toBe(123);
+			expect(v?.y).toBe(456);
 		});
 
 		it("should trim and parse string", () => {
 			const v = Vector2D.tryParse("   (42, 99)   ");
 			expect(v).toBeInstanceOf(Vector2D);
-			expect(v!.x).toBe(42);
-			expect(v!.y).toBe(99);
+			expect(v?.x).toBe(42);
+			expect(v?.y).toBe(99);
 		});
 
 		it("should return null for invalid string", () => {
@@ -83,15 +83,15 @@ describe("Vector2D", () => {
 		it("should parse negative and float", () => {
 			const v1 = Vector2D.tryParse("(-7.5, 8.25)");
 			expect(v1).toBeInstanceOf(Vector2D);
-			expect(v1!.x).toBe(-7.5);
-			expect(v1!.y).toBe(8.25);
+			expect(v1?.x).toBe(-7.5);
+			expect(v1?.y).toBe(8.25);
 		});
 
 		it("should parse NaN", () => {
 			const v = Vector2D.tryParse("(NaN,NaN)");
 			expect(v).toBeInstanceOf(Vector2D);
-			expect(v!.x).toBeNaN();
-			expect(v!.y).toBeNaN();
+			expect(v?.x).toBeNaN();
+			expect(v?.y).toBeNaN();
 		});
 	});
 

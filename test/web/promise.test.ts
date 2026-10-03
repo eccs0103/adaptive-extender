@@ -56,7 +56,7 @@ describe("Promise extensions", () => {
 			await promise;
 
 			expect(signal2).toBeDefined();
-			expect(signal2!.aborted).toBe(true);
+			expect(signal2?.aborted).toBe(true);
 		});
 	});
 });

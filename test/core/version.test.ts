@@ -64,15 +64,15 @@ describe("Version", () => {
 		it("should parse valid version strings", () => {
 			const v = Version.tryParse("1.2.3");
 			expect(v).not.toBeNull();
-			expect(v!.major).toBe(1);
-			expect(v!.minor).toBe(2);
-			expect(v!.patch).toBe(3);
+			expect(v?.major).toBe(1);
+			expect(v?.minor).toBe(2);
+			expect(v?.patch).toBe(3);
 		});
 
 		it("should parse version with leading/trailing whitespace", () => {
 			const v = Version.tryParse("  2.0.1  ");
 			expect(v).not.toBeNull();
-			expect(v!.toString()).toBe("2.0.1");
+			expect(v?.toString()).toBe("2.0.1");
 		});
 
 		it("should return null for invalid strings", () => {

@@ -16,6 +16,7 @@ export default defineConfig({
 					name: "web",
 					environment: "jsdom",
 					include: ["test/web/**/*.test.ts"],
+					setupFiles: ["fake-indexeddb/auto"],
 				},
 			},
 			{
@@ -23,6 +24,7 @@ export default defineConfig({
 					name: "worker",
 					environment: "node",
 					include: ["test/worker/**/*.test.ts"],
+					setupFiles: ["fake-indexeddb/auto"],
 				},
 			},
 		],

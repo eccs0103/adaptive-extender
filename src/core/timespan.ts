@@ -33,8 +33,9 @@ export class Timespan {
 	set days(value: number) {
 		if (!Number.isFinite(value)) return;
 		const dm = this.#dm;
-		this.#value += Timespan.#toValue(value - dm[0], 0, 0, 0, 0);
-		Timespan.#toComponents(this.#value, dm, this.#hms);
+		const total = this.#value + Timespan.#toValue(value - dm[0], 0, 0, 0, 0);
+		this.#value = total;
+		Timespan.#toComponents(total, dm, this.#hms);
 	}
 	/**
 	 * Gets the hours component of the timespan.
@@ -48,8 +49,9 @@ export class Timespan {
 	set hours(value: number) {
 		if (!Number.isFinite(value)) return;
 		const hms = this.#hms;
-		this.#value += Timespan.#toValue(0, value - hms[0], 0, 0, 0);
-		Timespan.#toComponents(this.#value, this.#dm, hms);
+		const total = this.#value + Timespan.#toValue(0, value - hms[0], 0, 0, 0);
+		this.#value = total;
+		Timespan.#toComponents(total, this.#dm, hms);
 	}
 	/**
 	 * Gets the minutes component of the timespan.
@@ -63,8 +65,9 @@ export class Timespan {
 	set minutes(value: number) {
 		if (!Number.isFinite(value)) return;
 		const hms = this.#hms;
-		this.#value += Timespan.#toValue(0, 0, value - hms[1], 0, 0);
-		Timespan.#toComponents(this.#value, this.#dm, hms);
+		const total = this.#value + Timespan.#toValue(0, 0, value - hms[1], 0, 0);
+		this.#value = total;
+		Timespan.#toComponents(total, this.#dm, hms);
 	}
 	/**
 	 * Gets the seconds component of the timespan.
@@ -78,8 +81,9 @@ export class Timespan {
 	set seconds(value: number) {
 		if (!Number.isFinite(value)) return;
 		const hms = this.#hms;
-		this.#value += Timespan.#toValue(0, 0, 0, value - hms[2], 0);
-		Timespan.#toComponents(this.#value, this.#dm, hms);
+		const total = this.#value + Timespan.#toValue(0, 0, 0, value - hms[2], 0);
+		this.#value = total;
+		Timespan.#toComponents(total, this.#dm, hms);
 	}
 	/**
 	 * Gets the milliseconds component of the timespan.
@@ -93,8 +97,9 @@ export class Timespan {
 	set milliseconds(value: number) {
 		if (!Number.isFinite(value)) return;
 		const dm = this.#dm;
-		this.#value += Timespan.#toValue(0, 0, 0, 0, value - dm[1]);
-		Timespan.#toComponents(this.#value, dm, this.#hms);
+		const total = this.#value + Timespan.#toValue(0, 0, 0, 0, value - dm[1]);
+		this.#value = total;
+		Timespan.#toComponents(total, dm, this.#hms);
 	}
 	//#endregion
 	//#region Builders
@@ -117,8 +122,9 @@ export class Timespan {
 	static fromValue(value: number): Timespan {
 		if (!Number.isFinite(value)) throw new Error(`The value ${value} must be a finite number`);
 		const timespan = new Timespan();
-		timespan.#value = trunc(value);
-		Timespan.#toComponents(timespan.#value, timespan.#dm, timespan.#hms);
+		const total = trunc(value);
+		timespan.#value = total;
+		Timespan.#toComponents(total, timespan.#dm, timespan.#hms);
 		return timespan;
 	}
 	static #fromComponents(days: number, hours: number, minutes: number, seconds: number, milliseconds: number): Timespan {
@@ -128,8 +134,9 @@ export class Timespan {
 		if (!Number.isFinite(seconds)) throw new Error(`The seconds ${seconds} must be a finite number`);
 		if (!Number.isFinite(milliseconds)) throw new Error(`The milliseconds ${milliseconds} must be a finite number`);
 		const timespan = new Timespan();
-		timespan.#value = Timespan.#toValue(days, hours, minutes, seconds, milliseconds);
-		Timespan.#toComponents(timespan.#value, timespan.#dm, timespan.#hms);
+		const total = Timespan.#toValue(days, hours, minutes, seconds, milliseconds);
+		timespan.#value = total;
+		Timespan.#toComponents(total, timespan.#dm, timespan.#hms);
 		return timespan;
 	}
 	/**
@@ -157,18 +164,18 @@ export class Timespan {
 		const regex = Timespan.#patternTimespan;
 		const match = regex.exec(string.trim());
 		if (match === null) return null;
-		const sign: number = (match[1] === undefined ? 1 : -1);
+		const direction: number = (match[1] === undefined ? 1 : -1);
 		const [, , days, hours, minutes, seconds, milliseconds] = match.map(part => Number(part ?? 0));
-		return Timespan.fromComponents(sign * days, sign * hours, sign * minutes, sign * seconds, sign * milliseconds);
+		return Timespan.fromComponents(direction * days, direction * hours, direction * minutes, direction * seconds, direction * milliseconds);
 	}
 	/**
 	 * Parses a string into a timespan.
 	 * @throws {SyntaxError} If the string cannot be parsed.
 	 */
 	static parse(string: string): Timespan {
-		const color = Timespan.tryParse(string);
-		if (color === null) throw new SyntaxError(`Unable to parse '${string}' as timespan`);
-		return color;
+		const timespan = Timespan.tryParse(string);
+		if (timespan === null) throw new SyntaxError(`Unable to parse '${string}' as timespan`);
+		return timespan;
 	}
 	//#endregion
 	//#region Converters
@@ -185,13 +192,13 @@ export class Timespan {
 		const multiplier: number = sign(value).insteadZero(1);
 		value = abs(value);
 		dm[1] = (value % 1000) * multiplier;
-		value = Math.trunc(value / 1000);
+		value = trunc(value / 1000);
 		hms[2] = (value % 60) * multiplier;
-		value = Math.trunc(value / 60);
+		value = trunc(value / 60);
 		hms[1] = (value % 60) * multiplier;
-		value = Math.trunc(value / 60);
+		value = trunc(value / 60);
 		hms[0] = (value % 24) * multiplier;
-		value = Math.trunc(value / 24);
+		value = trunc(value / 24);
 		dm[0] = (value) * multiplier;
 	}
 	/**
@@ -236,39 +243,39 @@ export class Timespan {
 	 * The minimum representable timespan.
 	 */
 	static get MIN_VALUE(): Readonly<Timespan> {
-		return this.#MIN_VALUE;
+		return Timespan.#MIN_VALUE;
 	}
 	static #MAX_VALUE: Readonly<Timespan> = Object.freeze(Timespan.fromValue(Number.MAX_SAFE_INTEGER));
 	/**
 	 * The maximum representable timespan.
 	 */
 	static get MAX_VALUE(): Readonly<Timespan> {
-		return this.#MAX_VALUE;
+		return Timespan.#MAX_VALUE;
 	}
 	/**
 	 * Creates a new zero timespan.
 	 */
-	static get newZero(): Timespan { return new Timespan(); };
+	static get newZero(): Timespan { return new Timespan(); }
 	/**
 	 * Creates a new timespan representing one millisecond.
 	 */
-	static get newMillisecond(): Timespan { return Timespan.fromComponents(0, 0, 0, 0, 1); };
+	static get newMillisecond(): Timespan { return Timespan.fromComponents(0, 0, 0, 0, 1); }
 	/**
 	 * Creates a new timespan representing one second.
 	 */
-	static get newSecond(): Timespan { return Timespan.fromComponents(0, 0, 0, 1, 0); };
+	static get newSecond(): Timespan { return Timespan.fromComponents(0, 0, 0, 1, 0); }
 	/**
 	 * Creates a new timespan representing one minute.
 	 */
-	static get newMinute(): Timespan { return Timespan.fromComponents(0, 0, 1, 0, 0); };
+	static get newMinute(): Timespan { return Timespan.fromComponents(0, 0, 1, 0, 0); }
 	/**
 	 * Creates a new timespan representing one hour.
 	 */
-	static get newHour(): Timespan { return Timespan.fromComponents(0, 1, 0, 0, 0); };
+	static get newHour(): Timespan { return Timespan.fromComponents(0, 1, 0, 0, 0); }
 	/**
 	 * Creates a new timespan representing one day.
 	 */
-	static get newDay(): Timespan { return Timespan.fromComponents(1, 0, 0, 0, 0); };
+	static get newDay(): Timespan { return Timespan.fromComponents(1, 0, 0, 0, 0); }
 	//#endregion
 	//#region Modifiers
 	/**

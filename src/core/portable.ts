@@ -123,12 +123,8 @@ abstract class ModelSchema {
 		let schema = schemas.get(model);
 		if (schema !== undefined) return schema;
 		const object: DecoratorMetadataObject = ReferenceError.suppress(model[Symbol.metadata], `Required an implementation of Symbol.metadata in '${model.name}' to use portability`);
-		const { discriminator, descendants } = Object.hasOwn(model, Symbol.metadata)
-			? PortabilityMetadata.for(object)
-			: new PortabilityMetadata();
-		schema = descendants.length > 0
-			? new PolymorphicSchema(discriminator, descendants)
-			: new ConcreteSchema(model, ModelSchema.#collect(object));
+		const { discriminator, descendants } = Object.hasOwn(model, Symbol.metadata) ? PortabilityMetadata.for(object) : new PortabilityMetadata();
+		schema = descendants.length > 0 ? new PolymorphicSchema(discriminator, descendants) : new ConcreteSchema(model, ModelSchema.#collect(object));
 		schemas.set(model, schema);
 		return schema;
 	}
@@ -255,7 +251,8 @@ export function Field<I, S>(type: PortableConstructor<I, S>): (target: void, con
  */
 export function Field<I, S>(type: PortableConstructor<I, S>, options: Partial<FieldOptions>): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void;
 export function Field<I, S>(type: PortableConstructor<I, S>, options: Partial<FieldOptions> = {}): (target: void, context: ClassFieldDecoratorContext<Model, I>) => void {
-	return function (_: void, context: ClassFieldDecoratorContext<Model, I>): void {
+	return function (target: void, context: ClassFieldDecoratorContext<Model, I>): void {
+		void target;
 		if (context.static) throw new TypeError("Portable fields cannot be static");
 		const key = context.name;
 		if (typeof (key) === "symbol") throw new TypeError("Symbols are not supported as portable keys");

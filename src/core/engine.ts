@@ -26,7 +26,7 @@ export interface Engine {
 	 */
 	get fps(): number;
 	/**
-	 * Gets the time elapsed since the last update, in milliseconds.
+	 * Gets the time elapsed since the last update, in seconds.
 	 */
 	get delta(): number;
 }

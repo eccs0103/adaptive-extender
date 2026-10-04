@@ -31,8 +31,8 @@ export class Cell {
 	static #compress(key: string, value: unknown): string {
 		try {
 			return JSON.stringify(value);
-		} catch {
-			throw new SyntaxError(`Cell [${key}]: Serialization failed.`);
+		} catch (cause) {
+			throw new SyntaxError(`Cell [${key}]: Serialization failed.`, { cause });
 		}
 	}
 
@@ -104,9 +104,9 @@ export class PortableCell<M extends PortableConstructor<InstanceType<M>>> {
 			const result = model.import(scheme, key);
 			if (result instanceof model) return scheme;
 			throw new TypeError("Type mismatch during compatibility check.");
-		} catch (reason) {
-			const { message } = Error.from(reason);
-			throw new TypeError(`PortableCell [${key}]: Schema validation failed: ${message}`);
+		} catch (cause) {
+			const { message } = Error.from(cause);
+			throw new TypeError(`PortableCell [${key}]: Schema validation failed: ${message}`, { cause });
 		}
 	}
 
@@ -126,9 +126,9 @@ export class PortableCell<M extends PortableConstructor<InstanceType<M>>> {
 		const { key } = cell;
 		try {
 			return this.#model.import(cell.data, key);
-		} catch (reason) {
-			if (!(reason instanceof TypeError)) throw reason;
-			throw new SyntaxError(`PortableCell [${key}]: Content restoration failed.`);
+		} catch (cause) {
+			if (!(cause instanceof TypeError)) throw cause;
+			throw new SyntaxError(`PortableCell [${key}]: Content restoration failed.`, { cause });
 		}
 	}
 
@@ -151,27 +151,29 @@ export class PortableCell<M extends PortableConstructor<InstanceType<M>>> {
 //#endregion
 //#region Buffered cell
 class SaveTransaction {
-	#idTimeout: number;
-	#resolve: (value: boolean) => void;
-	#reject: (reason?: unknown) => void;
+	#timeout: number;
+	#resolvers: PromiseWithResolvers<boolean> = Promise.withResolvers();
 
-	constructor(handler: TimerHandler, delay: number | undefined, resolve: (value: boolean) => void, reject: (reason: unknown) => void) {
-		this.#idTimeout = setTimeout(handler, delay);
-		this.#resolve = resolve;
-		this.#reject = reject;
+	constructor(handler: TimerHandler, delay: number | undefined) {
+		this.#timeout = setTimeout(handler, delay);
+	}
+
+	get promise(): Promise<boolean> {
+		return this.#resolvers.promise;
 	}
 
 	cancel(): void {
-		clearTimeout(this.#idTimeout);
-		this.#resolve(false);
+		clearTimeout(this.#timeout);
+		this.#resolvers.resolve(false);
 	}
 
 	settle(callback: () => void): void {
+		const { resolve, reject } = this.#resolvers;
 		try {
 			callback();
-			this.#resolve(true);
+			resolve(true);
 		} catch (reason) {
-			this.#reject(Error.from(reason));
+			reject(Error.from(reason));
 		}
 	}
 }
@@ -241,11 +243,10 @@ export class BufferedCell<M extends PortableConstructor<InstanceType<M>>> {
 	 */
 	async save(delay: number): Promise<boolean>;
 	async save(delay?: number): Promise<boolean> {
-		const transaction = this.#transaction;
-		transaction?.cancel();
-		return await new Promise((resolve, reject) => {
-			this.#transaction = new SaveTransaction(this.#handler.bind(this), delay, resolve, reject);
-		});
+		this.#transaction?.cancel();
+		const transaction = new SaveTransaction(this.#handler.bind(this), delay);
+		this.#transaction = transaction;
+		return await transaction.promise;
 	}
 
 	/**
@@ -253,8 +254,7 @@ export class BufferedCell<M extends PortableConstructor<InstanceType<M>>> {
 	 * Any pending {@linkcode save} promise resolves to `false`.
 	 */
 	abort(): void {
-		const transaction = this.#transaction;
-		transaction?.cancel();
+		this.#transaction?.cancel();
 		this.#transaction = null;
 	}
 

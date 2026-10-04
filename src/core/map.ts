@@ -69,12 +69,15 @@ Map.AsTuples = function <IK, SK, IV, SV>(typeKey: PortableConstructor<IK, SK>, t
 		},
 
 		import(source: any, name: string): Map<IK, IV> {
-			return new Map<IK, IV>(Array.import(source, name).map((item, index) => {
-				const tuple = Array.import(item, `${name}[${index}]`);
+			const array = Array.import(source, name);
+			const map = new Map<IK, IV>();
+			for (let index = 0; index < array.length; index++) {
+				const tuple = Array.import(array[index], `${name}[${index}]`);
 				const key = typeKey.import(tuple[0], `${name}[${index}][0]`);
 				const value = typeValue.import(tuple[1], `${name}[${index}][1]`);
-				return [key, value];
-			}));
+				map.set(key, value);
+			}
+			return map;
 		},
 
 		export(source: Map<IK, IV>): [SK, SV][] {

@@ -37,8 +37,7 @@ Object.defineProperty(Promise.prototype, "isSettled", {
 	async get<T>(this: Promise<T>): Promise<boolean> {
 		const symbol = Symbol();
 		try {
-			const result = (await Promise.race([this, symbol]) !== symbol);
-			return result;
+			return (await Promise.race([this, symbol]) !== symbol);
 		} catch {
 			return true;
 		}

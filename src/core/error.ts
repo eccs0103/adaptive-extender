@@ -25,8 +25,7 @@ Error.from = function (reason: any): Error {
 };
 
 Error.prototype.toString = function (): string {
-	let text = this.stack ?? `${this.name}: ${this.message}`;
-	return text;
+	return this.stack ?? `${this.name}: ${this.message}`;
 };
 //#endregion
 //#region Reference error
@@ -46,11 +45,8 @@ declare global {
 }
 
 ReferenceError.suppress = function <T>(value: T, message: string = "Expected a reference with not missing value"): NonNullable<T> {
-	switch (value) {
-	case undefined:
-	case null: throw new ReferenceError(message);
-	default: return (value as NonNullable<T>);
-	}
+	if (value === undefined || value === null) throw new ReferenceError(message);
+	return value;
 };
 //#endregion
 //#region Implementation error

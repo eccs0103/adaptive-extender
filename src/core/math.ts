@@ -50,7 +50,7 @@ declare global {
 }
 
 Number.prototype.clamp = function (min: number, max: number): number {
-	let result = +this;
+	const result = +this;
 	if (result < min) return min;
 	if (result > max) return max;
 	return result;
@@ -144,14 +144,12 @@ Math.sqpw = function (x: number): number {
 	return x * x;
 };
 
-const toDegreeFactor = 180 / PI;
 Math.toDegrees = function (radians: number): number {
-	return radians * toDegreeFactor;
+	return radians * (180 / PI);
 };
 
-const toRadianFactor = PI / 180;
 Math.toRadians = function (degrees: number): number {
-	return degrees * toRadianFactor;
+	return degrees * (PI / 180);
 };
 
 Math.meanArithmetic = function (...values: number[]): number {

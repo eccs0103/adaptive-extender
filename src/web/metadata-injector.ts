@@ -98,12 +98,8 @@ abstract class Metadata extends Model {
 	constructor(configuration?: MetadataConfiguration) {
 		if (new.target === Metadata) throw new TypeError("Unable to create an instance of an abstract class");
 
-		if (configuration === undefined) {
-			super();
-			return;
-		}
-
 		super();
+		if (configuration === undefined) return;
 		this.name = configuration.name;
 		this.webpage = configuration.webpage;
 		this.preview = configuration.preview;
@@ -306,14 +302,13 @@ class OrganizationMetadata extends Metadata {
 
 //#region Metadata injector
 export class MetadataInjector {
-	static #lock: boolean = true;
-	static #instance: MetadataInjector | null = null;
+	static #injected: boolean = false;
 
 	constructor() {
-		if (MetadataInjector.#lock) throw new TypeError("Illegal constructor");
+		throw new TypeError("Illegal constructor");
 	}
 
-	#compose(configuration: OrganizationMetadataConfiguration | ApplicationMetadataConfiguration | PersonMetadataConfiguration): Metadata {
+	static #compose(configuration: OrganizationMetadataConfiguration | ApplicationMetadataConfiguration | PersonMetadataConfiguration): Metadata {
 		switch (configuration.type) {
 		case "Person": return new PersonMetadata(configuration);
 		case "Application": return new ApplicationMetadata(configuration);
@@ -322,19 +317,17 @@ export class MetadataInjector {
 		}
 	}
 
-	#embedMetadataScript(metadata: Metadata): void {
+	static #embedScript(metadata: Metadata): void {
 		const scheme = Metadata.export<Metadata, MetadataScheme>(metadata);
 		const script = document.createElement("script");
 		script.type = "application/ld+json";
 		script.textContent = JSON.stringify(scheme, undefined, "\t");
 		const { head } = document;
-		const child =
-			document.querySelector("script") ??
-			head.lastElementChild;
+		const child = document.querySelector("script") ?? head.lastElementChild;
 		head.insertBefore(script, child);
 	}
 
-	#embedRelLinks(metadata: Metadata): void {
+	static #embedLinks(metadata: Metadata): void {
 		if (!(metadata instanceof PersonMetadata)) return;
 		if (metadata.associations === undefined) return;
 		const { head } = document;
@@ -346,53 +339,41 @@ export class MetadataInjector {
 		}
 	}
 
-	#setMetadata(name: string, content: string): void {
-		const meta =
-			document.querySelector(`meta[name="${name}"]`) ??
-			document.querySelector(`meta[property="${name}"]`) ??
-			document.createElement("meta");
+	static #setTag(name: string, content: string): void {
+		const meta = document.querySelector(`meta[name="${name}"]`) ?? document.querySelector(`meta[property="${name}"]`) ?? document.createElement("meta");
 		meta.setAttribute(name.startsWith("og:") ? "property" : "name", name);
 		meta.setAttribute("content", content);
 		const { head } = document;
-		const child =
-			document.querySelector("title") ??
-			document.querySelector("meta:last-of-type + *") ??
-			head.firstElementChild;
+		const child = document.querySelector("title") ?? document.querySelector("meta:last-of-type + *") ?? head.firstElementChild;
 		head.insertBefore(meta, child);
 	}
 
-	#embedMetatags(metadata: Metadata): void {
-		if (metadata.description !== undefined) this.#setMetadata("description", metadata.description);
-		if (metadata instanceof PersonMetadata) this.#setMetadata("author", metadata.name);
-		this.#setMetadata("generator", "MetadataInjector/1.0.0");
-		if (metadata instanceof ApplicationMetadata) this.#setMetadata("application-name", metadata.name);
-		this.#setMetadata("og:title", metadata.name);
-		if (metadata.description !== undefined) this.#setMetadata("og:description", metadata.description);
-		this.#setMetadata("og:url", String(metadata.webpage));
-		if (metadata.preview !== undefined) this.#setMetadata("og:image", String(metadata.preview));
-		this.#setMetadata("og:type", metadata instanceof PersonMetadata ? "profile" : "website");
+	static #embedTags(metadata: Metadata): void {
+		if (metadata.description !== undefined) MetadataInjector.#setTag("description", metadata.description);
+		if (metadata instanceof PersonMetadata) MetadataInjector.#setTag("author", metadata.name);
+		MetadataInjector.#setTag("generator", "MetadataInjector/1.0.0");
+		if (metadata instanceof ApplicationMetadata) MetadataInjector.#setTag("application-name", metadata.name);
+		MetadataInjector.#setTag("og:title", metadata.name);
+		if (metadata.description !== undefined) MetadataInjector.#setTag("og:description", metadata.description);
+		MetadataInjector.#setTag("og:url", String(metadata.webpage));
+		if (metadata.preview !== undefined) MetadataInjector.#setTag("og:image", String(metadata.preview));
+		MetadataInjector.#setTag("og:type", metadata instanceof PersonMetadata ? "profile" : "website");
 		const keywords: string[] = [];
 		if (metadata.keywords !== undefined) keywords.push(...metadata.keywords);
 		if (metadata instanceof PersonMetadata && metadata.knowledge !== undefined) keywords.push(...metadata.knowledge);
-		if (keywords.length > 0) this.#setMetadata("keywords", Array.from(new Set(keywords)).join(","));
-	}
-
-	#embed(configuration: OrganizationMetadataConfiguration | ApplicationMetadataConfiguration | PersonMetadataConfiguration): void {
-		const metadata = this.#compose(configuration);
-		this.#embedMetadataScript(metadata);
-		this.#embedRelLinks(metadata);
-		this.#embedMetatags(metadata);
+		if (keywords.length > 0) MetadataInjector.#setTag("keywords", Array.from(new Set(keywords)).join(","));
 	}
 
 	static inject(configuration: PersonMetadataConfiguration): void;
 	static inject(configuration: ApplicationMetadataConfiguration): void;
 	static inject(configuration: OrganizationMetadataConfiguration): void;
 	static inject(configuration: OrganizationMetadataConfiguration | ApplicationMetadataConfiguration | PersonMetadataConfiguration): void {
-		if (MetadataInjector.#instance !== null) return;
-		MetadataInjector.#lock = false;
-		const instance: MetadataInjector = MetadataInjector.#instance = new MetadataInjector();
-		MetadataInjector.#lock = true;
-		instance.#embed(configuration);
+		if (MetadataInjector.#injected) return;
+		MetadataInjector.#injected = true;
+		const metadata = MetadataInjector.#compose(configuration);
+		MetadataInjector.#embedScript(metadata);
+		MetadataInjector.#embedLinks(metadata);
+		MetadataInjector.#embedTags(metadata);
 	}
 }
 //#endregion

@@ -3,7 +3,7 @@
 import "../core/index.js";
 import { ImplementationError, type Engine } from "../core/index.js";
 
-const { trunc } = Math;
+const { trunc, max } = Math;
 
 //#region Engine base
 interface WebEngineEventMap {
@@ -116,19 +116,20 @@ export class FastEngine extends WebEngine {
 		requestAnimationFrame(this.#callback);
 	}
 	#callback: FrameRequestCallback = (current: DOMHighResTimeStamp) => {
-		const difference = current - this.#previous;
-		const fps = 1000 / difference;
-		if (fps < this.limit) {
-			if (this.launched) {
-				this.#fps = fps;
-				this.dispatchEvent(new Event("trigger"));
-			} else {
-				this.#fps = 0;
-			}
-			this.#previous = current;
-		}
+		this.#tick(current);
 		requestAnimationFrame(this.#callback);
 	};
+	#tick(current: DOMHighResTimeStamp): void {
+		const fps = 1000 / (current - this.#previous);
+		if (fps >= this.limit) return;
+		this.#previous = current;
+		if (!this.launched) {
+			this.#fps = 0;
+			return;
+		}
+		this.#fps = fps;
+		this.dispatchEvent(new Event("trigger"));
+	}
 }
 //#endregion
 //#region Precise engine
@@ -154,7 +155,7 @@ export class PreciseEngine extends WebEngine {
 
 		this.#previous = performance.now();
 		setTimeout(this.#callback, 1000 / this.limit);
-	};
+	}
 	#callback: TimerHandler = () => {
 		const current = performance.now();
 		const difference = current - this.#previous;
@@ -188,7 +189,7 @@ export class StaticEngine extends WebEngine {
 	get delta(): number {
 		return 1 / this.#fps;
 	}
-	#previous: number = 0;
+	#previous: number = performance.now();
 	constructor();
 	/**
 	 * @param options An object that specifies options for the engine.
@@ -198,19 +199,20 @@ export class StaticEngine extends WebEngine {
 		super(options);
 		super.limit = 120;
 
-		this.#previous = 0;
 		setTimeout(this.#callback);
 	}
 	#callback: TimerHandler = () => {
-		const difference = performance.now() - this.#previous;
+		let previous = this.#previous;
+		const difference = performance.now() - previous;
 		const delta = 1000 / this.limit;
 		const count = trunc(difference / delta);
 		this.#fps = (1000 * count) / difference;
 		for (let index = 0; index < count; index++) {
 			if (this.launched) this.dispatchEvent(new Event("trigger"));
-			this.#previous += count * delta;
+			previous += delta;
 		}
-		setTimeout(this.#callback);
+		this.#previous = previous;
+		setTimeout(this.#callback, max(0, previous + delta - performance.now()));
 	};
 }
 //#endregion

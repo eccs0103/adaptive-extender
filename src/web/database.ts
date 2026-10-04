@@ -140,6 +140,16 @@ class Records {
 		throw new TypeError(`Store [${this.#connection.path}]: Key ${String(value)} must be a string, a finite number or a valid date.`);
 	}
 
+	*keys(keys: unknown): Generator<IDBValidKey> {
+		if (!Records.isList(keys)) {
+			yield this.validate(keys);
+			return;
+		}
+		for (const key of keys) {
+			yield this.validate(key);
+		}
+	}
+
 	async get(key: IDBValidKey): Promise<unknown> {
 		const store = await this.#connection.open("readonly");
 		const value = await Connection.settle(store.get(key));
@@ -152,10 +162,14 @@ class Records {
 		return await Connection.settle(store.getAll());
 	}
 
-	async entries(): Promise<IteratorObject<readonly [IDBValidKey, unknown], void>> {
+	async entries(): Promise<(readonly [IDBValidKey, unknown])[]> {
 		const store = await this.#connection.open("readonly");
 		const [keys, values] = await Promise.all([Connection.settle(store.getAllKeys()), Connection.settle(store.getAll())]);
-		return Iterator.zip(keys, values);
+		const entries: (readonly [IDBValidKey, unknown])[] = [];
+		for (let index = 0; index < keys.length; index++) {
+			entries.push([keys[index], values[index]]);
+		}
+		return entries;
 	}
 
 	async insert(entries: Iterable<readonly [IDBValidKey, unknown]>): Promise<void> {
@@ -302,10 +316,6 @@ class KeyStore<K extends IDBValidKey> implements Store<K> {
 		return Records.isList(keys);
 	}
 
-	#isList(keys: K | Iterable<K>): keys is Iterable<K> {
-		return Records.isList(keys);
-	}
-
 	*#entries(keys: K | Iterable<readonly [K, unknown]>, value: unknown): Generator<readonly [IDBValidKey, unknown]> {
 		const records = this.#records;
 		if (!this.#isBatch(keys)) {
@@ -317,24 +327,13 @@ class KeyStore<K extends IDBValidKey> implements Store<K> {
 		}
 	}
 
-	*#keys(keys: K | Iterable<K>): Generator<IDBValidKey> {
-		const records = this.#records;
-		if (!this.#isList(keys)) {
-			yield records.validate(keys);
-			return;
-		}
-		for (const key of keys) {
-			yield records.validate(key);
-		}
-	}
-
 	async select(): Promise<(readonly [K, unknown])[]>;
 	async select(key: K): Promise<unknown>;
 	async select(key?: K): Promise<unknown> {
 		const records = this.#records;
 		if (key !== undefined) return await records.get(records.validate(key));
 		const entries = await records.entries();
-		return entries.filter(entry => this.#isEntry(entry)).toArray();
+		return entries.filter(entry => this.#isEntry(entry));
 	}
 
 	async insert(key: K, value: unknown): Promise<void>;
@@ -352,7 +351,8 @@ class KeyStore<K extends IDBValidKey> implements Store<K> {
 	async delete(key: K): Promise<void>;
 	async delete(keys: Iterable<K>): Promise<void>;
 	async delete(keys: K | Iterable<K>): Promise<void> {
-		await this.#records.delete(this.#keys(keys));
+		const records = this.#records;
+		await records.delete(records.keys(keys));
 	}
 
 	async count(): Promise<number> {
@@ -454,17 +454,6 @@ class ModelStore<M extends PortableConstructor<InstanceType<M>>, K extends keyof
 		}
 	}
 
-	*#keys(keys: InstanceType<M>[K] | Iterable<InstanceType<M>[K]>): Generator<IDBValidKey> {
-		const records = this.#records;
-		if (!Records.isList(keys)) {
-			yield records.validate(keys);
-			return;
-		}
-		for (const key of keys) {
-			yield records.validate(key);
-		}
-	}
-
 	#restore(value: unknown, path: string): InstanceType<M> {
 		try {
 			return this.#model.import(value, path);
@@ -503,7 +492,8 @@ class ModelStore<M extends PortableConstructor<InstanceType<M>>, K extends keyof
 	async delete(key: InstanceType<M>[K]): Promise<void>;
 	async delete(keys: Iterable<InstanceType<M>[K]>): Promise<void>;
 	async delete(keys: InstanceType<M>[K] | Iterable<InstanceType<M>[K]>): Promise<void> {
-		await this.#records.delete(this.#keys(keys));
+		const records = this.#records;
+		await records.delete(records.keys(keys));
 	}
 
 	async count(): Promise<number> {

@@ -1,6 +1,6 @@
 "use strict";
 
-const { random, trunc, imul } = Math;
+const { random, floor, imul } = Math;
 
 //#region Xoshiro128
 class Xoshiro128 {
@@ -54,7 +54,7 @@ export class Random {
 	 * @throws {Error} If `seed` is not a finite number.
 	 */
 	constructor(seed: number);
-	constructor(seed?: number | undefined) {
+	constructor(seed?: number) {
 		if (seed === undefined) return;
 		if (!Number.isFinite(seed)) throw new Error(`The seed ${seed} must be a finite number`);
 		this.#engine = new Xoshiro128(seed);
@@ -72,11 +72,14 @@ export class Random {
 	}
 
 	#number(min: number, max: number): number {
-		return this.#random() * (max - min) + min;
+		const ratio = this.#random();
+		const range = max - min;
+		if (Number.isFinite(range)) return ratio * range + min;
+		return min + ratio * max - ratio * min;
 	}
 
 	#integer(min: number, max: number): number {
-		return trunc(this.#number(min, max + 1));
+		return floor(this.#number(min, max + 1));
 	}
 
 	/**
@@ -214,10 +217,15 @@ export class Random {
 	 * @throws {Error} If the iterable yields no items.
 	 */
 	case<T>(cases: Iterable<readonly [T, number]>): T {
-		const summary = Array.from(cases).reduce((previous, [, weight]) => previous + weight, 0);
+		const array = Array.from(cases);
+		let summary = 0;
+		for (let index = 0; index < array.length; index++) {
+			summary += array[index][1];
+		}
 		const random = this.#number(0, summary);
 		let begin = 0;
-		for (const [item, weight] of cases) {
+		for (let index = 0; index < array.length; index++) {
+			const [item, weight] = array[index];
 			const end = begin + weight;
 			if (begin <= random && random < end) return item;
 			begin = end;

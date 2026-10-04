@@ -99,8 +99,9 @@ Array.prototype.swap = function (index1: number, index2: number): void {
 };
 
 Array.prototype.resize = function <T>(this: T[], length: number, $default: T): T[] {
-	while (length > this.length) this.push($default);
+	const start = this.length;
 	this.length = length;
+	this.fill($default, start);
 	return this;
 };
 

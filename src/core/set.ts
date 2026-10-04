@@ -40,7 +40,12 @@ Set.Of = function <I, S>(type: PortableConstructor<I, S>): PortableConstructor<S
 		},
 
 		import(source: any, name: string): Set<I> {
-			return new Set(Array.import(source, name).map((item, index) => type.import(item, `${name}[${index}]`)));
+			const array = Array.import(source, name);
+			const set: Set<I> = new Set();
+			for (let index = 0; index < array.length; index++) {
+				set.add(type.import(array[index], `${name}[${index}]`));
+			}
+			return set;
 		},
 
 		export(source: Set<I>): S[] {
@@ -50,19 +55,12 @@ Set.Of = function <I, S>(type: PortableConstructor<I, S>): PortableConstructor<S
 };
 
 Set.prototype.toggle = function <T>(this: Set<T>, value: T, force?: boolean): boolean {
-	if (force === undefined) {
-		if (this.has(value)) {
-			this.delete(value);
-			return false;
-		}
-		this.add(value);
-		return true;
+	const present = force ?? !this.has(value);
+	if (!present) {
+		this.delete(value);
+		return false;
 	}
-	if (force) {
-		this.add(value);
-		return true;
-	}
-	this.delete(value);
-	return false;
+	this.add(value);
+	return true;
 };
 //#endregion

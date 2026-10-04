@@ -179,11 +179,12 @@ export class Color {
 		if (!Number.isFinite(blue)) throw new Error(`The blue ${blue} must be a finite number`);
 		if (!Number.isFinite(alpha)) throw new Error(`The alpha ${alpha} must be a finite number`);
 		const color = new Color();
-		color.#rgb[0] = red;
-		color.#rgb[1] = green;
-		color.#rgb[2] = blue;
+		const rgb = color.#rgb;
+		rgb[0] = red;
+		rgb[1] = green;
+		rgb[2] = blue;
 		color.#alpha = alpha.clamp(0, 1);
-		Color.#RGBtoHSL(color.#rgb, color.#hsl);
+		Color.#RGBtoHSL(rgb, color.#hsl);
 		return color;
 	}
 	/**
@@ -211,38 +212,39 @@ export class Color {
 		if (!Number.isFinite(lightness)) throw new Error(`The lightness ${lightness} must be a finite number`);
 		if (!Number.isFinite(alpha)) throw new Error(`The alpha ${alpha} must be a finite number`);
 		const color = new Color();
-		hue %= 360;
-		if (hue < 0) hue += 360;
-		color.#hsl[0] = hue;
-		color.#hsl[1] = saturation.clamp(0, 100);
-		color.#hsl[2] = lightness.clamp(0, 100);
+		const hsl = color.#hsl;
+		hsl[0] = hue.mod(360);
+		hsl[1] = saturation.clamp(0, 100);
+		hsl[2] = lightness.clamp(0, 100);
 		color.#alpha = alpha.clamp(0, 1);
-		Color.#HSLtoRGB(color.#hsl, color.#rgb);
+		Color.#HSLtoRGB(hsl, color.#rgb);
 		return color;
 	}
-	static #parse(string: string, deep: boolean, format: ColorFormats): Color {
+	static #parse(string: string, deep: boolean, format: ColorFormats): Color | null {
 		switch (format) {
 		case ColorFormats.rgb: {
 			const regex = (deep ? Color.#patternRGBA : Color.#patternRGB);
 			const match = regex.exec(string.trim());
-			if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
-			const [, red, green, blue, alpha] = match.map(part => Number(part));
-			return Color.fromRGB(red, green, blue, deep ? alpha : 1);
-		};
+			if (match === null) return null;
+			const [, red, green, blue, alpha = 1] = match.map(part => Number(part));
+			if (![red, green, blue, alpha].every(Number.isFinite)) return null;
+			return Color.fromRGB(red, green, blue, alpha);
+		}
 		case ColorFormats.hsl: {
 			const regex = (deep ? Color.#patternHSLA : Color.#patternHSL);
 			const match = regex.exec(string.trim());
-			if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
-			const [, hue, saturation, lightness, alpha] = match.map(part => Number(part));
-			return Color.fromHSL(hue, saturation, lightness, deep ? alpha : 1);
-		};
+			if (match === null) return null;
+			const [, hue, saturation, lightness, alpha = 1] = match.map(part => Number(part));
+			if (![hue, saturation, lightness, alpha].every(Number.isFinite)) return null;
+			return Color.fromHSL(hue, saturation, lightness, alpha);
+		}
 		case ColorFormats.hex: {
 			const regex = (deep ? Color.#patternHEXA : Color.#patternHEX);
 			const match = regex.exec(string.trim());
-			if (match === null) throw new SyntaxError(`Invalid ${format} color '${string}' syntax`);
+			if (match === null) return null;
 			const [, red, green, blue, alpha] = match.map(part => Number.parseInt(part, 16));
 			return Color.fromRGB(red, green, blue, deep ? (alpha / 255) : 1);
-		};
+		}
 		default: throw new Error(`Invalid '${format}' format for color`);
 		}
 	}
@@ -267,11 +269,8 @@ export class Color {
 			variations = variations.filter(properties => Reflect.get(properties, key) === value);
 		}
 		for (const { format, deep } of variations) {
-			try {
-				return Color.#parse(string, deep, format);
-			} catch {
-				continue;
-			}
+			const color = Color.#parse(string, deep, format);
+			if (color !== null) return color;
 		}
 		return null;
 	}
@@ -371,75 +370,75 @@ export class Color {
 	/**
 	 * Transparent color preset.
 	 */
-	static get newTransparent(): Color { return Color.fromRGB(0, 0, 0, 0); };
+	static get newTransparent(): Color { return Color.fromRGB(0, 0, 0, 0); }
 	/**
 	 * Maroon color preset.
 	 */
-	static get newMaroon(): Color { return Color.fromRGB(128, 0, 0); };
+	static get newMaroon(): Color { return Color.fromRGB(128, 0, 0); }
 	/**
 	 * Red color preset.
 	 */
-	static get newRed(): Color { return Color.fromRGB(255, 0, 0); };
+	static get newRed(): Color { return Color.fromRGB(255, 0, 0); }
 	/**
 	 * Orange color preset.
 	 */
-	static get newOrange(): Color { return Color.fromRGB(255, 165, 0); };
+	static get newOrange(): Color { return Color.fromRGB(255, 165, 0); }
 	/**
 	 * Yellow color preset.
 	 */
-	static get newYellow(): Color { return Color.fromRGB(255, 255, 0); };
+	static get newYellow(): Color { return Color.fromRGB(255, 255, 0); }
 	/**
 	 * Olive color preset.
 	 */
-	static get newOlive(): Color { return Color.fromRGB(128, 128, 0); };
+	static get newOlive(): Color { return Color.fromRGB(128, 128, 0); }
 	/**
 	 * Green color preset.
 	 */
-	static get newGreen(): Color { return Color.fromRGB(0, 128, 0); };
+	static get newGreen(): Color { return Color.fromRGB(0, 128, 0); }
 	/**
 	 * Purple color preset.
 	 */
-	static get newPurple(): Color { return Color.fromRGB(128, 0, 128); };
+	static get newPurple(): Color { return Color.fromRGB(128, 0, 128); }
 	/**
 	 * Fuchsia color preset.
 	 */
-	static get newFuchsia(): Color { return Color.fromRGB(255, 0, 255); };
+	static get newFuchsia(): Color { return Color.fromRGB(255, 0, 255); }
 	/**
 	 * Lime color preset.
 	 */
-	static get newLime(): Color { return Color.fromRGB(0, 255, 0); };
+	static get newLime(): Color { return Color.fromRGB(0, 255, 0); }
 	/**
 	 * Teal color preset.
 	 */
-	static get newTeal(): Color { return Color.fromRGB(0, 128, 128); };
+	static get newTeal(): Color { return Color.fromRGB(0, 128, 128); }
 	/**
 	 * Aqua color preset.
 	 */
-	static get newAqua(): Color { return Color.fromRGB(0, 255, 255); };
+	static get newAqua(): Color { return Color.fromRGB(0, 255, 255); }
 	/**
 	 * Blue color preset.
 	 */
-	static get newBlue(): Color { return Color.fromRGB(0, 0, 255); };
+	static get newBlue(): Color { return Color.fromRGB(0, 0, 255); }
 	/**
 	 * Navy color preset.
 	 */
-	static get newNavy(): Color { return Color.fromRGB(0, 0, 128); };
+	static get newNavy(): Color { return Color.fromRGB(0, 0, 128); }
 	/**
 	 * Black color preset.
 	 */
-	static get newBlack(): Color { return new Color(); };
+	static get newBlack(): Color { return new Color(); }
 	/**
 	 * Gray color preset.
 	 */
-	static get newGray(): Color { return Color.fromRGB(128, 128, 128); };
+	static get newGray(): Color { return Color.fromRGB(128, 128, 128); }
 	/**
 	 * Silver color preset.
 	 */
-	static get newSilver(): Color { return Color.fromRGB(192, 192, 192); };
+	static get newSilver(): Color { return Color.fromRGB(192, 192, 192); }
 	/**
 	 * White color preset.
 	 */
-	static get newWhite(): Color { return Color.fromRGB(255, 255, 255); };
+	static get newWhite(): Color { return Color.fromRGB(255, 255, 255); }
 	//#endregion
 	//#region Modifiers
 	/**

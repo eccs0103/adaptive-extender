@@ -288,7 +288,7 @@ const ball = new Vector2D(0, 0);
 const engine = new FastEngine({ launch: true });
 engine.limit = 60;
 
-engine.addEventListener("trigger", event => {
+engine.addEventListener("trigger", (event) => {
 	ball.x += 120 * engine.delta; // delta in seconds — 120 px per second at any frame rate
 });
 

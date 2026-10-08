@@ -1,4 +1,4 @@
-## 1.1.1 (04.10.2026)
+## 1.1.2 (04.10.2026)
 - `StaticEngine` now runs at a steady `limit` updates per second from the start. Before, its first tick was measured from page load, so it fired a burst of catch-up `trigger` events, and every catch-up moved its clock ahead by count² frames instead of count, so it then fell silent. An engine created 300 ms after load fired 36 triggers and then nothing for several seconds; it now delivers about 30 triggers per 250 ms at the default `limit` of `120`. It also schedules the next tick for when the next frame is due, instead of re-checking immediately.
 - `StaticEngine.fps` and `delta` no longer drop to `0` and `Infinity` between ticks. At `limit = 30`, 1.1.0 reported `fps = 0` in about half of all samples.
 - `Random.integer` is now uniform for ranges below or across zero. In 1.1.0, `integer(-5, -1)` never returned `-5` and returned `-0` instead, and `integer(-2, 2)` returned `0` twice as often and never `-2`. Seeded sequences for non-negative ranges are unchanged.

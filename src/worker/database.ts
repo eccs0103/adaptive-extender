@@ -214,6 +214,24 @@ class Records {
 		}
 	}
 
+	// Requests of one transaction run in order, so each count sees the store just before its own put
+	async upsert(entries: Iterable<readonly [IDBValidKey, unknown]>): Promise<boolean[]> {
+		const store = await this.#connection.open("readwrite");
+		const { transaction } = store;
+		const counts: IDBRequest<number>[] = [];
+		try {
+			for (const [key, value] of entries) {
+				counts.push(store.count(key));
+				store.put(value, key);
+			}
+		} catch (reason) {
+			transaction.abort();
+			throw reason;
+		}
+		await Connection.commit(transaction);
+		return counts.map(count => count.result === 0);
+	}
+
 	async delete(keys: Iterable<IDBValidKey>): Promise<void> {
 		const store = await this.#connection.open("readwrite");
 		const { transaction } = store;
@@ -284,6 +302,21 @@ export interface Store<K = string> {
 	 */
 	update(entries: Iterable<readonly [K, unknown]>): Promise<void>;
 	/**
+	 * Stores the value under the key, adding a new record or replacing the existing one.
+	 * @param key The key of the record.
+	 * @param value The value to store, which must be structured-cloneable.
+	 * @returns `true` if the record was added, `false` if it was replaced.
+	 * @throws {TypeError} If the key is not a string, a finite number or a valid date.
+	 */
+	upsert(key: K, value: unknown): Promise<boolean>;
+	/**
+	 * Stores records in one transaction, adding new ones and replacing existing ones: either all of them are stored or none is.
+	 * @param entries The records to store, as `[key, value]` pairs.
+	 * @returns One flag per entry in input order: `true` if the record was added, `false` if it was replaced.
+	 * @throws {TypeError} If a key is not a string, a finite number or a valid date.
+	 */
+	upsert(entries: Iterable<readonly [K, unknown]>): Promise<boolean[]>;
+	/**
 	 * Removes the record under the key, if any.
 	 * @param key The key of the record.
 	 * @throws {TypeError} If the key is not a string, a finite number or a valid date.
@@ -348,6 +381,14 @@ class KeyStore<K extends IDBValidKey> implements Store<K> {
 		await this.#records.update(this.#entries(keys, value));
 	}
 
+	async upsert(key: K, value: unknown): Promise<boolean>;
+	async upsert(entries: Iterable<readonly [K, unknown]>): Promise<boolean[]>;
+	async upsert(keys: K | Iterable<readonly [K, unknown]>, value?: unknown): Promise<boolean | boolean[]> {
+		const added = await this.#records.upsert(this.#entries(keys, value));
+		if (this.#isBatch(keys)) return added;
+		return added[0];
+	}
+
 	async delete(key: K): Promise<void>;
 	async delete(keys: Iterable<K>): Promise<void>;
 	async delete(keys: K | Iterable<K>): Promise<void> {
@@ -408,6 +449,20 @@ export interface PortableStore<M extends PortableConstructor<InstanceType<M>>, K
 	 * @throws {ReferenceError} If the store has no row with one of the primary keys.
 	 */
 	update(rows: Iterable<InstanceType<M>>): Promise<void>;
+	/**
+	 * Stores the row, adding it or replacing the existing row with the same primary key.
+	 * @param row The row to store.
+	 * @returns `true` if the row was added, `false` if it was replaced.
+	 * @throws {TypeError} If the primary key is not a string, a finite number or a valid date.
+	 */
+	upsert(row: InstanceType<M>): Promise<boolean>;
+	/**
+	 * Stores rows in one transaction, adding new ones and replacing existing ones: either all of them are stored or none is.
+	 * @param rows The rows to store.
+	 * @returns One flag per row in input order: `true` if the row was added, `false` if it was replaced.
+	 * @throws {TypeError} If a primary key is not a string, a finite number or a valid date.
+	 */
+	upsert(rows: Iterable<InstanceType<M>>): Promise<boolean[]>;
 	/**
 	 * Removes the row with the primary key, if any.
 	 * @param key The primary key of the row.
@@ -487,6 +542,14 @@ class ModelStore<M extends PortableConstructor<InstanceType<M>>, K extends keyof
 	async update(rows: Iterable<InstanceType<M>>): Promise<void>;
 	async update(rows: InstanceType<M> | Iterable<InstanceType<M>>): Promise<void> {
 		await this.#records.update(this.#entries(rows));
+	}
+
+	async upsert(row: InstanceType<M>): Promise<boolean>;
+	async upsert(rows: Iterable<InstanceType<M>>): Promise<boolean[]>;
+	async upsert(rows: InstanceType<M> | Iterable<InstanceType<M>>): Promise<boolean | boolean[]> {
+		const added = await this.#records.upsert(this.#entries(rows));
+		if (this.#isBatch(rows)) return added;
+		return added[0];
 	}
 
 	async delete(key: InstanceType<M>[K]): Promise<void>;

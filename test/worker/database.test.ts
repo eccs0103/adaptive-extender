@@ -42,4 +42,22 @@ describe("Stores in workers", () => {
 		expect(await store.select("hits")).toEqual(new Counter("hits", 4));
 		expect(await store.count()).toBe(1);
 	});
+
+	it("should upsert into a raw store", async () => {
+		const store = indexedDB.openStore(`worker-${crypto.randomUUID()}`, "records");
+
+		expect(await store.upsert("key", "first")).toBe(true);
+		expect(await store.upsert([["key", "second"], ["other", "value"]])).toEqual([false, true]);
+
+		expect(await store.select("key")).toBe("second");
+	});
+
+	it("should upsert into a portable store", async () => {
+		const store = indexedDB.openPortableStore(`worker-${crypto.randomUUID()}`, "counters", Counter, "id");
+
+		expect(await store.upsert(new Counter("hits", 3))).toBe(true);
+		expect(await store.upsert(new Counter("hits", 4))).toBe(false);
+
+		expect(await store.select("hits")).toEqual(new Counter("hits", 4));
+	});
 });

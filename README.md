@@ -560,6 +560,7 @@ const notes = indexedDB.openPortableStore("Notebook", "Notes", Note, "id");
 
 await notes.insert(note); // ConstraintError if the id exists
 await notes.update(note); // ReferenceError if it does not
+await notes.upsert(note); // either way: true if added, false if replaced
 await notes.select("a1"); // a real Note, or null
 await notes.select(); // every Note, in key order
 await notes.delete(["a1", "b2"]);

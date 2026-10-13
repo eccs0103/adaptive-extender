@@ -1,3 +1,6 @@
+## 1.1.3 (13.10.2026)
+- Added `Store.upsert(key, value)` and `PortableStore.upsert(row)`, which store a record whether or not it already exists and resolve `true` if it was added and `false` if it replaced an existing one. The batch overloads `upsert(entries)` and `upsert(rows)` run in one transaction, all or nothing, and resolve one flag per item in input order.
+
 ## 1.1.2 (04.10.2026)
 - `StaticEngine` now runs at a steady `limit` updates per second from the start. Before, its first tick was measured from page load, so it fired a burst of catch-up `trigger` events, and every catch-up moved its clock ahead by count² frames instead of count, so it then fell silent. An engine created 300 ms after load fired 36 triggers and then nothing for several seconds; it now delivers about 30 triggers per 250 ms at the default `limit` of `120`. It also schedules the next tick for when the next frame is due, instead of re-checking immediately.
 - `StaticEngine.fps` and `delta` no longer drop to `0` and `Infinity` between ticks. At `limit = 30`, 1.1.0 reported `fps = 0` in about half of all samples.

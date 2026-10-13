@@ -113,6 +113,31 @@ describe("Store", () => {
 		await store.delete(["a", "c"]);
 		expect(await store.select()).toEqual([["b", 2]]);
 	});
+
+	it("should upsert a record and report whether it was added", async () => {
+		const store = indexedDB.openStore(unique(), "records");
+
+		expect(await store.upsert("key", "first")).toBe(true);
+		expect(await store.upsert("key", "second")).toBe(false);
+		expect(await store.select("key")).toBe("second");
+		expect(await store.count()).toBe(1);
+	});
+
+	it("should upsert a batch and report one flag per entry in input order", async () => {
+		const store = indexedDB.openStore(unique(), "records");
+		await store.insert("a", 0);
+
+		expect(await store.upsert([["b", 1], ["b", 2], ["a", 3]])).toEqual([true, false, false]);
+		expect(await store.select()).toEqual([["a", 3], ["b", 2]]);
+	});
+
+	it("should store nothing from an upsert batch that fails part way", async () => {
+		const store = indexedDB.openStore(unique(), "records");
+		await store.insert("a", 0);
+
+		await expect(store.upsert([["a", 1], ["b", () => 0]])).rejects.toThrow();
+		expect(await store.select()).toEqual([["a", 0]]);
+	});
 });
 
 describe("PortableStore", () => {
@@ -196,6 +221,18 @@ describe("PortableStore", () => {
 
 		await expect(store.update([new Note("b", "changed"), new Note("z", "missing")])).rejects.toThrow(ReferenceError);
 		expect(await store.select("b")).toEqual(new Note("b", "existing"));
+	});
+
+	it("should upsert rows and report whether each was added", async () => {
+		const store = indexedDB.openPortableStore(unique(), "notes", Note, "id");
+
+		expect(await store.upsert(new Note("a", "first"))).toBe(true);
+		expect(await store.upsert(new Note("a", "second"))).toBe(false);
+		expect(await store.upsert([new Note("b", "new"), new Note("a", "third")])).toEqual([true, false]);
+
+		const notes = await store.select();
+		expect(notes).toEqual([new Note("a", "third"), new Note("b", "new")]);
+		expect(notes[0]).toBeInstanceOf(Note);
 	});
 
 	it("should reject a primary key that is not a string, a number or a date", async () => {

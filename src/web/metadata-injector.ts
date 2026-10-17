@@ -1,7 +1,7 @@
 "use strict";
 
-import "adaptive-extender/web";
-import { Model, Field, Optional, type PortableConstructor, DiscriminatorKey, Descendant, Deferred } from "adaptive-extender/web";
+import "../core/index.js";
+import { Model, Field, Optional, type PortableConstructor, DiscriminatorKey, Descendant, Deferred } from "../core/index.js";
 
 //#region URL adapter
 const URLAdapter = {

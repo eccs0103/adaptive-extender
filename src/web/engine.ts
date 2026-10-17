@@ -105,6 +105,7 @@ export class FastEngine extends WebEngine {
 		return 1 / this.#fps;
 	}
 	#previous: number = 0;
+	#next: number = 0;
 	constructor();
 	/**
 	 * @param options An object that specifies options for the engine.
@@ -120,8 +121,11 @@ export class FastEngine extends WebEngine {
 		requestAnimationFrame(this.#callback);
 	};
 	#tick(current: DOMHighResTimeStamp): void {
+		const next = this.#next;
+		if (current < next) return;
+		const gap = 1000 / this.limit;
+		this.#next = max(next + gap, current);
 		const fps = 1000 / (current - this.#previous);
-		if (fps >= this.limit) return;
 		this.#previous = current;
 		if (!this.launched) {
 			this.#fps = 0;

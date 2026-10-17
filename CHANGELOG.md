@@ -1,3 +1,6 @@
+## 1.1.4 (18.10.2026)
+- `FastEngine` now reaches its `limit`. Before, it dropped any frame that came sooner than one `limit` interval after the last delivered frame, so it delivered only every second or third display frame and fell well short of the target: `limit = 60` gave about 40 triggers per second on a 60 Hz display, 40–46 on 120 Hz and 48 on 144 Hz. It now schedules each trigger one `limit` interval after the previous deadline, so it delivers 60 on all three. The default unlimited `limit` still fires on every animation frame.
+
 ## 1.1.3 (13.10.2026)
 - Added `Store.upsert(key, value)` and `PortableStore.upsert(row)`, which store a record whether or not it already exists and resolve `true` if it was added and `false` if it replaced an existing one. The batch overloads `upsert(entries)` and `upsert(rows)` run in one transaction, all or nothing, and resolve one flag per item in input order.
 

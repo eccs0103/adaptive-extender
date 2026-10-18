@@ -1,3 +1,6 @@
+## 1.1.5 (18.10.2026)
+- Added `Any.ByReference(type)`, a portable adapter that passes instances of `type` through unchanged on both `import` and `export`, and throws a `TypeError` on `import` of anything that is not an instance of `type`. It is for fields whose target carries the instance natively — `postMessage` and IndexedDB structured clone — such as `Blob`, `File`, `OffscreenCanvas` or `SharedArrayBuffer`: `@Field(Any.ByReference(Blob), { name: "file" })`. It lives in core and accepts any constructor, including ones with required arguments.
+
 ## 1.1.4 (18.10.2026)
 - `FastEngine` now reaches its `limit`. Before, it dropped any frame that came sooner than one `limit` interval after the last delivered frame, so it delivered only every second or third display frame and fell well short of the target: `limit = 60` gave about 40 triggers per second on a 60 Hz display, 40–46 on 120 Hz and 48 on 144 Hz. It now schedules each trigger one `limit` interval after the previous deadline, so it delivers 60 on all three. The default unlimited `limit` still fires on every animation frame.
 

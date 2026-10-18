@@ -467,5 +467,30 @@ export class Any {
 	static export(source: any): any {
 		return source;
 	}
+
+	/**
+	 * Creates a portable wrapper that passes instances of a type through unchanged, for targets that carry them natively (`postMessage`, IndexedDB).
+	 * @param type The constructor whose instances are accepted.
+	 */
+	static ByReference<I>(type: Constructor<I, any[]>): PortableConstructor<I, I> {
+		return {
+			[Symbol.hasInstance](instance: any): boolean {
+				return type[Symbol.hasInstance](instance);
+			},
+
+			get name(): string {
+				return type.name;
+			},
+
+			import(source: any, name: string): I {
+				if (!(source instanceof type)) throw new TypeError(`Unable to import ${type.name} from ${name} due its ${typename(source)} type`);
+				return source;
+			},
+
+			export(source: I): I {
+				return source;
+			},
+		} as PortableConstructor<I, I>;
+	}
 }
 //#endregion

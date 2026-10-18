@@ -230,6 +230,22 @@ class StrictModel extends Model {
 	volume: number = 50;
 }
 
+// Reference models — a non-portable instance carried as is through Any.ByReference
+class Payload {
+	#size: number;
+
+	constructor(size: number) {
+		this.#size = size;
+	}
+
+	get size(): number { return this.#size; }
+}
+
+class ReferenceModel extends Model {
+	@Field(Any.ByReference(Payload), { name: "payload" })
+	payload: Payload;
+}
+
 describe("Model Tests", () => {
 
 	describe("Constructor Patterns", () => {
@@ -515,6 +531,39 @@ describe("Model Tests", () => {
 
 			it("should not be instantiable", () => {
 				expect(() => new (Any as any)()).toThrow(TypeError);
+			});
+		});
+
+		describe("Any.ByReference", () => {
+			const type = Any.ByReference(Payload);
+
+			it("should identify as the referenced type", () => {
+				expect(type.name).toBe("Payload");
+				expect(type[Symbol.hasInstance](new Payload(1))).toBe(true);
+				expect(type[Symbol.hasInstance]({ size: 1 })).toBe(false);
+			});
+
+			it("should pass the same instance through on import", () => {
+				const payload = new Payload(1);
+				expect(type.import(payload, "payload")).toBe(payload);
+			});
+
+			it("should throw on import of another type", () => {
+				expect(() => type.import({ size: 1 }, "payload")).toThrow(TypeError);
+				expect(() => type.import(null, "payload")).toThrow(TypeError);
+			});
+
+			it("should pass the same instance through on export", () => {
+				const payload = new Payload(1);
+				expect(type.export(payload)).toBe(payload);
+			});
+
+			it("should round-trip through @Field(Any.ByReference(...))", () => {
+				const payload = new Payload(7);
+				const model = ReferenceModel.import({ payload }, "model");
+				expect(model.payload).toBe(payload);
+				const exported = ReferenceModel.export(model);
+				expect(Reflect.get(exported, "payload")).toBe(payload);
 			});
 		});
 

@@ -374,19 +374,20 @@ const json = JSON.stringify(Article.export(article));
 
 Adapters wrap any portable type, including each other and your models:
 
-| Adapter              | In memory              | In JSON             |
-| :------------------- | :--------------------- | :------------------ |
-| `Array.Of(T)`        | `T[]`                  | `T[]`               |
-| `Set.Of(T)`          | `Set<T>`               | `T[]`               |
-| `Map.AsRecord(T)`    | `Map<string, T>`       | `Record<string, T>` |
-| `Map.AsTuples(K, V)` | `Map<K, V>`            | `[K, V][]`          |
-| `Optional.Of(T)`     | `T \| undefined`       | `T \| undefined`    |
-| `Nullable.Of(T)`     | `T \| null`            | `T \| null`         |
-| `Enum.Of(E)`         | `enum` or const object | its values          |
-| `Date.AsTimestamp`   | `Date`                 | milliseconds        |
-| `Date.AsUnixSeconds` | `Date`                 | Unix seconds        |
-| `Deferred(_ => T)`   | `T`, resolved lazily   | `T`                 |
-| `Any`                | anything               | anything, unchecked |
+| Adapter              | In memory              | In JSON                         |
+| :------------------- | :--------------------- | :------------------------------ |
+| `Array.Of(T)`        | `T[]`                  | `T[]`                           |
+| `Set.Of(T)`          | `Set<T>`               | `T[]`                           |
+| `Map.AsRecord(T)`    | `Map<string, T>`       | `Record<string, T>`             |
+| `Map.AsTuples(K, V)` | `Map<K, V>`            | `[K, V][]`                      |
+| `Optional.Of(T)`     | `T \| undefined`       | `T \| undefined`                |
+| `Nullable.Of(T)`     | `T \| null`            | `T \| null`                     |
+| `Enum.Of(E)`         | `enum` or const object | its values                      |
+| `Date.AsTimestamp`   | `Date`                 | milliseconds                    |
+| `Date.AsUnixSeconds` | `Date`                 | Unix seconds                    |
+| `Deferred(_ => T)`   | `T`, resolved lazily   | `T`                             |
+| `Any`                | anything               | anything, unchecked             |
+| `Any.ByReference(T)` | `T`                    | same `T`, structured clone only |
 
 ```typescript
 enum Platform { web = "web", node = "node", worker = "worker" }

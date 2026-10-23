@@ -14,7 +14,7 @@ import { type Constructor } from "./global.js";
 /**
  * Represents a constructor that supports facilitating the safe conversion between anonymous schemes and typed instances.
  */
-export interface PortableConstructor<I = any, S = unknown> extends Constructor<I> {
+export interface PortableConstructor<I = any, S = unknown> extends Constructor<object> {
 	/**
 	 * Imports an instance from a source.
 	 * @param source The source value to import.

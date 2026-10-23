@@ -299,6 +299,20 @@ describe("Model Tests", () => {
 		});
 	});
 
+	describe("Primitive adapters outside @Field", () => {
+		it("should infer primitive types", () => {
+			const record: Map<string, string> = Map.AsRecord(String).import({ home: "https://eccs.dev" }, "record");
+			const score: number | null = Nullable.Of(Number).import(null, "score");
+			const flags: Set<boolean> = Set.Of(Boolean).import([true], "flags");
+			// @ts-expect-error an array of strings is not an array of numbers
+			const numbers: number[] = Array.Of(String).import([], "numbers");
+			expect(record.get("home")).toBe("https://eccs.dev");
+			expect(score).toBeNull();
+			expect(flags.has(true)).toBe(true);
+			expect(numbers).toEqual([]);
+		});
+	});
+
 	describe("Complex Types (Array.Of, Nullable.Of, Optional.Of)", () => {
 		it("should handle nested models and arrays", () => {
 			const raw = {

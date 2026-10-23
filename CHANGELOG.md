@@ -1,3 +1,7 @@
+## 1.1.6 (24.10.2026)
+- Adapters used outside `@Field` now infer the primitive type instead of its wrapper object: `Map.AsRecord(String).import(json, "name")` is a `Map<string, string>` (was `Map<string, String>`), `Array.Of(String)` gives `string[]`, `Nullable.Of(Number)` gives `number | null` and `Set.Of(Boolean)` gives `Set<boolean>`. Inside `@Field` nothing changes. Types only, runtime is unchanged.
+- `PortableConstructor<I, S>` now extends `Constructor<object>` instead of `Constructor<I>`. Its construct signature no longer claims that `new` returns `I`, which held only for models: `new String()` returns a `String` object, and adapters such as `Array.Of(T)` are not meant to be constructed. `I` is now read from `import` and `export` alone.
+
 ## 1.1.5 (18.10.2026)
 - Added `Any.ByReference(type)`, a portable adapter that passes instances of `type` through unchanged on both `import` and `export`, and throws a `TypeError` on `import` of anything that is not an instance of `type`. It is for fields whose target carries the instance natively — `postMessage` and IndexedDB structured clone — such as `Blob`, `File`, `OffscreenCanvas` or `SharedArrayBuffer`: `@Field(Any.ByReference(Blob), { name: "file" })`. It lives in core and accepts any constructor, including ones with required arguments.
 

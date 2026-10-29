@@ -68,10 +68,10 @@
 		"fake-indexeddb": "^6.2.5",
 		"jsdom": "^27.0.0",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.10"
+		"vitest": "^5.0.5"
 	},
 	"overrides": {
-		"vite": "^7.3.6",
+		"vite": "^7.3.7",
 		"nanoid": "^3.3.18"
 	},
 	"allowScripts": {

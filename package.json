@@ -1,6 +1,6 @@
 {
 	"name": "adaptive-extender",
-	"version": "1.1.6",
+	"version": "1.2.0",
 	"description": "Adaptive library for JS/TS development environments",
 	"type": "module",
 	"main": "./dist/core/index.js",
@@ -57,7 +57,7 @@
 		"build:web": "tsc -p ./src/web/tsconfig.json",
 		"build:worker": "tsc -p ./src/worker/tsconfig.json",
 		"build": "npm run build:core && npm run build:node && npm run build:web && npm run build:worker",
-		"typecheck": "tsc -p ./test/core/tsconfig.json && tsc -p ./test/web/tsconfig.json && tsc -p ./test/worker/tsconfig.json",
+		"typecheck": "tsc -p ./test/core/tsconfig.json && tsc -p ./test/web/tsconfig.json && tsc -p ./test/worker/tsconfig.json && tsc -p ./test/node/tsconfig.json",
 		"prepublishOnly": "npm test",
 		"test": "npm run build && npm run typecheck && vitest run",
 		"coverage": "vitest run --coverage"

@@ -1,0 +1,10 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": [ "ES2025", "ESNext.Array", "ESNext.Decorators" ],
+		"types": [ "node" ],
+		"skipLibCheck": true,
+		"noEmit": true
+	},
+	"include": [ "./*.ts" ]
+}

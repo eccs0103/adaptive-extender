@@ -142,6 +142,32 @@ const versions = ["1.10.0", "1.2.0", "1.9.3"].map(Version.parse).sort(Version.co
 const version = Version.tryParse(input.value); // Version | null
 ```
 
+### URI
+
+One address type for every runtime and every scheme. `URI` follows RFC 3986, extended to Unicode by RFC 3987, and has the member names of `URL`:
+
+```typescript
+import { URI } from "adaptive-extender/core";
+
+const page = new URI("../docs?lang=en#intro", "https://example.com/app/main"); // https://example.com/docs?lang=en#intro
+page.searchParams.set("lang", "hy"); // live: page.search → "?lang=hy"
+page.pathname = "/guide";
+
+new URI("mailto:me@example.com").pathname; // "me@example.com"
+new URI("http://мир.рф/путь").hostname; // "мир.рф", Unicode kept as written
+
+const loose = new URI("HTTP://Example.COM:80/a/./b/../%7Euser");
+loose.normalize(); // "http://example.com/a/~user"
+
+URI.tryParse(input.value); // URI | null
+```
+
+`new URI()` is `about:blank`, and `new URI(other)` copies. Setters throw a `TypeError` on an invalid value instead of ignoring it. `searchParams` is a `URISearchParams`, the core twin of `URLSearchParams`.
+
+Each environment adds a bridge to the platform. `web`, `worker` and `node` add `uri.toURL()` and `URI.fromURL(url)`, and `node` also adds `uri.toPath()` and `URI.fromPath(path)`. `toURL()` applies the WHATWG rules that `URI` leaves out, such as punycode hosts (`xn--h1ahn.xn--p1ai`).
+
+Bundlers like Vite only rewrite `new URL("./file", import.meta.url)` and `new Worker(new URL(...))`, so keep those forms for assets and workers and wrap them: `URI.fromURL(new URL("./logo.png", import.meta.url))`.
+
 ### Timespan
 
 Durations without millisecond arithmetic:
@@ -330,7 +356,7 @@ Date.export(new Date()); // → ISO string
 BigInt.import("9007199254740993", "user.id"); // → 9007199254740993n, kept as a JSON-safe string
 ```
 
-A type with this pair is a `PortableConstructor`. `String`, `Number`, `Boolean`, `BigInt`, `Date`, `Object`, `Array` and `Version` are. Everything below is built from them.
+A type with this pair is a `PortableConstructor`. `String`, `Number`, `Boolean`, `BigInt`, `Date`, `Object`, `Array`, `Version` and `URI` are. Everything below is built from them.
 
 ### Models
 
@@ -601,7 +627,7 @@ MetadataInjector.inject({
 });
 ```
 
-It writes a schema.org `application/ld+json` script, `description` / `author` / `keywords` meta tags, Open Graph `og:*` tags and a `rel="me"` link per association. `"Application"` (`category`, `os`, `version`) and `"Organization"` (`logo`, `email`, `foundation`) are supported too, and repeated calls are ignored. Inside, it is the system from this part: a polymorphic `Model` keyed on `@type`, `Deferred` descendants, a URL adapter, and `Optional.Of(Array.Of(...))` fields.
+It writes a schema.org `application/ld+json` script, `description` / `author` / `keywords` meta tags, Open Graph `og:*` tags and a `rel="me"` link per association. `"Application"` (`category`, `os`, `version`) and `"Organization"` (`logo`, `email`, `foundation`) are supported too, and repeated calls are ignored. Inside, it is the system from this part: a polymorphic `Model` keyed on `@type`, `Deferred` descendants, `URI` fields, and `Optional.Of(Array.Of(...))` fields.
 
 ## License
 

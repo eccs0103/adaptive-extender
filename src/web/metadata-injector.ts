@@ -1,28 +1,8 @@
 "use strict";
 
 import "../core/index.js";
-import { Model, Field, Optional, type PortableConstructor, DiscriminatorKey, Descendant, Deferred } from "../core/index.js";
-
-//#region URL adapter
-const URLAdapter = {
-	[Symbol.hasInstance](instance: any): boolean {
-		return URL[Symbol.hasInstance](instance);
-	},
-
-	get name(): string {
-		return "URL";
-	},
-
-	import(source: any, name: string): URL {
-		if (typeof source !== "string") throw new TypeError(`Unable to import URL from ${name} due its ${typename(source)} type`);
-		return new URL(source);
-	},
-
-	export(source: URL): string {
-		return source.toString();
-	},
-} as PortableConstructor<URL, string>;
-//#endregion
+import { Model, Field, Optional, DiscriminatorKey, Descendant, Deferred, URI } from "../core/index.js";
+import "./uri.js";
 
 //#region Metadata
 export interface MetadataDiscriminator extends PersonMetadataDiscriminator, ApplicationMetadataDiscriminator, OrganizationMetadataDiscriminator {
@@ -81,11 +61,11 @@ abstract class Metadata extends Model {
 	@Field(String, { name: "name" })
 	name: string;
 
-	@Field(URLAdapter, { name: "url" })
-	webpage: URL;
+	@Field(URI, { name: "url" })
+	webpage: URI;
 
-	@Field(Optional.Of(URLAdapter), { name: "image" })
-	preview?: URL;
+	@Field(Optional.Of(URI), { name: "image" })
+	preview?: URI;
 
 	@Field(Optional.Of(String), { name: "description" })
 	description?: string;
@@ -101,8 +81,8 @@ abstract class Metadata extends Model {
 		super();
 		if (configuration === undefined) return;
 		this.name = configuration.name;
-		this.webpage = configuration.webpage;
-		this.preview = configuration.preview;
+		this.webpage = URI.fromURL(configuration.webpage);
+		this.preview = Optional.map(configuration.preview, URI.fromURL);
 		this.description = configuration.description;
 		this.keywords = configuration.keywords;
 	}
@@ -147,8 +127,8 @@ export interface PersonMetadataConfiguration extends MetadataConfiguration {
 }
 
 class PersonMetadata extends Metadata {
-	@Field(Optional.Of(Array.Of(URLAdapter)), { name: "sameAs" })
-	associations?: URL[];
+	@Field(Optional.Of(Array.Of(URI)), { name: "sameAs" })
+	associations?: URI[];
 
 	@Field(Optional.Of(String), { name: "jobTitle" })
 	job?: string;
@@ -165,7 +145,7 @@ class PersonMetadata extends Metadata {
 		}
 
 		super(configuration);
-		this.associations = configuration.associations;
+		this.associations = Optional.map(configuration.associations, associations => associations.map(URI.fromURL));
 		this.job = configuration.job;
 		this.knowledge = configuration.knowledge;
 	}
@@ -275,8 +255,8 @@ export interface OrganizationMetadataConfiguration extends MetadataConfiguration
 }
 
 class OrganizationMetadata extends Metadata {
-	@Field(Optional.Of(URLAdapter), { name: "logo" })
-	logo?: URL;
+	@Field(Optional.Of(URI), { name: "logo" })
+	logo?: URI;
 
 	@Field(Optional.Of(String), { name: "email" })
 	email?: string;
@@ -293,7 +273,7 @@ class OrganizationMetadata extends Metadata {
 		}
 
 		super(configuration);
-		this.logo = configuration.logo;
+		this.logo = Optional.map(configuration.logo, URI.fromURL);
 		this.email = configuration.email;
 		this.foundation = configuration.foundation;
 	}

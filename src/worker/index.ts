@@ -5,3 +5,4 @@ export * from "./promise.js";
 export * from "./engine.js";
 export * from "./database.js";
 export * from "./stopwatch.js";
+export * from "./uri.js";

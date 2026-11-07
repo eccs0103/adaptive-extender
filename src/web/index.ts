@@ -9,3 +9,4 @@ export * from "./archive.js";
 export * from "./database.js";
 export * from "./metadata-injector.js";
 export * from "./stopwatch.js";
+export * from "./uri.js";

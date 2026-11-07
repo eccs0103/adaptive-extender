@@ -25,15 +25,6 @@ describe("URI (node)", () => {
 			expect(URI.fromURL(new URL("http://a/%zz")).href).toBe("http://a/%25zz");
 			expect(URI.fromURL(new URL("http://[::1]:81/[x]")).href).toBe("http://[::1]:81/%5Bx%5D");
 		});
-
-		it("should agree with URL on normalized ASCII http(s) URIs", () => {
-			const inputs = ["HTTP://Example.COM:80/a/./b/../c", "https://example.com:443", "https://a.dev:8443/x?y=1#z"];
-			for (const input of inputs) {
-				const uri = new URI(input);
-				uri.normalize();
-				expect(uri.href).toBe(new URL(input).href);
-			}
-		});
 	});
 
 	describe("toPath / fromPath", () => {

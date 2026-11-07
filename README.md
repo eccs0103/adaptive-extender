@@ -144,29 +144,20 @@ const version = Version.tryParse(input.value); // Version | null
 
 ### URI
 
-One address type for every runtime and every scheme. `URI` follows RFC 3986, extended to Unicode by RFC 3987, and has the member names of `URL`:
+Addresses that work in every runtime and for every scheme, with the member names of `URL` (RFC 3986/3987):
 
 ```typescript
 import { URI } from "adaptive-extender/core";
 
-const page = new URI("../docs?lang=en#intro", "https://example.com/app/main"); // https://example.com/docs?lang=en#intro
+const page = new URI("../docs?lang=en", "https://example.com/app/main"); // https://example.com/docs?lang=en
 page.searchParams.set("lang", "hy"); // live: page.search → "?lang=hy"
-page.pathname = "/guide";
+page.pathname = "/a b"; // encoded: "/a%20b"
 
 new URI("mailto:me@example.com").pathname; // "me@example.com"
-new URI("http://мир.рф/путь").hostname; // "мир.рф", Unicode kept as written
-
-const loose = new URI("HTTP://Example.COM:80/a/./b/../%7Euser");
-loose.normalize(); // "http://example.com/a/~user"
-
 URI.tryParse(input.value); // URI | null
 ```
 
-`new URI()` is `about:blank`, and `new URI(other)` copies. Setters throw a `TypeError` on an invalid value instead of ignoring it. `searchParams` is a `URISearchParams`, the core twin of `URLSearchParams`.
-
-Each environment adds a bridge to the platform. `web`, `worker` and `node` add `uri.toURL()` and `URI.fromURL(url)`, and `node` also adds `uri.toPath()` and `URI.fromPath(path)`. `toURL()` applies the WHATWG rules that `URI` leaves out, such as punycode hosts (`xn--h1ahn.xn--p1ai`).
-
-Bundlers like Vite only rewrite `new URL("./file", import.meta.url)` and `new Worker(new URL(...))`, so keep those forms for assets and workers and wrap them: `URI.fromURL(new URL("./logo.png", import.meta.url))`.
+Also `normalize`, `origin`, `URISearchParams`, and the bridges `toURL` / `URI.fromURL` (`web`, `worker`, `node`) and `toPath` / `URI.fromPath` (`node`). Keep Vite's `new URL("./file", import.meta.url)` for assets and wrap it with `URI.fromURL`.
 
 ### Timespan
 

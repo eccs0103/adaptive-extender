@@ -1,6 +1,6 @@
 "use strict";
 
-import { MetadataInjector } from "adaptive-extender/web";
+import { MetadataInjector, URI } from "adaptive-extender/web";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 describe("MetadataInjector — Person", () => {
@@ -9,12 +9,12 @@ describe("MetadataInjector — Person", () => {
 		MetadataInjector.inject({
 			type: "Person",
 			name: "Jane Doe",
-			webpage: new URL("https://janedoe.dev"),
-			preview: new URL("https://janedoe.dev/avatar.jpg"),
+			webpage: new URI("https://janedoe.dev/"),
+			preview: new URI("https://janedoe.dev/avatar.jpg"),
 			description: "A developer.",
 			associations: [
-				new URL("https://github.com/janedoe"),
-				new URL("https://mastodon.social/@janedoe"),
+				new URI("https://github.com/janedoe"),
+				new URI("https://mastodon.social/@janedoe"),
 			],
 			job: "Software Engineer",
 			knowledge: ["TypeScript", "Rust"],
@@ -86,7 +86,7 @@ describe("MetadataInjector — Person", () => {
 		MetadataInjector.inject({
 			type: "Person",
 			name: "Someone Else",
-			webpage: new URL("https://other.dev"),
+			webpage: new URI("https://other.dev/"),
 		});
 
 		const scripts = document.querySelectorAll('script[type="application/ld+json"]');

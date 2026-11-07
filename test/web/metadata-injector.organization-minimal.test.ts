@@ -1,6 +1,6 @@
 "use strict";
 
-import { MetadataInjector } from "adaptive-extender/web";
+import { MetadataInjector, URI } from "adaptive-extender/web";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 describe("MetadataInjector — Organization (minimal config)", () => {
@@ -9,7 +9,7 @@ describe("MetadataInjector — Organization (minimal config)", () => {
 		MetadataInjector.inject({
 			type: "Organization",
 			name: "Minimal Org",
-			webpage: new URL("https://minimal.org"),
+			webpage: new URI("https://minimal.org/"),
 		});
 	});
 

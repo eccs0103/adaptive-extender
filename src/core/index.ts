@@ -26,7 +26,6 @@ export * from "./vector-2.js";
 export * from "./vector-3.js";
 export * from "./timespan.js";
 export * from "./version.js";
-export * from "./uri-search-params.js";
 export * from "./uri.js";
 export * from "./engine.js";
 export * from "./controller.js";

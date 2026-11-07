@@ -2,7 +2,6 @@
 
 import "../core/index.js";
 import { Model, Field, Optional, DiscriminatorKey, Descendant, Deferred, URI } from "../core/index.js";
-import "./uri.js";
 
 //#region Metadata
 export interface MetadataDiscriminator extends PersonMetadataDiscriminator, ApplicationMetadataDiscriminator, OrganizationMetadataDiscriminator {
@@ -32,12 +31,12 @@ export interface MetadataConfiguration {
 	/**
 	 * The canonical public URL of the resource.
 	 */
-	webpage: URL;
+	webpage: URI;
 
 	/**
 	 * The absolute URL to the representative image (Open Graph).
 	 */
-	preview?: URL;
+	preview?: URI;
 
 	/**
 	 * A short summary of the content.
@@ -81,8 +80,8 @@ abstract class Metadata extends Model {
 		super();
 		if (configuration === undefined) return;
 		this.name = configuration.name;
-		this.webpage = URI.fromURL(configuration.webpage);
-		this.preview = Optional.map(configuration.preview, URI.fromURL);
+		this.webpage = configuration.webpage;
+		this.preview = configuration.preview;
 		this.description = configuration.description;
 		this.keywords = configuration.keywords;
 	}
@@ -113,7 +112,7 @@ export interface PersonMetadataConfiguration extends MetadataConfiguration {
 	/**
 	 * A list of related social profiles or websites.
 	 */
-	associations?: URL[];
+	associations?: URI[];
 
 	/**
 	 * The professional job title or role.
@@ -145,7 +144,7 @@ class PersonMetadata extends Metadata {
 		}
 
 		super(configuration);
-		this.associations = Optional.map(configuration.associations, associations => associations.map(URI.fromURL));
+		this.associations = configuration.associations;
 		this.job = configuration.job;
 		this.knowledge = configuration.knowledge;
 	}
@@ -241,7 +240,7 @@ export interface OrganizationMetadataConfiguration extends MetadataConfiguration
 	/**
 	 * The URL to the organization's logo image.
 	 */
-	logo?: URL;
+	logo?: URI;
 
 	/**
 	 * The primary contact email.
@@ -273,7 +272,7 @@ class OrganizationMetadata extends Metadata {
 		}
 
 		super(configuration);
-		this.logo = Optional.map(configuration.logo, URI.fromURL);
+		this.logo = configuration.logo;
 		this.email = configuration.email;
 		this.foundation = configuration.foundation;
 	}

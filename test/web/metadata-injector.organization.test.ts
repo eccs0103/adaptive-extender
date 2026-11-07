@@ -1,6 +1,6 @@
 "use strict";
 
-import { MetadataInjector } from "adaptive-extender/web";
+import { MetadataInjector, URI } from "adaptive-extender/web";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 describe("MetadataInjector — Organization", () => {
@@ -9,8 +9,8 @@ describe("MetadataInjector — Organization", () => {
 		MetadataInjector.inject({
 			type: "Organization",
 			name: "Acme Corp",
-			webpage: new URL("https://acme.com"),
-			logo: new URL("https://acme.com/logo.png"),
+			webpage: new URI("https://acme.com/"),
+			logo: new URI("https://acme.com/logo.png"),
 			email: "info@acme.com",
 			foundation: new Date("2000-01-15"),
 		});

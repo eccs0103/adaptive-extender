@@ -1,8 +1,8 @@
 "use strict";
 
 import "adaptive-extender/core";
-import { URI, Field, Model, Optional } from "adaptive-extender/core";
-import { describe, it, expect } from "vitest";
+import { URI, URISearchParams, Field, Model, Optional } from "adaptive-extender/core";
+import { describe, it, expect, vi } from "vitest";
 
 class LinkModel extends Model {
 	@Field(URI, { name: "target" })
@@ -77,15 +77,32 @@ describe("URI", () => {
 			expect(uri.href).toBe("http://мир.рф/путь?ключ=значение#раздел");
 		});
 
-		it("should throw TypeError for invalid input", () => {
+		it("should percent-encode characters a component cannot hold", () => {
+			expect(new URI("http://a/a b|c^d{e}`f").href).toBe("http://a/a%20b%7Cc%5Ed%7Be%7D%60f");
+			expect(new URI("http://a/%zz?q=%&r=<x>#f#g").href).toBe("http://a/%25zz?q=%25&r=%3Cx%3E#f%23g");
+			expect(new URI("http://a/[x]").href).toBe("http://a/%5Bx%5D");
+			expect(new URI("http://us er@name@a/").username).toBe("us%20er%40name");
+			expect(new URI("http://a/\uD800").href).toBe("http://a/%EF%BF%BD");
+			expect(new URI("http://a/?").href).toBe("http://a/%EE%80%80?");
+			expect(new URI(String.raw`http:\\a\b`).href).toBe("http:%5C%5Ca%5Cb");
+		});
+
+		it("should trim surrounding spaces and controls and drop tabs and line breaks", () => {
+			expect(new URI("  \u0000https://a.dev/x\ty\n \u001F").href).toBe("https://a.dev/xy");
+		});
+
+		it("should accept what the platform serializes", () => {
+			expect(new URI("https://a.dev/a|b").pathname).toBe("/a%7Cb");
+			expect(new URI("https://a.dev/search?q={x}").search).toBe("?q=%7Bx%7D");
+		});
+
+		it("should throw TypeError for a broken structure", () => {
 			expect(() => new URI("relative/path")).toThrow(TypeError);
 			expect(() => new URI("http://a b/")).toThrow(TypeError);
-			expect(() => new URI("http://a/%zz")).toThrow(TypeError);
 			expect(() => new URI("http://[::1::2]/")).toThrow(TypeError);
+			expect(() => new URI("http://[::1/")).toThrow(TypeError);
 			expect(() => new URI("http://a:8o/")).toThrow(TypeError);
-			expect(() => new URI(String.raw`http:\\a\b`)).toThrow(TypeError);
 			expect(() => new URI("1http://a/")).toThrow(TypeError);
-			expect(() => new URI("http://a/\uD800")).toThrow(TypeError);
 			expect(() => new URI("g", "relative")).toThrow(TypeError);
 		});
 	});
@@ -187,27 +204,48 @@ describe("URI", () => {
 			const uri = new URI("http://a.dev/");
 			uri.href = "mailto:me@a.dev";
 			expect(uri.protocol).toBe("mailto:");
-			expect(() => { uri.href = "nope"; }).toThrow(TypeError);
 		});
 
-		it("should throw TypeError for invalid values", () => {
+		it("should percent-encode what a component cannot hold", () => {
 			const uri = new URI("http://a.dev/");
-			expect(() => { uri.protocol = "1x"; }).toThrow(TypeError);
-			expect(() => { uri.username = "a:b"; }).toThrow(TypeError);
-			expect(() => { uri.hostname = "a b"; }).toThrow(TypeError);
-			expect(() => { uri.port = "80a"; }).toThrow(TypeError);
-			expect(() => { uri.pathname = "relative"; }).toThrow(TypeError);
-			expect(() => { uri.search = "?a b"; }).toThrow(TypeError);
-			expect(() => { uri.hash = "#a#b"; }).toThrow(TypeError);
-			expect(uri.href).toBe("http://a.dev/");
+			uri.pathname = "/a b|c";
+			uri.search = "?q=a b";
+			uri.hash = "#x#y";
+			uri.username = "a:b c";
+			uri.password = "p:w d";
+			expect(uri.href).toBe("http://a%3Ab%20c:p:w%20d@a.dev/a%20b%7Cc?q=a%20b#x%23y");
 		});
 
-		it("should reject an authority where the path cannot follow it", () => {
+		it("should give a rootless path after an authority its '/'", () => {
+			const uri = new URI("http://a.dev/");
+			uri.pathname = "x/y";
+			expect(uri.pathname).toBe("/x/y");
+		});
+
+		it("should ignore values with no correct form", () => {
+			const uri = new URI("http://a.dev:81/x");
+			uri.protocol = "1x";
+			uri.hostname = "a b";
+			uri.host = "b.dev:8o";
+			uri.port = "80a";
+			uri.href = "nope";
+			expect(uri.href).toBe("http://a.dev:81/x");
+		});
+
+		it("should ignore an authority where the path cannot follow it", () => {
 			const mail = new URI("mailto:me@a.dev");
-			expect(() => { mail.hostname = "b.dev"; }).toThrow(TypeError);
-			expect(() => { mail.port = "1"; }).toThrow(TypeError);
-			expect(() => { mail.username = "me"; }).toThrow(TypeError);
-			expect(() => { mail.pathname = "//x"; }).toThrow(TypeError);
+			mail.hostname = "b.dev";
+			mail.host = "b.dev:1";
+			mail.port = "1";
+			mail.username = "me";
+			mail.password = "pw";
+			expect(mail.href).toBe("mailto:me@a.dev");
+		});
+
+		it("should keep a '//' path without authority unambiguous", () => {
+			const uri = new URI("s:/a");
+			uri.pathname = "//x";
+			expect(uri.href).toBe("s:/.//x");
 		});
 	});
 
@@ -284,6 +322,90 @@ describe("URI", () => {
 		it("should reject invalid portable sources", () => {
 			expect(() => URI.import(42, "link")).toThrow(TypeError);
 			expect(() => URI.import("rel", "link")).toThrow(SyntaxError);
+		});
+	});
+});
+
+describe("URISearchParams", () => {
+	describe("constructor", () => {
+		it("should parse a query string and ignore a leading '?'", () => {
+			const parameters = new URISearchParams("?a=1&&b=&c&d=x=y");
+			expect([...parameters]).toEqual([["a", "1"], ["b", ""], ["c", ""], ["d", "x=y"]]);
+		});
+
+		it("should decode '+' as a space but keep '%2B' as a plus", () => {
+			const parameters = new URISearchParams("q=a+b%2Bc");
+			expect(parameters.get("q")).toBe("a b+c");
+		});
+
+		it("should decode UTF-8 and replace invalid sequences with U+FFFD", () => {
+			expect(new URISearchParams("x=%E2%82%AC").get("x")).toBe("€");
+			expect(new URISearchParams("x=%E2%82").get("x")).toBe("�");
+			expect(new URISearchParams("x=%FF%41").get("x")).toBe("�A");
+			expect(new URISearchParams("x=%zz").get("x")).toBe("%zz");
+		});
+
+		it("should create from pairs and records", () => {
+			expect(new URISearchParams([["a", "1"], ["a", "2"]]).getAll("a")).toEqual(["1", "2"]);
+			expect(new URISearchParams({ a: "1", b: "2" }).toString()).toBe("a=1&b=2");
+			expect(new URISearchParams(new URISearchParams("k=v")).get("k")).toBe("v");
+		});
+
+		it("should throw TypeError for a pair of the wrong length", () => {
+			expect(() => new URISearchParams(JSON.parse(`[["a", "1"], ["b"]]`))).toThrow(TypeError);
+		});
+	});
+
+	describe("methods", () => {
+		it("should get, has and getAll", () => {
+			const parameters = new URISearchParams("a=1&b=2&a=3");
+			expect(parameters.get("a")).toBe("1");
+			expect(parameters.get("z")).toBeNull();
+			expect(parameters.has("b")).toBe(true);
+			expect(parameters.has("a", "3")).toBe(true);
+			expect(parameters.has("a", "4")).toBe(false);
+			expect(parameters.getAll("a")).toEqual(["1", "3"]);
+			expect(parameters.size).toBe(3);
+		});
+
+		it("should delete by name or by name and value", () => {
+			const parameters = new URISearchParams("a=1&b=2&a=3");
+			parameters.delete("a", "3");
+			expect(parameters.toString()).toBe("a=1&b=2");
+			parameters.delete("a");
+			expect(parameters.toString()).toBe("b=2");
+		});
+
+		it("should set the first value and drop the rest", () => {
+			const parameters = new URISearchParams("a=1&b=2&a=3");
+			parameters.set("a", "9");
+			expect(parameters.toString()).toBe("a=9&b=2");
+			parameters.set("c", "4");
+			expect(parameters.toString()).toBe("a=9&b=2&c=4");
+		});
+
+		it("should sort stably by name", () => {
+			const parameters = new URISearchParams("z=1&a=2&z=0&a=1");
+			parameters.sort();
+			expect(parameters.toString()).toBe("a=2&a=1&z=1&z=0");
+		});
+
+		it("should iterate keys, values and forEach in order", () => {
+			const parameters = new URISearchParams("a=1&b=2");
+			expect([...parameters.keys()]).toEqual(["a", "b"]);
+			expect([...parameters.values()]).toEqual(["1", "2"]);
+			const callback = vi.fn();
+			parameters.forEach(callback);
+			expect(callback).toHaveBeenNthCalledWith(1, "1", "a", parameters);
+			expect(callback).toHaveBeenNthCalledWith(2, "2", "b", parameters);
+		});
+
+		it("should serialize like application/x-www-form-urlencoded", () => {
+			const parameters = new URISearchParams();
+			parameters.append("a b", "c&d=e");
+			parameters.append("sym", "!'()~*-._");
+			parameters.append("lone", "\uD800");
+			expect(parameters.toString()).toBe("a+b=c%26d%3De&sym=%21%27%28%29%7E*-._&lone=%EF%BF%BD");
 		});
 	});
 });

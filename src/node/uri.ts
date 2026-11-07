@@ -3,7 +3,6 @@
 import "../core/index.js";
 import URLUtilities from "node:url";
 import { URI } from "../core/index.js";
-import { URISyntax } from "../core/uri-syntax.js";
 
 //#region URI
 declare module "../core/uri.js" {
@@ -22,7 +21,7 @@ declare module "../core/uri.js" {
 
 	namespace URI {
 		/**
-		 * Creates a URI from a platform `URL`, percent-encoding the characters that WHATWG leaves as written but RFC 3986 forbids.
+		 * Creates a URI from a platform `URL`; the characters that WHATWG leaves as written but RFC 3986 forbids, such as `|` or `^`, are percent-encoded.
 		 */
 		function fromURL(url: Readonly<URL>): URI;
 		/**
@@ -41,7 +40,7 @@ URI.prototype.toPath = function (this: URI): string {
 };
 
 URI.fromURL = function (url: Readonly<URL>): URI {
-	return new URI(URISyntax.repair(url.href));
+	return new URI(url.href);
 };
 
 URI.fromPath = function (path: string): URI {

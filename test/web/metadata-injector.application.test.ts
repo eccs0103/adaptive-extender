@@ -1,6 +1,6 @@
 "use strict";
 
-import { MetadataInjector } from "adaptive-extender/web";
+import { MetadataInjector, URI } from "adaptive-extender/web";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 describe("MetadataInjector — Application", () => {
@@ -9,9 +9,9 @@ describe("MetadataInjector — Application", () => {
 		MetadataInjector.inject({
 			type: "Application",
 			name: "MyApp",
-			webpage: new URL("https://myapp.io"),
+			webpage: new URI("https://myapp.io/"),
 			description: "A great app.",
-			preview: new URL("https://myapp.io/preview.png"),
+			preview: new URI("https://myapp.io/preview.png"),
 			category: "GameApplication",
 			os: "Windows",
 			version: "2.0.0",

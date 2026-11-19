@@ -16,8 +16,7 @@
 		"skipLibCheck": false,
 
 		/* Emit & Declarations */
-		"declaration": true,
-		"sourceMap": true,
+		"noEmit": true,
 
 		/* Type Checking & Linting */
 		"strict": true,

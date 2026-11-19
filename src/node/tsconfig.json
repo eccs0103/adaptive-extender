@@ -1,5 +1,5 @@
 {
-	"extends": "../../tsconfig.base.json",
+	"extends": "../../tsconfig.emit.json",
 	"compilerOptions": {
 		"lib": [ "ES2025", "ESNext.Decorators" ],
 		"types": [ "node" ],

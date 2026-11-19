@@ -1,3 +1,6 @@
+## 1.3.1 (19.11.2026)
+- Maintenance release: the build toolchain moved to TypeScript 7 and newer `vite` and `vitest`. No API or behaviour change.
+
 ## 1.3.0 (07.11.2026)
 - `URI` parsing now fixes what has one correct form, like `URL`: it percent-encodes characters that userinfo, path, query or fragment cannot hold (`/a b|c` → `/a%20b%7Cc`, a stray `%` → `%25`), trims surrounding spaces and controls and drops tabs and line breaks. Strings such as `request.url` and `anchor.href` always parse; only a broken scheme, host or port still throws.
 - `URI` setters no longer throw, like every other setter in the library: `username`, `password`, `pathname`, `search` and `hash` percent-encode what they cannot hold, and `pathname` gets the `/` a path needs after a host. An invalid `protocol`, `host`, `hostname`, `port` or `href`, or an authority on a URI that cannot have one, is ignored.

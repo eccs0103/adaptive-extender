@@ -32,7 +32,9 @@ dist-ssr
 !.gitattributes
 !.editorconfig
 !.npmignore
-!.mocharc.json
+!.github
+!.node-version
+!.npmrc
 
 # TypeScript / JS build artifacts
 *.tsbuildinfo
